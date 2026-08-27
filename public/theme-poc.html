@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="sv" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS - Lexicon Utbildning</title>
+    <!-- Bootstrap 5.3 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS Custom Properties (Design Tokens) för anpassning av färger -->
+    <style>
+        :root {
+            --bs-primary: #0d6efd;
+            --bs-primary-rgb: 13, 110, 253;
+        }
+        [data-bs-theme="dark"] {
+            --bs-primary: #3788ff;
+            --bs-primary-rgb: 55, 136, 255;
+        }
+        .hero-section {
+            padding: 4rem 0;
+            background-color: var(--bs-body-tertiary);
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Skript för hantering av ljust/mörkt läge (förhindrar flimmer) -->
+    <script>
+        (() => {
+            'use strict'
+            const getStoredTheme = () => localStorage.getItem('theme')
+            const setStoredTheme = theme => localStorage.setItem('theme', theme)
+
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) return storedTheme
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+
+            const setTheme = theme => {
+                if (theme === 'auto') {
+                    document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme)
+                }
+            }
+
+            setTheme(getPreferredTheme())
+
+            window.addEventListener('DOMContentLoaded', () => {
+                const themeToggle = document.getElementById('btn-theme-toggle')
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        const currentTheme = document.documentElement.getAttribute('data-bs-theme')
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+                        setStoredTheme(newTheme)
+                        setTheme(newTheme)
+                        updateButtonIcon(newTheme)
+                    })
+                    updateButtonIcon(document.documentElement.getAttribute('data-bs-theme'))
+                }
+            })
+
+            function updateButtonIcon(theme) {
+                const btn = document.getElementById('btn-theme-toggle')
+                if(btn) {
+                    btn.textContent = theme === 'dark' ? '☀️ Ljust läge' : '🌙 Mörkt läge'
+                }
+            }
+        })()
+    </script>
+
+    <!-- 1. NAVIGATION -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Lexicon LMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#">Hem</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#schema">Mitt Schema</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#moduler">Moduler</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#inlamningar">Inlämningar</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-theme-toggle" class="btn btn-outline-secondary btn-sm" type="button">🌙 Mörkt läge</button>
+                    <!-- Inloggningsknapp / Användarstatus -->
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Logga in</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. HERO SEKTION FÖR LÄROPLATTFORMEN -->
+    <header class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <span class="badge bg-primary mb-2">Aktiv Kurs: Lexicon LTU</span>
+                    <h1 class="display-5 fw-bold mb-3">Välkommen till din utbildningsportal</h1>
+                    <p class="lead text-body-secondary mb-4">Här samlas ditt schema, kursmaterial, moduler och inlämningsuppgifter på ett och samma ställe för att förenkla dina studier.</p>
+                    <div class="d-flex gap-2">
+                        <a href="#schema" class="btn btn-primary btn-lg">Visa schema idag</a>
+                        <a href="#inlamningar" class="btn btn-outline-secondary btn-lg">Aktiva inlämningar</a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <!-- Snabbstatus-kort för inloggad elev -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="card-title h5 mb-3">Snabbstatus</h3>
+                            <ul class="list-unstyled mb-0 text-body-secondary small">
+                                <li class="mb-2">📚 <strong>Aktiv modul:</strong> React & Frontend</li>
+                                <li class="mb-2">⚠️ <strong>Kommande deadline:</strong> Garage 2.0 (Fredag)</li>
+                                <li>✅ <strong>Inlämnat:</strong> 4 / 6 uppgifter</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. AKTUELLA MODULER & SCHEMA -->
+    <section id="moduler" class="py-5">
+        <div class="container py-3">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold">Aktuella Moduler</h2>
+                    <p class="text-body-secondary">Översikt över moduler som ingår i din påbyggnadsutbildning.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <span class="badge bg-success mb-2">Klar</span>
+                            <h3 class="card-title h5">C# & .NET Grund</h3>
+                            <p class="card-text text-body-secondary small">Objektorienterad programmering, collections, LINQ och unit testing med xUnit.</p>
+                            <a href="#" class="icon-link icon-link-hover small">Visa kursmaterial &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-primary">
+                        <div class="card-body">
+                            <span class="badge bg-primary mb-2">Pågår nu</span>
+                            <h3 class="card-title h5">React & Frontend</h3>
+                            <p class="card-text text-body-secondary small">Moderna webbapplikationer med Vite, TypeScript, komponenter och state-hantering.</p>
+                            <a href="#" class="icon-link icon-link-hover small">Visa modulschema &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <span class="badge bg-secondary mb-2">Kommande</span>
+                            <h3 class="card-title h5">Full-stack Projektarbete</h3>
+                            <p class="card-text text-body-secondary small">Slutprojekt med .NET backend, EF Core databas och React-frontend i scrum-team.</p>
+                            <a href="#" class="icon-link icon-link-hover small">Förberedelser &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. INLÄMNINGSUPPGIFTER & RESURSER -->
+    <section id="inlamningar" class="py-5 bg-body-tertiary border-top">
+        <div class="container py-3">
+            <div class="row g-5">
+                <div class="col-lg-7">
+                    <h2 class="fw-bold mb-3">Mina Inlämningsuppgifter</h2>
+                    <p class="text-body-secondary mb-4">Håll koll på dina deadlines och status för textbaserade inlämningar[cite: 2].</p>
+                    
+                    <div class="list-group shadow-sm">
+                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">Garage 2.0 (Med Unit Test)</h6>
+                                <p class="mb-0 small text-body-secondary">Deadline: 2026-05-20[cite: 1]</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Ej inlämnad</span>
+                        </div>
+                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">React Komponentstruktur</h6>
+                                <p class="mb-0 small text-body-secondary">Deadline: Nästa vecka</p>
+                            </div>
+                            <span class="badge bg-success">Inlämnad</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <h2 class="fw-bold mb-3">Resurser & Länkar</h2>
+                    <p class="text-body-secondary mb-4">Snabb åtkomst till kursmaterial och verktyg[cite: 2].</p>
+                    <ul class="list-group shadow-sm">
+                        <li class="list-group-item p-3"><a href="#" class="text-decoration-none">📖 Kurslitteratur & Dokumentation</a></li>
+                        <li class="list-group-item p-3"><a href="#" class="text-decoration-none">🔗 GitHub Repository (Teamets kod)</a></li>
+                        <li class="list-group-item p-3"><a href="#" class="text-decoration-none">💬 Teams-kanal för daglig standup</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enkel Inloggningsmodal (för Use-Case: Logga in) -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Logga in på LMS</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">E-postadress</label>
+                            <input type="email" class="form-control" placeholder="namn@elever.lexicon.se">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lösenord</label>
+                            <input type="password" class="form-control" placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Logga in</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. FOOTER -->
+    <footer class="py-4 bg-body border-top">
+        <div class="container text-center text-body-secondary small">
+            <p class="mb-0">&copy; 2026 Lexicon LMS. Byggd för .NET & React-utbildningen.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5.3 JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
