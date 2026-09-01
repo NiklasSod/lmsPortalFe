@@ -26,7 +26,7 @@ export default function LoginView() {
       })
 
       if (!response.ok) {
-        let errorMessage = 'Felaktig e-post eller lösenord.'
+        let errorMessage = 'Invalid email or password.'
         try {
           const data = await response.json()
           if (typeof data === 'string') errorMessage = data
@@ -43,7 +43,7 @@ export default function LoginView() {
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
 
-      console.log('Inloggning lyckades!', {
+      console.log('Login successful!', {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       })
@@ -53,7 +53,7 @@ export default function LoginView() {
       if (err instanceof Error) {
         setError(err.message)
       } else {
-        setError('Kunde inte ansluta till servern.')
+        setError('Could not connect to server.')
       }
     } finally {
       setIsLoading(false)
@@ -63,7 +63,7 @@ export default function LoginView() {
   return (
     <div
       className="min-vh-100 d-flex flex-column"
-      style={{ backgroundColor: '#f0f0f0' }}
+      style={{ backgroundColor: 'var(--card-bg)' }}
     >
       <header className="p-4 d-flex align-items-center gap-2">
         <div
@@ -138,19 +138,25 @@ export default function LoginView() {
               {isLoading ? (
                 <>
                   <Spinner animation="border" size="sm" className="me-2" />
-                  Loggar in...
+                  Logging in...
                 </>
               ) : (
                 'Sign In'
               )}
             </Button>
 
-            <div>
+            <div className="d-flex justify-content-between align-items-center mt-2">
               <Link
                 to="/forgot-password"
                 className="text-dark text-decoration-underline small"
               >
                 Forgot password?
+              </Link>
+              <Link
+                to="/create-account"
+                className="text-dark text-decoration-underline small"
+              >
+                Create Account
               </Link>
             </div>
           </Form>
