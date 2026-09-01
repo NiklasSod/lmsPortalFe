@@ -1,13 +1,56 @@
-import type { AuthResponse, LoginRequest } from '../../types/auth'
+import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+} from '../../types/auth'
 
-let accessToken: string | null = null
+const ACCESS_TOKEN = 'accessToken'
+const EXPIRES_AT = 'expiresAt'
 
 export function getAccessToken(): string | null {
-  return accessToken
+  return sessionStorage.getItem(ACCESS_TOKEN)
 }
 
-export function setAccessToken(token: string | null): void {
-  accessToken = token
+export function getExpiresAt(): string | null {
+  return sessionStorage.getItem(EXPIRES_AT)
+}
+
+function storeSession(data: AuthResponse): void {
+  sessionStorage.setItem(ACCESS_TOKEN, data.accessToken)
+  sessionStorage.setItem(EXPIRES_AT, data.expiresAt)
+}
+
+function clearSession(): void {
+  sessionStorage.removeItem(ACCESS_TOKEN)
+  sessionStorage.removeItem(EXPIRES_AT)
+}
+
+// gives good errors from the backend
+async function errorMessage(res: Response, fallback: string): Promise<string> {
+  const text = await res.text()
+  if (!text) return fallback
+
+  try {
+    const data = JSON.parse(text)
+    if (typeof data === 'string') return data
+    if (data?.message) return String(data.message)
+  } catch {
+    // body is plain text
+  }
+
+  return text
+}
+
+export async function register(request: RegisterRequest): Promise<void> {
+  const res = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    throw new Error(await errorMessage(res, 'Could not create account.'))
+  }
 }
 
 export async function login(
@@ -22,36 +65,37 @@ export async function login(
   })
 
   if (!res.ok) {
-    const message = await res.text()
-    throw new Error(message || `Login failed: ${res.status}`)
+    throw new Error(await errorMessage(res, 'Invalid email or password.'))
   }
 
   const data: AuthResponse = await res.json()
-  accessToken = data.accessToken
+  storeSession(data)
   return data
 }
 
-export async function refresh(): Promise<string> {
+export async function refresh(): Promise<AuthResponse> {
   const res = await fetch('/api/auth/refresh', {
     method: 'POST',
     credentials: 'include',
   })
 
-  if (!res.ok) throw new Error('Refresh failed')
+  if (!res.ok) {
+    clearSession()
+    throw new Error('Session expired, please log in again.')
+  }
 
   const data: AuthResponse = await res.json()
-  accessToken = data.accessToken
-  return accessToken
+  storeSession(data)
+  return data
 }
 
 export async function logout(): Promise<void> {
-  const res = await fetch('/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include',
-  })
-  if (!res.ok) {
-    const message = await res.text()
-    throw new Error(message || `Logout failed: ${res.status}`)
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+  } finally {
+    clearSession()
   }
-  accessToken = null
 }
