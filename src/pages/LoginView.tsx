@@ -23,6 +23,7 @@ export default function LoginView() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -40,12 +41,12 @@ export default function LoginView() {
 
       const data = await response.json()
 
+      // session instead of local?
       localStorage.setItem('accessToken', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
+      localStorage.setItem('expireAt', data.expiresAt)
 
       console.log('Login successful!', {
         accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
       })
 
       navigate('/')
@@ -85,7 +86,12 @@ export default function LoginView() {
 
       <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3">
         <div style={{ width: '100%', maxWidth: '380px' }}>
-          <h1 className="text-center fw-bold mb-4 fs-3" style={{ color: 'var(--text-primary)' }}>Log In</h1>
+          <h1
+            className="text-center fw-bold mb-4 fs-3"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Log In
+          </h1>
 
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
@@ -95,7 +101,10 @@ export default function LoginView() {
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="loginEmail">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Email
               </Form.Label>
               <Form.Control
@@ -115,7 +124,10 @@ export default function LoginView() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="loginPassword">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Password
               </Form.Label>
               <Form.Control
