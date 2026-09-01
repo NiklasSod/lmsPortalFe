@@ -1,9 +1,47 @@
-import { Fragment } from 'react'
-import { Card, Col, Container, Row } from 'react-bootstrap'
+import { Fragment, useEffect, useState } from 'react'
+import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { courses } from '../../data/courses'
+import { apiFetch } from '../../api/apifetch'
+import type { CourseSummary } from '../../api/types'
 
 function TeacherCourses() {
+  const [courses, setCourses] = useState<CourseSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        setLoading(true)
+        const res = await apiFetch('/api/courses')
+        if (!res.ok) throw new Error(`Failed to fetch courses: ${res.status}`)
+        const data: CourseSummary[] = await res.json()
+        setCourses(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCourses()
+  }, [])
+
+  if (loading) {
+    return (
+      <Container className="py-4 text-center">
+        <Spinner animation="border" role="status" />
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    )
+  }
+
   return (
     <Container className="py-4">
       <h1 className="h2">My courses</h1>
@@ -16,14 +54,15 @@ function TeacherCourses() {
                 to={`/teacher/courses/${course.id}`}
                 className="h-100 text-decoration-none text-reset"
               >
-                <Card.Img
-                  variant="top"
-                  src={course.imageUrl}
-                  alt=""
-                  style={{ height: 160, objectFit: 'cover' }}
-                />
                 <Card.Body>
                   <Card.Title className="h5">{course.name}</Card.Title>
+                  <Card.Text className="text-muted small">
+                    {course.description}
+                  </Card.Text>
+                  <Card.Text className="text-muted small mb-0">
+                    {new Date(course.startDate).toLocaleDateString()} –{' '}
+                    {new Date(course.endDate).toLocaleDateString()}
+                  </Card.Text>
                 </Card.Body>
               </Card>
             </Col>

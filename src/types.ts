@@ -5,8 +5,10 @@ export interface Student {
 }
 
 export interface Course {
-  id: string
+  id: string | number
   name: string
-  imageUrl: string
-  students: Student[]
+  description: string
+  startDate: string
+  endDate: string
+  students?: Student[]
 }
