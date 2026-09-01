@@ -1,4 +1,3 @@
-import './App.css'
 import { Route, Routes } from 'react-router-dom'
 import LoginView from './pages/Login/LoginView'
 import CreateAccountView from './pages/Register/CreateAccountView'
