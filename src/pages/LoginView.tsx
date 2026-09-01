@@ -23,6 +23,7 @@ export default function LoginView() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -40,12 +41,12 @@ export default function LoginView() {
 
       const data = await response.json()
 
+      // session instead of local?
       localStorage.setItem('accessToken', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
+      localStorage.setItem('expireAt', data.expiresAt)
 
       console.log('Login successful!', {
         accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
       })
 
       navigate('/')
@@ -70,14 +71,14 @@ export default function LoginView() {
           style={{
             width: '32px',
             height: '32px',
-            backgroundColor: '#ccc',
-            border: '1px solid #aaa',
+            backgroundColor: 'var(--logo-bg)',
+            border: '1px solid var(--logo-border)',
             borderRadius: '4px',
           }}
         />
         <span
           className="fw-bold fs-5 tracking-wide"
-          style={{ letterSpacing: '0.5px' }}
+          style={{ letterSpacing: '0.5px', color: 'var(--text-primary)' }}
         >
           LEXICON
         </span>
@@ -85,7 +86,12 @@ export default function LoginView() {
 
       <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3">
         <div style={{ width: '100%', maxWidth: '380px' }}>
-          <h1 className="text-center fw-bold mb-4 fs-3">Log In</h1>
+          <h1
+            className="text-center fw-bold mb-4 fs-3"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Log In
+          </h1>
 
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
@@ -95,7 +101,10 @@ export default function LoginView() {
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="loginEmail">
-              <Form.Label className="fw-normal text-secondary mb-1 small">
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Email
               </Form.Label>
               <Form.Control
@@ -103,14 +112,22 @@ export default function LoginView() {
                 placeholder="Value"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="py-2 px-3 shadow-none border-secondary-subtle"
-                style={{ borderRadius: '6px' }}
+                className="py-2 px-3 shadow-none"
+                style={{
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--input-bg)',
+                  color: 'var(--input-text)',
+                  borderColor: 'var(--input-border)',
+                }}
                 required
               />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="loginPassword">
-              <Form.Label className="fw-normal text-secondary mb-1 small">
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Password
               </Form.Label>
               <Form.Control
@@ -118,8 +135,13 @@ export default function LoginView() {
                 placeholder="Value"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="py-2 px-3 shadow-none border-secondary-subtle"
-                style={{ borderRadius: '6px' }}
+                className="py-2 px-3 shadow-none"
+                style={{
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--input-bg)',
+                  color: 'var(--input-text)',
+                  borderColor: 'var(--input-border)',
+                }}
                 required
               />
             </Form.Group>
@@ -130,8 +152,9 @@ export default function LoginView() {
               disabled={isLoading}
               className="w-100 py-2 mt-2 mb-3 fw-medium"
               style={{
-                backgroundColor: '#2a2a2a',
-                borderColor: '#2a2a2a',
+                backgroundColor: 'var(--btn-bg)',
+                borderColor: 'var(--btn-bg)',
+                color: 'var(--btn-text)',
                 borderRadius: '6px',
               }}
             >
@@ -148,13 +171,15 @@ export default function LoginView() {
             <div className="d-flex justify-content-between align-items-center mt-2">
               <Link
                 to="/forgot-password"
-                className="text-dark text-decoration-underline small"
+                className="text-decoration-underline small"
+                style={{ color: 'var(--link-color)' }}
               >
                 Forgot password?
               </Link>
               <Link
                 to="/create-account"
-                className="text-dark text-decoration-underline small"
+                className="text-decoration-underline small"
+                style={{ color: 'var(--link-color)' }}
               >
                 Create Account
               </Link>
