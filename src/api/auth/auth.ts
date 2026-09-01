@@ -41,16 +41,23 @@ async function errorMessage(res: Response, fallback: string): Promise<string> {
   return text
 }
 
-export async function register(request: RegisterRequest): Promise<void> {
+export async function register(
+  request: RegisterRequest,
+): Promise<AuthResponse> {
   const res = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
+    credentials: 'include',
   })
 
   if (!res.ok) {
     throw new Error(await errorMessage(res, 'Could not create account.'))
   }
+
+  const data: AuthResponse = await res.json()
+  storeSession(data)
+  return data
 }
 
 export async function login(
