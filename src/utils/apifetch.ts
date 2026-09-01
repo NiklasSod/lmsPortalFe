@@ -1,19 +1,24 @@
 import { getAccessToken, refresh } from '../api/auth/auth'
+import { getValidAccessToken } from './tokenExpiry'
 
 export async function apiFetch(
   path: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const doFetch = () =>
-    fetch(path, {
+  const doFetch = () => {
+    const token = getAccessToken()
+    return fetch(path, {
       ...options,
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${getAccessToken()}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     })
+  }
+
+  await getValidAccessToken()
 
   let res = await doFetch()
 
