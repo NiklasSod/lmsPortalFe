@@ -9,3 +9,12 @@ body {
   margin: 0;
   padding: 0;
 }
+
+[data-bs-theme="light"] {
+  --card-bg: #f0f0f0;
+}
+
+[data-bs-theme="dark"] {
+  --card-bg: #2a2a2a;
+}
+
