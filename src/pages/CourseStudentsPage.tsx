@@ -11,8 +11,8 @@ import { getCourseById } from '../data/courses'
 import CourseSections from '../components/CourseSections'
 
 function CourseStudentsPage() {
-  const { courseId } = useParams<{ courseId: string }>()
-  const course = courseId ? getCourseById(courseId) : undefined
+  const { id } = useParams<{ id: string }>()
+  const course = id ? getCourseById(id) : undefined
 
   if (!course) {
     return (
@@ -26,7 +26,7 @@ function CourseStudentsPage() {
   return (
     <Container className="py-4">
       <Breadcrumb>
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/courses' }}>
+        <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/student/courses' }}>
           Courses
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{course.name}</Breadcrumb.Item>

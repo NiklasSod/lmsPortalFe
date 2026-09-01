@@ -12,28 +12,28 @@ function CourseSections({ courseId }: CourseSectionsProps) {
       <Nav className="flex-column text-start">
         <Nav.Link
           as={Link}
-          to={`/courses/${courseId}`}
+          to={`/teacher/courses/${courseId}`}
           className="text-decoration-underline ps-0"
         >
           Overview
         </Nav.Link>
         <Nav.Link
           as={Link}
-          to={`/courses/${courseId}/modules`}
+          to={`/teacher/courses/${courseId}/modules`}
           className="text-decoration-underline ps-0"
         >
           Modules
         </Nav.Link>
         <Nav.Link
           as={Link}
-          to={`/courses/${courseId}/assignments`}
+          to={`/teacher/courses/${courseId}/assignments`}
           className="text-decoration-underline ps-0"
         >
           Assignments
         </Nav.Link>
         <Nav.Link
           as={Link}
-          to={`/courses/${courseId}/students`}
+          to={`/teacher/courses/${courseId}/students`}
           className="fw-bold active text-decoration-underline ps-0"
         >
           Students

@@ -1,8 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import { Book, Speedometer, MortarboardFill } from 'react-bootstrap-icons'
+import { Book, MortarboardFill, Speedometer } from 'react-bootstrap-icons'
 
 function AppNavbar() {
+  const { pathname } = useLocation()
+  const isTeacher = pathname.startsWith('/teacher')
+  const coursesPath = isTeacher ? '/teacher/courses' : '/student/courses'
+
   return (
     <Navbar
       bg="dark"
@@ -33,7 +37,7 @@ function AppNavbar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
-          to="/courses"
+          to={coursesPath}
           className="d-flex align-items-center gap-2 text-white"
         >
           <MortarboardFill /> Courses

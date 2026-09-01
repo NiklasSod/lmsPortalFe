@@ -7,5 +7,6 @@ export interface Student {
 export interface Course {
   id: string
   name: string
+  imageUrl: string
   students: Student[]
 }
