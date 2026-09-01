@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { apiFetch } from '../../../utils/apifetch'
+import { getTeacherCourses } from '../../../api/course'
 import type { CourseSummary } from '../../../types/course'
 
 function TeacherCourses() {
@@ -13,9 +13,7 @@ function TeacherCourses() {
     async function fetchCourses() {
       try {
         setLoading(true)
-        const res = await apiFetch('/api/courses')
-        if (!res.ok) throw new Error(`Failed to fetch courses: ${res.status}`)
-        const data: CourseSummary[] = await res.json()
+        const data = await getTeacherCourses()
         setCourses(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
