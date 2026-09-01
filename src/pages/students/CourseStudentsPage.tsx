@@ -7,8 +7,8 @@ import {
   Row,
   Col,
 } from 'react-bootstrap'
-import { getCourseById } from '../data/courses'
-import CourseSections from '../components/CourseSections'
+import { getCourseById } from '../../data/courses'
+import CourseSections from '../../components/CourseSections'
 
 function CourseStudentsPage() {
   const { id } = useParams<{ id: string }>()

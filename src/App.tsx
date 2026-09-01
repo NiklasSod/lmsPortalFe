@@ -1,8 +1,8 @@
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
 import AppNavbar from './components/AppNavbar'
-import TeacherCourses from './pages/TeacherCourses'
-import CourseStudentsPage from './pages/CourseStudentsPage'
+import TeacherCourses from './pages/teachers/TeacherCourses'
+import CourseStudentsPage from './pages/students/CourseStudentsPage'
 
 function App() {
   return (

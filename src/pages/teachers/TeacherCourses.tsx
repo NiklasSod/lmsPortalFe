@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { Card, Col, Container, Row } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { courses } from '../data/courses'
+import { courses } from '../../data/courses'
 
 function TeacherCourses() {
   return (
