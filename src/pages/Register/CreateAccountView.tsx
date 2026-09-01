@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../../config/api'
+import { register } from '../../api/auth/auth'
 
 export default function CreateAccountView() {
   const [firstName, setFirstName] = useState('')
@@ -28,31 +28,7 @@ export default function CreateAccountView() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
-      })
-
-      if (!response.ok) {
-        let errorMessage = 'Could not create account.'
-        try {
-          const data = await response.json()
-          if (typeof data === 'string') errorMessage = data
-          else if (data?.message) errorMessage = data.message
-        } catch {
-          const text = await response.text()
-          if (text) errorMessage = text
-        }
-        throw new Error(errorMessage)
-      }
+      await register({ firstName, lastName, email, password })
 
       setSuccess('Account created! Redirecting to login...')
       setTimeout(() => {
