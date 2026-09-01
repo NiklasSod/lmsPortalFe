@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../../config/api'
+import { login } from '../../api/auth/auth'
 
 export default function LoginView() {
   const [email, setEmail] = useState('')
@@ -17,37 +17,7 @@ export default function LoginView() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        let errorMessage = 'Invalid email or password.'
-        try {
-          const data = await response.json()
-          if (typeof data === 'string') errorMessage = data
-          else if (data?.message) errorMessage = data.message
-        } catch {
-          const text = await response.text()
-          if (text) errorMessage = text
-        }
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-
-      sessionStorage.setItem('accessToken', data.accessToken)
-      sessionStorage.setItem('expireAt', data.expiresAt)
-
-      console.log('Login successful!', {
-        accessToken: data.accessToken,
-      })
-
+      await login(email, password)
       navigate('/')
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -176,7 +146,7 @@ export default function LoginView() {
                 Forgot password?
               </Link>
               <Link
-                to="/create-account"
+                to="/register"
                 className="text-decoration-underline small"
                 style={{ color: 'var(--link-color)' }}
               >
