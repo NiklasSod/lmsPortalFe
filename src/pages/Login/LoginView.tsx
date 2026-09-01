@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../config/api'
+import { API_BASE_URL } from '../../config/api'
 
 export default function LoginView() {
   const [email, setEmail] = useState('')
@@ -41,9 +41,8 @@ export default function LoginView() {
 
       const data = await response.json()
 
-      // session instead of local?
-      localStorage.setItem('accessToken', data.accessToken)
-      localStorage.setItem('expireAt', data.expiresAt)
+      sessionStorage.setItem('accessToken', data.accessToken)
+      sessionStorage.setItem('expireAt', data.expiresAt)
 
       console.log('Login successful!', {
         accessToken: data.accessToken,

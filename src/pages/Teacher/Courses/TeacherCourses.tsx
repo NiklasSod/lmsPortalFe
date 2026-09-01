@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { apiFetch } from '../../api/apifetch'
-import type { CourseSummary } from '../../api/types'
+import { apiFetch } from '../../../utils/apifetch'
+import type { CourseSummary } from '../../../types/course'
 
 function TeacherCourses() {
   const [courses, setCourses] = useState<CourseSummary[]>([])

@@ -1,9 +1,9 @@
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
-import LoginView from './pages/LoginView'
-import CreateAccountView from './pages/CreateAccountView'
+import LoginView from './pages/Login/LoginView'
+import CreateAccountView from './pages/Register/CreateAccountView'
 import AppNavbar from './components/AppNavbar'
-import TeacherCourses from './pages/teachers/TeacherCourses'
+import TeacherCourses from './pages/Teacher/Courses/TeacherCourses'
 
 function App() {
   return (

@@ -1,4 +1,4 @@
-import type { AuthResponse, LoginRequest } from './types'
+import type { AuthResponse, LoginRequest } from '../../types/auth'
 
 let accessToken: string | null = null
 
