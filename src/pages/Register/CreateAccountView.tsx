@@ -10,7 +10,6 @@ export default function CreateAccountView() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
@@ -18,7 +17,6 @@ export default function CreateAccountView() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
-    setSuccess(null)
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
@@ -29,11 +27,7 @@ export default function CreateAccountView() {
 
     try {
       await register({ firstName, lastName, email, password })
-
-      setSuccess('Account created! Redirecting to login...')
-      setTimeout(() => {
-        navigate('/login')
-      }, 1500)
+      navigate('/')
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message)
@@ -80,16 +74,6 @@ export default function CreateAccountView() {
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
               {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert
-              variant="success"
-              onClose={() => setSuccess(null)}
-              dismissible
-            >
-              {success}
             </Alert>
           )}
 
