@@ -15,6 +15,56 @@ export function getExpiresAt(): string | null {
   return sessionStorage.getItem(EXPIRES_AT)
 }
 
+export function getRole(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  return extractRole(token)
+}
+
+const ROLE_CLAIM_KEYS = [
+  'role',
+  'roles',
+  'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+]
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return null
+
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+
+    const json = decodeURIComponent(
+      atob(padded)
+        .split('')
+        .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join(''),
+    )
+
+    return JSON.parse(json) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+function extractRole(token: string): string | null {
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  for (const key of ROLE_CLAIM_KEYS) {
+    const value = payload[key]
+    if (typeof value === 'string' && value) return value
+    if (Array.isArray(value)) {
+      const role = value.find((item) => typeof item === 'string')
+      if (role) return role
+    }
+  }
+
+  return null
+}
+
 function storeSession(data: AuthResponse): void {
   sessionStorage.setItem(ACCESS_TOKEN, data.accessToken)
   sessionStorage.setItem(EXPIRES_AT, data.expiresAt)
