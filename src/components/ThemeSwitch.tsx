@@ -1,36 +1,70 @@
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import Button from 'react-bootstrap/Button';
-import { useTheme } from '../hooks/useTheme';
+import { Dropdown } from 'react-bootstrap'
+import { useTheme } from '../hooks/useTheme'
+
+const themeIcons = {
+  light: '☀️',
+  dark: '🌙',
+  system: '💻',
+}
+
+const themeLabels = {
+  light: 'Light',
+  dark: 'Dark',
+  system: 'System',
+}
+
+type ThemeLabels = 'light' | 'dark' | 'system'
 
 export const ThemeSwitch = () => {
-    const { currentTheme , changeTheme } = useTheme();
+  const { currentTheme, changeTheme } = useTheme()
 
-    return (
-        <ButtonGroup vertical aria-label="Temaväljare" className="w-120">
-            <Button
-                size="sm"
-                variant={currentTheme === 'light' ? 'primary' : 'outline-secondary'}
-                onClick={() => changeTheme('light')}
-                className="text-start"
-            >
-                ☀️ Ljust
-            </Button>
-            <Button
-                size="sm"
-                variant={currentTheme === 'dark' ? 'primary' : 'outline-secondary'}
-                onClick={() => changeTheme('dark')}
-                className="text-start"
-            >
-                🌙 Mörkt
-            </Button>
-            <Button
-                size="sm"
-                variant={currentTheme === 'system' ? 'primary' : 'outline-secondary'}
-                onClick={() => changeTheme('system')}
-                className="text-start"
-            >
-                💻 System
-            </Button>
-        </ButtonGroup>
-    );
-};
+  return (
+    <div className="d-flex align-items-center gap-2 justify-content-between mx-4">
+      <Dropdown
+        drop="up"
+        onSelect={(selectedTheme) => changeTheme(selectedTheme as ThemeLabels)}
+      >
+        <Dropdown.Toggle size="sm" variant="outline-secondary">
+          {themeLabels[currentTheme] || 'Choose theme'}
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu style={{ minWidth: 'auto', width: '8.5rem' }}>
+          <Dropdown.Item
+            className="d-flex justify-content-between align-items-center"
+            eventKey="light"
+            active={currentTheme === 'light'}
+          >
+            <span>Light</span>
+            <span className="ms-3" aria-hidden="true">
+              ☀️
+            </span>
+          </Dropdown.Item>
+          <Dropdown.Item
+            className="d-flex justify-content-between align-items-center"
+            eventKey="dark"
+            active={currentTheme === 'dark'}
+          >
+            <span>Dark</span>
+            <span className="ms-3" aria-hidden="true">
+              🌙
+            </span>
+          </Dropdown.Item>
+          <Dropdown.Item
+            className="d-flex justify-content-between align-items-center"
+            eventKey="system"
+            active={currentTheme === 'system'}
+          >
+            <span>System</span>
+            <span className="ms-3" aria-hidden="true">
+              💻
+            </span>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+
+      <span aria-hidden="true" style={{ fontSize: '1.2rem' }}>
+        {themeIcons[currentTheme] || '💻'}
+      </span>
+    </div>
+  )
+}
