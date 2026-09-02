@@ -1,8 +1,4 @@
-import type {
-  AuthResponse,
-  LoginRequest,
-  RegisterRequest,
-} from '../../types/auth'
+import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/auth'
 
 const ACCESS_TOKEN = 'accessToken'
 const EXPIRES_AT = 'expiresAt'

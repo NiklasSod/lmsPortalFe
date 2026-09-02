@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import { Book, JournalBookmark, MortarboardFill, Speedometer } from 'react-bootstrap-icons'
+import {
+  Book,
+  JournalBookmark,
+  MortarboardFill,
+  Speedometer,
+} from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
-import { getRole } from '../api/auth/auth'
+import { getRole } from '../api/auth'
 
 function AppNavbar() {
   const role = getRole()
@@ -51,7 +56,8 @@ function AppNavbar() {
           to={modulesPath}
           className="d-flex align-items-center gap-2 text-white"
         >
-          <JournalBookmark /> {isStudent ? 'Current Modules' : 'Modules Teaching'}
+          <JournalBookmark />{' '}
+          {isStudent ? 'Current Modules' : 'Modules Teaching'}
         </Nav.Link>
       </Nav>
       <div className="mt-auto pt-3 border-top border-secondary">
