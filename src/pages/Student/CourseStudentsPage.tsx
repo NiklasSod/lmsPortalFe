@@ -16,11 +16,10 @@ import CourseSections from '../../components/CourseSections'
 function CourseStudentsPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => courseId !== undefined)
 
   useEffect(() => {
     if (!courseId) {
-      setLoading(false)
       return
     }
 
