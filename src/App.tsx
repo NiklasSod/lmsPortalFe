@@ -1,3 +1,4 @@
+import CreateCourseView from './pages/CreateCourseView'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { getAccessToken, getRole } from './api/auth/auth'
 import LoginView from './pages/Login/LoginView'
@@ -5,6 +6,7 @@ import CreateAccountView from './pages/Register/CreateAccountView'
 import AppNavbar from './components/AppNavbar'
 import TeacherCourses from './pages/Teacher/Courses/TeacherCourses'
 import CourseStudentsPage from './pages/Student/CourseStudentsPage'
+import CurrentModulesView from './pages/CurrentModulesView'
 
 function App() {
   useLocation()
@@ -40,10 +42,22 @@ function App() {
             }
           />
 
-          {!isStudent && (
+          {isStudent ? (
+            <>
+              <Route
+                path="/student/courses"
+                element={<p className="p-4">Student courses</p>}
+              />
+              <Route path="/student/modules" element={<CurrentModulesView />} />
+            </>
+          ) : (
             <>
               <Route path="/teacher/courses" element={<TeacherCourses />} />
               <Route path="/teacher/courses/:id" />
+              <Route
+                path="/teacher/courses/create"
+                element={<CreateCourseView />}
+              />
             </>
           )}
 

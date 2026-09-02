@@ -1,11 +1,15 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import { Book, MortarboardFill, Speedometer } from 'react-bootstrap-icons'
+import { Book, JournalBookmark, MortarboardFill, Speedometer } from 'react-bootstrap-icons'
+import { ThemeSwitch } from './ThemeSwitch'
+import { getRole } from '../api/auth/auth'
 
 function AppNavbar() {
-  const { pathname } = useLocation()
-  const isTeacher = pathname.startsWith('/teacher')
-  const coursesPath = isTeacher ? '/teacher/courses' : '/student/courses'
+  const role = getRole()
+  const isStudent = role === 'student'
+
+  const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
+  const modulesPath = isStudent ? '/student/modules' : '/teacher/modules'
 
   return (
     <Navbar
@@ -42,7 +46,17 @@ function AppNavbar() {
         >
           <MortarboardFill /> Courses
         </Nav.Link>
+        <Nav.Link
+          as={Link}
+          to={modulesPath}
+          className="d-flex align-items-center gap-2 text-white"
+        >
+          <JournalBookmark /> {isStudent ? 'Current Modules' : 'Modules Teaching'}
+        </Nav.Link>
       </Nav>
+      <div className="mt-auto pt-3 border-top border-secondary">
+        <ThemeSwitch />
+      </div>
     </Navbar>
   )
 }

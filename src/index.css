@@ -31,22 +31,6 @@ body {
   --input-border: #dee2e6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --card-bg: #1e1e1e;
-    --text-primary: #f8f9fa;
-    --text-secondary: #adb5bd;
-    --link-color: #f8f9fa;
-    --btn-bg: #ffffff;
-    --btn-text: #1e1e1e;
-    --logo-bg: #333333;
-    --logo-border: #555555;
-    --input-bg: #2d2d2d;
-    --input-text: #f8f9fa;
-    --input-border: #444444;
-  }
-}
-
 [data-bs-theme='dark'] {
   --card-bg: #1e1e1e;
   --text-primary: #f8f9fa;
