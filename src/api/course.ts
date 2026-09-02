@@ -1,5 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
-import type { CourseSummary } from '../types/course'
+import type { CourseSummary, CreateCourseRequest } from '../types/course'
 
 export async function getTeacherCourses(): Promise<CourseSummary[]> {
   const res = await apiFetch('/api/courses')
@@ -8,3 +8,31 @@ export async function getTeacherCourses(): Promise<CourseSummary[]> {
   }
   return res.json()
 }
+
+export async function createCourse(
+  request: CreateCourseRequest,
+): Promise<CourseSummary> {
+  const res = await apiFetch('/api/courses', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not create course.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+
+  return res.json()
+}
+
