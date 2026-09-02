@@ -5,6 +5,7 @@ import LoginView from './pages/Login/LoginView'
 import CreateAccountView from './pages/Register/CreateAccountView'
 import AppNavbar from './components/AppNavbar'
 import TeacherCourses from './pages/Teacher/Courses/TeacherCourses'
+import CurrentModulesView from './pages/CurrentModulesView'
 
 function App() {
   useLocation()
@@ -41,10 +42,16 @@ function App() {
           />
 
           {isStudent ? (
-            <Route
-              path="/student/courses"
-              element={<p className="p-4">Student courses</p>}
-            />
+            <>
+              <Route
+                path="/student/courses"
+                element={<p className="p-4">Student courses</p>}
+              />
+              <Route
+                path="/student/modules"
+                element={<CurrentModulesView />}
+              />
+            </>
           ) : (
             <>
               <Route path="/teacher/courses" element={<TeacherCourses />} />
