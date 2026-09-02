@@ -1,4 +1,3 @@
-import './index.css'
 import CreateCourseView from './pages/CreateCourseView'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { getAccessToken, getRole } from './api/auth/auth'
