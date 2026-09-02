@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { API_BASE_URL } from '../config/api'
+import { createCourse } from '../api/course'
 
 export default function CreateCourseView() {
   const [name, setName] = useState('')
@@ -25,40 +25,12 @@ export default function CreateCourseView() {
     setIsLoading(true)
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/courses`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          name,
-          description,
-          startDate: startDate ? new Date(startDate).toISOString() : null,
-          endDate: endDate ? new Date(endDate).toISOString() : null,
-        }),
+      await createCourse({
+        name,
+        description,
+        startDate: startDate ? new Date(startDate).toISOString() : null,
+        endDate: endDate ? new Date(endDate).toISOString() : null,
       })
-
-      if (!response.ok) {
-        let errorMessage = 'Could not create course.'
-        const text = await response.text()
-        if (text) {
-          try {
-            const data = JSON.parse(text)
-            if (typeof data === 'string') errorMessage = data
-            else if (data?.message) errorMessage = data.message
-            else if (data?.title) errorMessage = data.title
-          } catch {
-            errorMessage = text
-          }
-        }
-        throw new Error(errorMessage)
-      }
 
       setSuccess('Course created successfully!')
       setName('')
@@ -75,6 +47,7 @@ export default function CreateCourseView() {
       setIsLoading(false)
     }
   }
+
 
   return (
     <div

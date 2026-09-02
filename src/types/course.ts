@@ -28,3 +28,11 @@ export interface Course {
 export interface CourseDetail extends CourseSummary {
   enrollments: CourseEnrollment[]
 }
+
+export interface CreateCourseRequest {
+  name: string
+  description?: string
+  startDate: string | null
+  endDate: string | null
+}
+
