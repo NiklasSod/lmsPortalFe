@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../config/api'
+import { register } from '../../api/auth/auth'
 
 export default function CreateAccountView() {
   const [firstName, setFirstName] = useState('')
@@ -10,7 +10,6 @@ export default function CreateAccountView() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
@@ -18,7 +17,6 @@ export default function CreateAccountView() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
-    setSuccess(null)
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
@@ -28,36 +26,8 @@ export default function CreateAccountView() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
-      })
-
-      if (!response.ok) {
-        let errorMessage = 'Could not create account.'
-        try {
-          const data = await response.json()
-          if (typeof data === 'string') errorMessage = data
-          else if (data?.message) errorMessage = data.message
-        } catch {
-          const text = await response.text()
-          if (text) errorMessage = text
-        }
-        throw new Error(errorMessage)
-      }
-
-      setSuccess('Account created! Redirecting to login...')
-      setTimeout(() => {
-        navigate('/login')
-      }, 1500)
+      await register({ firstName, lastName, email, password })
+      navigate('/')
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message)
@@ -94,7 +64,12 @@ export default function CreateAccountView() {
 
       <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3 py-4">
         <div style={{ width: '100%', maxWidth: '380px' }}>
-          <h1 className="text-center fw-bold mb-4 fs-3" style={{ color: 'var(--text-primary)' }}>Create Account</h1>
+          <h1
+            className="text-center fw-bold mb-4 fs-3"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Create Account
+          </h1>
 
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
@@ -102,19 +77,12 @@ export default function CreateAccountView() {
             </Alert>
           )}
 
-          {success && (
-            <Alert
-              variant="success"
-              onClose={() => setSuccess(null)}
-              dismissible
-            >
-              {success}
-            </Alert>
-          )}
-
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="registerFirstName">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 First Name
               </Form.Label>
               <Form.Control
@@ -134,7 +102,10 @@ export default function CreateAccountView() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="registerLastName">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Last Name
               </Form.Label>
               <Form.Control
@@ -154,7 +125,10 @@ export default function CreateAccountView() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="registerEmail">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Email
               </Form.Label>
               <Form.Control
@@ -174,7 +148,10 @@ export default function CreateAccountView() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="registerPassword">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Password
               </Form.Label>
               <Form.Control
@@ -194,7 +171,10 @@ export default function CreateAccountView() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="registerConfirmPassword">
-              <Form.Label className="fw-normal mb-1 small" style={{ color: 'var(--text-secondary)' }}>
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Confirm Password
               </Form.Label>
               <Form.Control
@@ -236,7 +216,10 @@ export default function CreateAccountView() {
             </Button>
 
             <div className="text-center">
-              <span className="small me-1" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="small me-1"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Already have an account?
               </span>
               <Link
