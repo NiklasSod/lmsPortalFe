@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import { Book, MortarboardFill, Speedometer } from 'react-bootstrap-icons'
+import { ThemeSwitch } from './ThemeSwitch'
 
 function AppNavbar() {
   const { pathname } = useLocation()
@@ -43,6 +44,9 @@ function AppNavbar() {
           <MortarboardFill /> Courses
         </Nav.Link>
       </Nav>
+      <div className="mt-auto pt-3 border-top border-secondary">
+        <ThemeSwitch />
+      </div>
     </Navbar>
   )
 }
