@@ -4,6 +4,7 @@ import LoginView from './pages/Login/LoginView'
 import CreateAccountView from './pages/Register/CreateAccountView'
 import AppNavbar from './components/AppNavbar'
 import TeacherCourses from './pages/Teacher/Courses/TeacherCourses'
+import CourseStudentsPage from './pages/Student/CourseStudentsPage'
 
 function App() {
   useLocation()
@@ -39,17 +40,17 @@ function App() {
             }
           />
 
-          {isStudent ? (
-            <Route
-              path="/student/courses"
-              element={<p className="p-4">Student courses</p>}
-            />
-          ) : (
+          {!isStudent && (
             <>
               <Route path="/teacher/courses" element={<TeacherCourses />} />
               <Route path="/teacher/courses/:id" />
             </>
           )}
+
+          <Route
+            path="/student/courses/:courseId/students"
+            element={<CourseStudentsPage />}
+          />
 
           <Route path="*" element={<p>Page not found.</p>} />
         </Routes>

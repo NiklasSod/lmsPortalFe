@@ -12,6 +12,10 @@ body {
   background-color: var(--card-bg);
 }
 
+.breadcrumb-item + .breadcrumb-item::before {
+  color: var(--text-secondary);
+}
+
 :root,
 [data-bs-theme='light'] {
   --card-bg: #f8f9fa;
@@ -56,5 +60,3 @@ body {
   --input-text: #f8f9fa;
   --input-border: #444444;
 }
-
-
