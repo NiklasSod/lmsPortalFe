@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
+import { Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { getCurrentModules, getMineModules } from '../api/module'
 import type { CourseModuleSummary } from '../types/module'
+import ModuleCard from '../components/modules/ModuleCard'
 
 export const ModulesView: React.FC = () => {
   const [currentModules, setCurrentModules] = useState<CourseModuleSummary[]>(
@@ -63,18 +64,7 @@ export const ModulesView: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
           {currentModules.map((currentModule) => (
             <Col key={currentModule.id}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body>
-                  <Card.Title className="h5">{currentModule.name}</Card.Title>
-                  <Card.Text className="text-muted small">
-                    {currentModule.description}
-                  </Card.Text>
-                  <Card.Text className="text-muted small mb-0">
-                    {new Date(currentModule.startDate).toLocaleDateString()} -{' '}
-                    {new Date(currentModule.endDate).toLocaleDateString()}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <ModuleCard module={currentModule} />
             </Col>
           ))}
         </Row>
@@ -84,18 +74,7 @@ export const ModulesView: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
           {mineModules.map((mineModule) => (
             <Col key={mineModule.id}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body>
-                  <Card.Title className="h5">{mineModule.name}</Card.Title>
-                  <Card.Text className="text-muted small">
-                    {mineModule.description}
-                  </Card.Text>
-                  <Card.Text className="text-muted small mb-0">
-                    {new Date(mineModule.startDate).toLocaleDateString()} -{' '}
-                    {new Date(mineModule.endDate).toLocaleDateString()}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <ModuleCard module={mineModule} />
             </Col>
           ))}
         </Row>

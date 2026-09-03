@@ -28,6 +28,7 @@ export async function getCourseById(id: string): Promise<CourseDetail> {
   }
   return res.json()
 }
+
 export async function createCourse(
   request: CreateCourseRequest,
 ): Promise<CourseSummary> {
