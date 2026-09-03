@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import CourseMembersPage from '../CourseMembersPage'
 import CoursesPage from '../CoursesPage'
-import CurrentModulesView from '../CurrentModulesView'
+import CurrentModulesView from '../ModulesView'
 
 function StudentRoutes() {
   return (

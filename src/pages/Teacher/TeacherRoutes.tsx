@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import CurrentModulesView from '../CurrentModulesView'
+import ModulesView from '../ModulesView'
 import CoursesRoutes from './Courses/CoursesRoutes'
 
 function TeacherRoutes() {
@@ -7,7 +7,7 @@ function TeacherRoutes() {
     <Routes>
       <Route index element={<p className="p-4">Teacher Dashboard</p>} />
       <Route path="courses/*" element={<CoursesRoutes />} />
-      <Route path="modules" element={<CurrentModulesView />} />
+      <Route path="modules" element={<ModulesView />} />
       <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
