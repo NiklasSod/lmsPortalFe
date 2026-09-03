@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import CreateCourseView from '../CreateCourseView'
+import CourseMembersPage from '../CourseMembersPage'
 import TeacherCourses from './Courses/TeacherCourses'
 
 function TeacherRoutes() {
@@ -10,6 +11,10 @@ function TeacherRoutes() {
       <Route path="courses/create" element={<CreateCourseView />} />
       {/* Placeholder for the teacher course detail page */}
       <Route path="courses/:id" />
+      <Route
+        path="courses/:courseId/students"
+        element={<CourseMembersPage />}
+      />
       <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
