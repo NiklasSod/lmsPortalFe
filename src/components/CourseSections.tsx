@@ -24,7 +24,7 @@ function CourseSections({ courseId }: CourseSectionsProps) {
       to: `${base}/${courseId}/assignments`,
       active: false,
     },
-    { label: 'Students', to: `${base}/${courseId}/students`, active: true },
+    { label: 'Members', to: `${base}/${courseId}/members`, active: true },
   ]
 
   return (

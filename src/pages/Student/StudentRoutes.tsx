@@ -8,7 +8,7 @@ function StudentRoutes() {
       <Route index element={<p className="p-4">Student dashboard</p>} />
       <Route path="courses" element={<p className="p-4">Student courses</p>} />
       <Route
-        path="courses/:courseId/students"
+        path="courses/:courseId/members"
         element={<CourseMembersPage />}
       />
       <Route path="modules" element={<CurrentModulesView />} />
