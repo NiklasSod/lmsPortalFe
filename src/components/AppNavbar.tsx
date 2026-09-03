@@ -1,20 +1,28 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import {
   Book,
+  BoxArrowLeft,
   JournalBookmark,
   MortarboardFill,
   Speedometer,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
-import { getRole } from '../api/auth'
+import { getFullName, getRole, logout } from '../api/auth'
 
 function AppNavbar() {
+  const navigate = useNavigate()
   const role = getRole()
+  const fullName = getFullName()
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
   const modulesPath = isStudent ? '/student/modules' : '/teacher/modules'
+
+  async function handleLogout() {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <Navbar
@@ -59,9 +67,23 @@ function AppNavbar() {
           <JournalBookmark />{' '}
           {isStudent ? 'Current Modules' : 'Modules Teaching'}
         </Nav.Link>
+        <Nav.Link
+          as="button"
+          onClick={handleLogout}
+          className="d-flex align-items-center gap-2 text-white border-0 bg-transparent"
+        >
+          <BoxArrowLeft /> Logout
+        </Nav.Link>
       </Nav>
-      <div className="mt-auto pt-3 border-top border-secondary">
-        <ThemeSwitch />
+      <div className="mt-auto">
+        {fullName && (
+          <div className="text-white mb-2">
+            <span className="text-truncate ms-2">{fullName}</span>
+          </div>
+        )}
+        <div className="pt-3 border-top border-secondary">
+          <ThemeSwitch />
+        </div>
       </div>
     </Navbar>
   )

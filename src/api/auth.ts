@@ -18,6 +18,23 @@ export function getRole(): string | null {
   return extractRole(token)
 }
 
+export function getFullName(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  const firstName = payload['given_name']
+  const lastName = payload['family_name']
+
+  if (typeof firstName === 'string' && typeof lastName === 'string') {
+    return `${firstName} ${lastName}`.trim()
+  }
+
+  return null
+}
+
 const ROLE_CLAIM_KEYS = [
   'role',
   'roles',
