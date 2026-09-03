@@ -67,17 +67,18 @@ function AppNavbar() {
           <JournalBookmark />{' '}
           {isStudent ? 'Current Modules' : 'Modules Teaching'}
         </Nav.Link>
+        <Nav.Link
+          as="button"
+          onClick={handleLogout}
+          className="d-flex align-items-center gap-2 text-white border-0 bg-transparent"
+        >
+          <BoxArrowLeft /> Logout
+        </Nav.Link>
       </Nav>
       <div className="mt-auto">
         {fullName && (
-          <div className="d-flex align-items-center justify-content-between text-white mb-2">
+          <div className="text-white mb-2">
             <span className="text-truncate ms-2">{fullName}</span>
-            <BoxArrowLeft
-              role="button"
-              size={22}
-              className="flex-shrink-0 ms-2"
-              onClick={handleLogout}
-            />
           </div>
         )}
         <div className="pt-3 border-top border-secondary">
