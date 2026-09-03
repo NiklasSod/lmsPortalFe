@@ -9,7 +9,15 @@ export async function getCurrentModules(): Promise<CourseModuleSummary[]> {
       `Failed to fetch current modules: ${res.status} ${res.statusText}`,
     )
   }
+  return res.json()
+}
 
+export async function getMineModules(): Promise<CourseModuleSummary[]> {
+  const res = await apiFetch('/api/modules/mine')
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch modules: ${res.status} ${res.statusText}`)
+  }
   return res.json()
 }
 

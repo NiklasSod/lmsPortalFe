@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
-import { getCurrentModules } from '../api/module'
+import { getCurrentModules, getMineModules } from '../api/module'
 import type { CourseModuleSummary } from '../types/module'
 
 export const ModulesView: React.FC = () => {
-  const [modules, setModules] = useState<CourseModuleSummary[]>([])
+  const [currentModules, setCurrentModules] = useState<CourseModuleSummary[]>(
+    [],
+  )
+  const [mineModules, setMineModules] = useState<CourseModuleSummary[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -12,8 +15,16 @@ export const ModulesView: React.FC = () => {
     async function fetchModules() {
       try {
         setLoading(true)
-        const data = await getCurrentModules()
-        setModules(data)
+        const dataCurrent = await getCurrentModules()
+        const dataMine = await getMineModules()
+
+        const currentIds = new Set(dataCurrent.map((module) => module.id))
+        const uniqueMineModules = dataMine.filter(
+          (module) => !currentIds.has(module.id),
+        )
+
+        setCurrentModules(dataCurrent)
+        setMineModules(uniqueMineModules)
       } catch (err) {
         setError((err as Error).message)
       } finally {
@@ -41,22 +52,47 @@ export const ModulesView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      <h1 className="h2 mb-4">Current Modules</h1>
-      {modules.length === 0 ? (
+      {currentModules.length > 0 ? (
+        <h2 className="h2 mb-4">Current Modules</h2>
+      ) : (
+        <h2>No current Modules</h2>
+      )}
+      {currentModules.length === 0 ? (
         <Alert variant="info">You have no active modules right now.</Alert>
       ) : (
         <Row xs={1} md={2} lg={3} className="g-4">
-          {modules.map((module) => (
-            <Col key={module.id}>
+          {currentModules.map((currentModule) => (
+            <Col key={currentModule.id}>
               <Card className="h-100 shadow-sm">
                 <Card.Body>
-                  <Card.Title className="h5">{module.name}</Card.Title>
+                  <Card.Title className="h5">{currentModule.name}</Card.Title>
                   <Card.Text className="text-muted small">
-                    {module.description}
+                    {currentModule.description}
                   </Card.Text>
                   <Card.Text className="text-muted small mb-0">
-                    {new Date(module.startDate).toLocaleDateString()} -{' '}
-                    {new Date(module.endDate).toLocaleDateString()}
+                    {new Date(currentModule.startDate).toLocaleDateString()} -{' '}
+                    {new Date(currentModule.endDate).toLocaleDateString()}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
+      {mineModules.length > 0 && <h2 className="h2 my-4">My other Modules</h2>}
+      {mineModules.length > 0 && (
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {mineModules.map((mineModule) => (
+            <Col key={mineModule.id}>
+              <Card className="h-100 shadow-sm">
+                <Card.Body>
+                  <Card.Title className="h5">{mineModule.name}</Card.Title>
+                  <Card.Text className="text-muted small">
+                    {mineModule.description}
+                  </Card.Text>
+                  <Card.Text className="text-muted small mb-0">
+                    {new Date(mineModule.startDate).toLocaleDateString()} -{' '}
+                    {new Date(mineModule.endDate).toLocaleDateString()}
                   </Card.Text>
                 </Card.Body>
               </Card>
