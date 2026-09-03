@@ -5,6 +5,7 @@ import {
   BoxArrowLeft,
   JournalBookmark,
   MortarboardFill,
+  People,
   Speedometer,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
@@ -67,6 +68,15 @@ function AppNavbar() {
           <JournalBookmark />{' '}
           {isStudent ? 'Current Modules' : 'Modules Teaching'}
         </Nav.Link>
+        {!isStudent && (
+          <Nav.Link
+            as={Link}
+            to="/teacher/admin/users"
+            className="d-flex align-items-center gap-2 text-white"
+          >
+            <People /> Users
+          </Nav.Link>
+        )}
         <Nav.Link
           as="button"
           onClick={handleLogout}
