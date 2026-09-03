@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Card, Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { getCurrentModules } from '../api/module'
-import type { CourseModuleSummary } from '../types/module'
+import type { CourseModule } from '../types/module'
 
 export const CurrentModulesView: React.FC = () => {
-    const [modules, setModules] = useState<CourseModuleSummary[]>([])
+    const [modules, setModules] = useState<CourseModule[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null)
 
