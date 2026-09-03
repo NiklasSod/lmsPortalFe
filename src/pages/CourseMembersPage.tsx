@@ -9,11 +9,11 @@ import {
   Col,
   Spinner,
 } from 'react-bootstrap'
-import { getCourseById } from '../../api/course'
-import type { CourseDetail } from '../../types/course'
-import CourseSections from '../../components/CourseSections'
+import { getCourseById } from '../api/course'
+import type { CourseDetail, CourseEnrollment } from '../types/course'
+import CourseSections from '../components/CourseSections'
 
-function CourseStudentsPage() {
+function CourseMembersPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
@@ -45,7 +45,17 @@ function CourseStudentsPage() {
     )
   }
 
+  const teachers = course.enrollments.filter((e) => e.role === 'Teacher')
   const students = course.enrollments.filter((e) => e.role === 'Student')
+
+  const renderMember = (member: CourseEnrollment) => (
+    <ListGroup.Item key={member.userId}>
+      <div className="fw-semibold">
+        {member.firstName} {member.lastName}
+      </div>
+      <div className="text-muted">{member.email}</div>
+    </ListGroup.Item>
+  )
 
   return (
     <Container className="py-4">
@@ -64,23 +74,31 @@ function CourseStudentsPage() {
 
       <Row>
         <Col md={8}>
-          {students.length === 0 ? (
-            <p>No students are enrolled in this course.</p>
-          ) : (
-            <ListGroup>
-              <ListGroup.Item variant="secondary" className="fw-semibold">
-                Students
+          <ListGroup>
+            <ListGroup.Item variant="secondary" className="fw-semibold">
+              Teachers
+            </ListGroup.Item>
+            {teachers.length === 0 ? (
+              <ListGroup.Item className="text-muted">
+                No teachers listed.
               </ListGroup.Item>
-              {students.map((student) => (
-                <ListGroup.Item key={student.userId}>
-                  <div className="fw-semibold">
-                    {student.firstName} {student.lastName}
-                  </div>
-                  <div className="text-muted">{student.email}</div>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          )}
+            ) : (
+              teachers.map(renderMember)
+            )}
+          </ListGroup>
+
+          <ListGroup className="mt-3">
+            <ListGroup.Item variant="secondary" className="fw-semibold">
+              Students
+            </ListGroup.Item>
+            {students.length === 0 ? (
+              <ListGroup.Item className="text-muted">
+                No students enrolled.
+              </ListGroup.Item>
+            ) : (
+              students.map(renderMember)
+            )}
+          </ListGroup>
         </Col>
 
         <Col md={4}>
@@ -91,4 +109,4 @@ function CourseStudentsPage() {
   )
 }
 
-export default CourseStudentsPage
+export default CourseMembersPage

@@ -5,10 +5,18 @@ import type {
   CreateCourseRequest,
 } from '../types/course'
 
-export async function getTeacherCourses(): Promise<CourseSummary[]> {
+export async function getCourses(): Promise<CourseSummary[]> {
   const res = await apiFetch('/api/courses')
   if (!res.ok) {
     throw new Error(`Failed to fetch courses: ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function getMyCourses(): Promise<CourseSummary[]> {
+  const res = await apiFetch('/api/courses/mine')
+  if (!res.ok) {
+    throw new Error(`Failed to fetch your courses: ${res.status}`)
   }
   return res.json()
 }
