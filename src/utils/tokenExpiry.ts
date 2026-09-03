@@ -1,4 +1,4 @@
-import { getAccessToken, getExpiresAt, refresh } from '../api/auth/auth'
+import { getAccessToken, getExpiresAt, refresh } from '../api/auth'
 
 const REFRESH_THRESHOLD = 60 * 1000
 

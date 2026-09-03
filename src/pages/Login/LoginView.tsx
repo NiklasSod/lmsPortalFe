@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../../api/auth/auth'
+import { login } from '../../api/auth'
 
 export default function LoginView() {
   const [email, setEmail] = useState('')

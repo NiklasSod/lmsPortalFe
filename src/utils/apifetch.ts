@@ -1,4 +1,4 @@
-import { getAccessToken, refresh } from '../api/auth/auth'
+import { getAccessToken, refresh } from '../api/auth'
 import { getValidAccessToken } from './tokenExpiry'
 
 export async function apiFetch(

@@ -1,10 +1,11 @@
 import CreateCourseView from './pages/CreateCourseView'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { getAccessToken, getRole } from './api/auth/auth'
+import { getAccessToken, getRole } from './api/auth'
 import LoginView from './pages/Login/LoginView'
 import CreateAccountView from './pages/Register/CreateAccountView'
 import AppNavbar from './components/AppNavbar'
 import TeacherCourses from './pages/Teacher/Courses/TeacherCourses'
+import CourseStudentsPage from './pages/Student/CourseStudentsPage'
 import CurrentModulesView from './pages/CurrentModulesView'
 
 function App() {
@@ -47,10 +48,7 @@ function App() {
                 path="/student/courses"
                 element={<p className="p-4">Student courses</p>}
               />
-              <Route
-                path="/student/modules"
-                element={<CurrentModulesView />}
-              />
+              <Route path="/student/modules" element={<CurrentModulesView />} />
             </>
           ) : (
             <>
@@ -62,6 +60,11 @@ function App() {
               />
             </>
           )}
+
+          <Route
+            path="/student/courses/:courseId/students"
+            element={<CourseStudentsPage />}
+          />
 
           <Route path="*" element={<p>Page not found.</p>} />
         </Routes>

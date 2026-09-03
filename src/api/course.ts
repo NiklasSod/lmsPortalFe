@@ -1,5 +1,9 @@
 import { apiFetch } from '../utils/apifetch'
-import type { CourseSummary, CreateCourseRequest } from '../types/course'
+import type {
+  CourseSummary,
+  CourseDetail,
+  CreateCourseRequest,
+} from '../types/course'
 
 export async function getTeacherCourses(): Promise<CourseSummary[]> {
   const res = await apiFetch('/api/courses')
@@ -9,6 +13,13 @@ export async function getTeacherCourses(): Promise<CourseSummary[]> {
   return res.json()
 }
 
+export async function getCourseById(id: string): Promise<CourseDetail> {
+  const res = await apiFetch(`/api/courses/${id}`)
+  if (!res.ok) {
+    throw new Error(`Failed to fetch course: ${res.status}`)
+  }
+  return res.json()
+}
 export async function createCourse(
   request: CreateCourseRequest,
 ): Promise<CourseSummary> {
@@ -35,4 +46,3 @@ export async function createCourse(
 
   return res.json()
 }
-
