@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
-import CreateCourseView from '../CreateCourseView'
 import CourseMembersPage from '../CourseMembersPage'
+import CreateCourseView from './Courses/CreateCourseView'
 import TeacherCourses from './Courses/TeacherCourses'
 
 function TeacherRoutes() {
