@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Card,
   Col,
@@ -10,7 +10,7 @@ import {
   Modal,
 } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { PlusLg, Pencil, Trash } from 'react-bootstrap-icons'
+import { PlusLg } from 'react-bootstrap-icons'
 import { getCourses, getMyCourses, deleteCourse } from '../api/course'
 import { getRole } from '../api/auth'
 import type { CourseSummary } from '../types/course'
@@ -25,54 +25,48 @@ function CourseGrid({ courses, base, onDeleteRequest }: CourseGridProps) {
   const isTeacher = base.startsWith('/teacher')
 
   return (
-    <Row xs={1} md={2} lg={4} className="g-3">
-      {courses.map((course, index) => (
-        <Fragment key={course.id}>
-          <Col>
-            <Card className="h-100 border-0 shadow-sm d-flex flex-column">
-              <Card.Body
-                as={Link}
-                to={`${base}/${course.id}`}
-                className="text-reset text-decoration-none d-flex flex-column p-3"
-              >
-                <Card.Title className="h5 mb-2">{course.name}</Card.Title>
-                <Card.Text className="text-muted small mb-3">
-                  {course.description}
-                </Card.Text>
-                <Card.Text className="text-muted small mb-0 mt-auto">
-                  {new Date(course.startDate).toLocaleDateString()} –{' '}
-                  {new Date(course.endDate).toLocaleDateString()}
-                </Card.Text>
-              </Card.Body>
+    <Row xs={1} md={2} lg={3} className="g-4">
+      {courses.map((course) => (
+        <Col key={course.id}>
+          <Card className="h-100 border-0 shadow-sm position-relative">
+            <Card.Body
+              as={Link}
+              to={`${base}/${course.id}`}
+              className="text-reset text-decoration-none d-flex flex-column p-3"
+            >
+              <Card.Title className="h5 pe-5 mb-2">{course.name}</Card.Title>
+              <Card.Text className="text-muted small pe-5 mb-3">
+                {course.description}
+              </Card.Text>
+              <Card.Text className="text-muted small pe-5 mb-0 mt-auto">
+                {new Date(course.startDate).toLocaleDateString()} –{' '}
+                {new Date(course.endDate).toLocaleDateString()}
+              </Card.Text>
+            </Card.Body>
 
-              {isTeacher && (
-                <Card.Footer className="bg-transparent border-top-0 d-flex justify-content-end gap-2 pt-0 pb-3 px-3">
-                  <Link
-                    to={`${base}/${course.id}/edit`}
-                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                    title="Edit Course"
-                  >
-                    <Pencil size={13} /> Edit
-                  </Link>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    className="d-flex align-items-center gap-1"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      onDeleteRequest?.(course)
-                    }}
-                    title="Delete Course"
-                  >
-                    <Trash size={13} /> Delete
-                  </Button>
-                </Card.Footer>
-              )}
-            </Card>
-          </Col>
-          {(index + 1) % 3 === 0 && <div className="w-100 d-none d-lg-block" />}
-        </Fragment>
+            {isTeacher && (
+              <>
+                <Link
+                  to={`${base}/${course.id}/edit`}
+                  className="btn btn-sm btn-outline-primary"
+                  style={{ position: 'absolute', top: 6, right: 6 }}
+                  title="Edit Course"
+                >
+                  Edit
+                </Link>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  style={{ position: 'absolute', bottom: 6, right: 6 }}
+                  onClick={() => onDeleteRequest?.(course)}
+                  title="Delete Course"
+                >
+                  Delete
+                </Button>
+              </>
+            )}
+          </Card>
+        </Col>
       ))}
     </Row>
   )
@@ -205,8 +199,7 @@ function CoursesPage() {
         <Modal.Body>
           {deleteError && <Alert variant="danger">{deleteError}</Alert>}
           Are you sure you want to delete{' '}
-          <strong>{courseToDelete?.name}</strong>? This action cannot be
-          undone.
+          <strong>{courseToDelete?.name}</strong>? This action cannot be undone.
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -223,7 +216,8 @@ function CoursesPage() {
           >
             {isDeleting ? (
               <>
-                <Spinner animation="border" size="sm" className="me-1" /> Deleting...
+                <Spinner animation="border" size="sm" className="me-1" />{' '}
+                Deleting...
               </>
             ) : (
               'Delete Course'
