@@ -3,6 +3,7 @@ import type {
   CourseSummary,
   CourseDetail,
   CreateCourseRequest,
+  UpdateCourseRequest,
 } from '../types/course'
 
 export async function getCourses(): Promise<CourseSummary[]> {
@@ -28,6 +29,7 @@ export async function getCourseById(id: string): Promise<CourseDetail> {
   }
   return res.json()
 }
+
 export async function createCourse(
   request: CreateCourseRequest,
 ): Promise<CourseSummary> {
@@ -54,3 +56,55 @@ export async function createCourse(
 
   return res.json()
 }
+
+export async function updateCourse(
+  id: string | number,
+  request: UpdateCourseRequest,
+): Promise<CourseSummary> {
+  const res = await apiFetch(`/api/courses/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not update course.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+
+  return res.json()
+}
+
+export async function deleteCourse(id: string | number): Promise<void> {
+  const res = await apiFetch(`/api/courses/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not delete course.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+}
+
+

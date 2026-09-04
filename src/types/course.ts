@@ -36,3 +36,11 @@ export interface CreateCourseRequest {
   endDate: string | null
 }
 
+export interface UpdateCourseRequest {
+  name?: string
+  description?: string
+  startDate?: string | null
+  endDate?: string | null
+}
+
+
