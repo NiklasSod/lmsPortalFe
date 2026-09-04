@@ -35,6 +35,45 @@ export function getFullName(): string | null {
   return null
 }
 
+export function getEmail(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  const keys = [
+    'email',
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+  ]
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'string' && value) return value
+  }
+
+  return null
+}
+
+export function getUserId(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  const keys = [
+    'sub',
+    'nameid',
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+  ]
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'string' && value) return value
+  }
+
+  return null
+}
+
 const ROLE_CLAIM_KEYS = [
   'role',
   'roles',
