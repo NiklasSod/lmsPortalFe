@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap'
 import { getRole } from '../../api/auth'
 import { deleteModule, updateModule } from '../../api/module'
@@ -13,77 +13,90 @@ interface ModuleCardProps {
 
 function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
   const isTeacher = getRole() !== 'student'
-  const [moduleData, setModuleData] = useState<CourseModule>(module)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const [showEdit, setShowEdit] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editStartDate, setEditStartDate] = useState('')
-  const [editEndDate, setEditEndDate] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
+  const [moduleData, setModuleData] = useState<CourseModule>(module)
+
+  const [deleteState, setDeleteState] = useState({
+    show: false,
+    loading: false,
+    error: null as string | null,
+  })
+
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+  })
+
+  const [editState, setEditState] = useState({
+    show: false,
+    saving: false,
+    error: null as string | null,
+  })
 
   const handleDelete = async () => {
-    setDeleting(true)
-    setDeleteError(null)
+    setDeleteState((prev) => ({ ...prev, loading: true, error: null }))
     try {
       await deleteModule(moduleData.id)
-      setShowConfirm(false)
+      setDeleteState((prev) => ({ ...prev, show: false }))
       onDelete?.(moduleData)
     } catch (err) {
-      setDeleteError((err as Error).message)
+      setDeleteState((prev) => ({ ...prev, error: (err as Error).message }))
     } finally {
-      setDeleting(false)
+      setDeleteState((prev) => ({ ...prev, loading: false }))
     }
   }
 
   const openEdit = () => {
-    setEditError(null)
-    setEditName(moduleData.name)
-    setEditDescription(moduleData.description)
-    setEditStartDate(
-      moduleData.startDate ? moduleData.startDate.split('T')[0] : '',
-    )
-    setEditEndDate(moduleData.endDate ? moduleData.endDate.split('T')[0] : '')
-    setShowEdit(true)
+    setEditState((prev) => ({ ...prev, error: null, show: true }))
+    setEditForm({
+      name: moduleData.name,
+      description: moduleData.description,
+      startDate: moduleData.startDate ? moduleData.startDate.split('T')[0] : '',
+      endDate: moduleData.endDate ? moduleData.endDate.split('T')[0] : '',
+    })
   }
 
-  const handleSave = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSave = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setEditError(null)
+    setEditState((prev) => ({ ...prev, error: null }))
 
     if (
-      editStartDate &&
-      editEndDate &&
-      new Date(editEndDate) < new Date(editStartDate)
+      editForm.startDate &&
+      editForm.endDate &&
+      new Date(editForm.endDate) < new Date(editForm.startDate)
     ) {
-      setEditError('End date cannot be earlier than start date.')
+      setEditState((prev) => ({
+        ...prev,
+        error: 'End date cannot be earlier than start date.',
+      }))
       return
     }
 
-    setIsSaving(true)
+    setEditState((prev) => ({ ...prev, saving: true }))
     try {
       const updated = await updateModule(moduleData.id, {
-        name: editName,
-        description: editDescription,
-        startDate: editStartDate
-          ? new Date(editStartDate).toISOString()
+        name: editForm.name,
+        description: editForm.description,
+        startDate: editForm.startDate
+          ? new Date(editForm.startDate).toISOString()
           : undefined,
-        endDate: editEndDate ? new Date(editEndDate).toISOString() : undefined,
+        endDate: editForm.endDate
+          ? new Date(editForm.endDate).toISOString()
+          : undefined,
       })
 
       setModuleData(updated)
-      setShowEdit(false)
+      setEditState((prev) => ({ ...prev, show: false }))
       onEdit?.(updated)
     } catch (err: unknown) {
-      setEditError(
-        err instanceof Error ? err.message : 'Could not update module.',
-      )
+      setEditState((prev) => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'Could not update module.',
+      }))
     } finally {
-      setIsSaving(false)
+      setEditState((prev) => ({ ...prev, saving: false }))
     }
   }
 
@@ -114,10 +127,9 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
               variant="outline-danger"
               size="sm"
               style={{ position: 'absolute', bottom: 6, right: 6 }}
-              onClick={() => {
-                setDeleteError(null)
-                setShowConfirm(true)
-              }}
+              onClick={() =>
+                setDeleteState((prev) => ({ ...prev, show: true, error: null }))
+              }
             >
               Delete
             </Button>
@@ -125,41 +137,59 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
         </Card.Body>
       </Card>
 
-      <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
+      <Modal
+        show={deleteState.show}
+        onHide={() => setDeleteState((prev) => ({ ...prev, show: false }))}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Delete module</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {deleteError && <Alert variant="danger">{deleteError}</Alert>}
+          {deleteState.error && (
+            <Alert variant="danger">{deleteState.error}</Alert>
+          )}
           Are you sure you want to delete <strong>{moduleData.name}</strong>?
         </Modal.Body>
         <Modal.Footer>
           <Button
             variant="secondary"
-            onClick={() => setShowConfirm(false)}
-            disabled={deleting}
+            onClick={() => setDeleteState((prev) => ({ ...prev, show: false }))}
+            disabled={deleteState.loading}
           >
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
-            {deleting ? 'Deleting…' : 'Yes'}
+          <Button
+            variant="danger"
+            onClick={handleDelete}
+            disabled={deleteState.loading}
+          >
+            {deleteState.loading ? 'Deleting…' : 'Yes'}
           </Button>
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showEdit} onHide={() => setShowEdit(false)} centered>
+      <Modal
+        show={editState.show}
+        onHide={() => setEditState((prev) => ({ ...prev, show: false }))}
+        centered
+      >
         <Form onSubmit={handleSave}>
           <Modal.Header closeButton>
             <Modal.Title>Edit Module</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {editError && <Alert variant="danger">{editError}</Alert>}
+            {editState.error && (
+              <Alert variant="danger">{editState.error}</Alert>
+            )}
             <Form.Group className="mb-3" controlId="editModuleName">
               <Form.Label>Module Name</Form.Label>
               <Form.Control
                 type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                }
                 required
               />
             </Form.Group>
@@ -168,16 +198,26 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
               <Form.Control
                 as="textarea"
                 rows={3}
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="editModuleStartDate">
               <Form.Label>Start Date</Form.Label>
               <Form.Control
                 type="date"
-                value={editStartDate}
-                onChange={(e) => setEditStartDate(e.target.value)}
+                value={editForm.startDate}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
                 required
               />
             </Form.Group>
@@ -185,8 +225,10 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
               <Form.Label>End Date</Form.Label>
               <Form.Control
                 type="date"
-                value={editEndDate}
-                onChange={(e) => setEditEndDate(e.target.value)}
+                value={editForm.endDate}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, endDate: e.target.value }))
+                }
                 required
               />
             </Form.Group>
@@ -194,13 +236,13 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
           <Modal.Footer>
             <Button
               variant="secondary"
-              onClick={() => setShowEdit(false)}
-              disabled={isSaving}
+              onClick={() => setEditState((prev) => ({ ...prev, show: false }))}
+              disabled={editState.saving}
             >
               Cancel
             </Button>
-            <Button variant="primary" type="submit" disabled={isSaving}>
-              {isSaving ? (
+            <Button variant="primary" type="submit" disabled={editState.saving}>
+              {editState.saving ? (
                 <>
                   <Spinner animation="border" size="sm" className="me-1" />{' '}
                   Saving...

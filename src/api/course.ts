@@ -30,6 +30,29 @@ export async function getCourseById(id: string): Promise<CourseDetail> {
   return res.json()
 }
 
+export async function enrollInCourse(courseId: number): Promise<void> {
+  const res = await apiFetch('/api/courses/enroll', {
+    method: 'POST',
+    body: JSON.stringify({ courseId }),
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not enroll in course.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+}
+
 export async function createCourse(
   request: CreateCourseRequest,
 ): Promise<CourseSummary> {
@@ -106,5 +129,3 @@ export async function deleteCourse(id: string | number): Promise<void> {
     throw new Error(errorMessage)
   }
 }
-
-
