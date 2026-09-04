@@ -33,6 +33,13 @@ export const ModulesView: React.FC = () => {
     fetchModules()
   }, [])
 
+  const handleDelete = (deleted: CourseModule) => {
+    setCurrentModules((prev) =>
+      prev.filter((module) => module.id !== deleted.id),
+    )
+    setMineModules((prev) => prev.filter((module) => module.id !== deleted.id))
+  }
+
   if (loading) {
     return (
       <Container className="py-4 text-center">
@@ -62,7 +69,7 @@ export const ModulesView: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
           {currentModules.map((currentModule) => (
             <Col key={currentModule.id}>
-              <ModuleCard module={currentModule} />
+              <ModuleCard module={currentModule} onDelete={handleDelete} />
             </Col>
           ))}
         </Row>
@@ -72,7 +79,7 @@ export const ModulesView: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
           {mineModules.map((mineModule) => (
             <Col key={mineModule.id}>
-              <ModuleCard module={mineModule} />
+              <ModuleCard module={mineModule} onDelete={handleDelete} />
             </Col>
           ))}
         </Row>

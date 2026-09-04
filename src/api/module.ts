@@ -21,6 +21,16 @@ export async function getMineModules(): Promise<CourseModule[]> {
   return res.json()
 }
 
-// TODO NIK - add deleteModule
+export async function deleteModule(id: number): Promise<void> {
+  const res = await apiFetch(`/api/modules/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `Failed to delete module: ${res.status}`)
+  }
+}
+
 // TODO NIK - add updateModule
 // TODO NIK - add addModule
