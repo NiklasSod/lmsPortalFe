@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Nav } from 'react-bootstrap'
 import { getRole } from '../api/auth'
 
@@ -9,38 +9,41 @@ interface CourseSectionsProps {
 interface SectionLink {
   label: string
   to: string
-  active: boolean
 }
 
 function CourseSections({ courseId }: CourseSectionsProps) {
   const isStudent = getRole() === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
+  const location = useLocation()
 
   const sections: SectionLink[] = [
-    { label: 'Overview', to: `${base}/${courseId}`, active: false },
-    { label: 'Modules', to: `${base}/${courseId}/modules`, active: false },
-    {
-      label: 'Assignments',
-      to: `${base}/${courseId}/assignments`,
-      active: false,
-    },
-    { label: 'Members', to: `${base}/${courseId}/members`, active: true },
+    { label: 'Overview', to: `${base}/${courseId}` },
+    { label: 'Modules', to: `${base}/${courseId}/modules` },
+    { label: 'Assignments', to: `${base}/${courseId}/assignments` },
+    { label: 'Members', to: `${base}/${courseId}/members` },
   ]
 
   return (
     <>
       <h2 className="h6 border-bottom pb-2">Sections</h2>
       <Nav className="flex-column text-start">
-        {sections.map((section) => (
-          <Nav.Link
-            key={section.label}
-            as={Link}
-            to={section.to}
-            className={`${section.active ? 'fw-bold active ' : ''}text-decoration-underline ps-0`}
-          >
-            {section.label}
-          </Nav.Link>
-        ))}
+        {sections.map((section) => {
+          const isActive =
+            section.to === `${base}/${courseId}`
+              ? location.pathname === section.to
+              : location.pathname.startsWith(section.to)
+
+          return (
+            <Nav.Link
+              key={section.label}
+              as={Link}
+              to={section.to}
+              className={`${isActive ? 'fw-bold active ' : ''}text-decoration-underline ps-0`}
+            >
+              {section.label}
+            </Nav.Link>
+          )
+        })}
       </Nav>
     </>
   )

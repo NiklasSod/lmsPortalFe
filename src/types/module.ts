@@ -1,4 +1,4 @@
-export interface CourseModuleSummary {
+export interface CourseModule {
     id: number
     name: string
     description: string
