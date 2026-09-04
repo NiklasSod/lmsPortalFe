@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap'
-import { getRole } from '../../api/auth'
+import { useAuth } from '../../auth/AuthContext'
 import { deleteModule, updateModule } from '../../api/module'
 import type { CourseModule } from '../../types/module'
 
@@ -12,7 +12,8 @@ interface ModuleCardProps {
 }
 
 function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
-  const isTeacher = getRole() !== 'student'
+  const { role } = useAuth()
+  const isTeacher = role !== 'student'
 
   const [moduleData, setModuleData] = useState<CourseModule>(module)
 

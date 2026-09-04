@@ -12,7 +12,7 @@ import {
 } from 'react-bootstrap'
 import { getCourseById, enrollInCourse } from '../api/course'
 import { getModulesByCourse } from '../api/module'
-import { getRole } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 import type { Course } from '../types/course'
 import type { CourseModule } from '../types/module'
 import CourseSections from '../components/CourseSections'
@@ -30,7 +30,8 @@ export const CourseModulesView: React.FC = () => {
   const [enrollError, setEnrollError] = useState<string | null>(null)
   const [showAddModule, setShowAddModule] = useState<boolean>(false)
 
-  const isStudent = getRole() === 'student'
+  const { role } = useAuth()
+  const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {

@@ -12,7 +12,7 @@ import {
 import { Link } from 'react-router-dom'
 import { PlusLg } from 'react-bootstrap-icons'
 import { getCourses, getMyCourses, deleteCourse } from '../api/course'
-import { getRole } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 import type { CourseSummary } from '../types/course'
 
 interface CourseGridProps {
@@ -84,7 +84,8 @@ function CoursesPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const isStudent = getRole() === 'student'
+  const { role } = useAuth()
+  const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {

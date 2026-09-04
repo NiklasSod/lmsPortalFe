@@ -117,6 +117,14 @@ function extractRole(token: string): string | null {
   return null
 }
 
+export function getSession(): AuthResponse | null {
+  const accessToken = getAccessToken()
+  const expiresAt = getExpiresAt()
+  if (!accessToken || !expiresAt) return null
+
+  return { accessToken, expiresAt }
+}
+
 function storeSession(data: AuthResponse): void {
   sessionStorage.setItem(ACCESS_TOKEN, data.accessToken)
   sessionStorage.setItem(EXPIRES_AT, data.expiresAt)

@@ -11,7 +11,7 @@ import {
   Button,
 } from 'react-bootstrap'
 import { getCourseById, enrollInCourse } from '../api/course'
-import { getRole, getEmail, getUserId } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 import type { CourseDetail } from '../types/course'
 import CourseSections from '../components/CourseSections'
 
@@ -25,7 +25,8 @@ export const CourseOverviewView: React.FC = () => {
   const [enrolling, setEnrolling] = useState<boolean>(false)
   const [enrollError, setEnrollError] = useState<string | null>(null)
 
-  const isStudent = getRole() === 'student'
+  const { role, email, userId } = useAuth()
+  const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
@@ -36,8 +37,8 @@ export const CourseOverviewView: React.FC = () => {
         const data = await getCourseById(courseId)
         setCourse(data)
 
-        const myEmail = getEmail()
-        const myUserId = getUserId()
+        const myEmail = email
+        const myUserId = userId
         if (myEmail === null && myUserId === null) {
           setEnrolled(true)
         } else {
@@ -60,7 +61,7 @@ export const CourseOverviewView: React.FC = () => {
       }
     }
     fetchCourse()
-  }, [courseId])
+  }, [courseId, email, userId])
 
   const handleEnroll = async () => {
     if (!course) return
