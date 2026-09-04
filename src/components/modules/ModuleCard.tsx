@@ -1,11 +1,11 @@
 import { Button, Card } from 'react-bootstrap'
 import { getRole } from '../../api/auth'
-import type { CourseModuleSummary } from '../../types/module'
+import type { CourseModule } from '../../types/module'
 
 interface ModuleCardProps {
-  module: CourseModuleSummary
-  onEdit?: (module: CourseModuleSummary) => void
-  onDelete?: (module: CourseModuleSummary) => void
+  module: CourseModule
+  onEdit?: (module: CourseModule) => void
+  onDelete?: (module: CourseModule) => void
 }
 
 function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {

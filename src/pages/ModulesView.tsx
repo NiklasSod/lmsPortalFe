@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
 import { getCurrentModules, getMineModules } from '../api/module'
-import type { CourseModuleSummary } from '../types/module'
+import type { CourseModule } from '../types/module'
 import ModuleCard from '../components/modules/ModuleCard'
 
 export const ModulesView: React.FC = () => {
-  const [currentModules, setCurrentModules] = useState<CourseModuleSummary[]>(
-    [],
-  )
-  const [mineModules, setMineModules] = useState<CourseModuleSummary[]>([])
+  const [currentModules, setCurrentModules] = useState<CourseModule[]>([])
+  const [mineModules, setMineModules] = useState<CourseModule[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
