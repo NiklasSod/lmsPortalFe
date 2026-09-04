@@ -8,12 +8,11 @@ import {
   Speedometer,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
-import { getFullName, getRole, logout } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 
 function AppNavbar() {
   const navigate = useNavigate()
-  const role = getRole()
-  const fullName = getFullName()
+  const { role, fullName, logout } = useAuth()
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
