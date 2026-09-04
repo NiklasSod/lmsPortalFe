@@ -1,5 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
-import type { CourseModule } from '../types/module'
+import type { CourseModule, CreateModuleRequest } from '../types/module'
 
 export async function getCurrentModules(): Promise<CourseModule[]> {
   const res = await apiFetch('/api/modules/current')
@@ -21,6 +21,19 @@ export async function getMineModules(): Promise<CourseModule[]> {
   return res.json()
 }
 
+export async function getModulesByCourse(
+  courseId: number,
+): Promise<CourseModule[]> {
+  const res = await apiFetch(`/api/courses/${courseId}/modules`)
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch course modules: ${res.status} ${res.statusText}`,
+    )
+  }
+  return res.json()
+}
+
 export async function deleteModule(id: number): Promise<void> {
   const res = await apiFetch(`/api/modules/${id}`, {
     method: 'DELETE',
@@ -32,5 +45,31 @@ export async function deleteModule(id: number): Promise<void> {
   }
 }
 
+export async function addModule(
+  request: CreateModuleRequest,
+): Promise<CourseModule> {
+  const res = await apiFetch('/api/modules', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not add module.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+
+  return res.json()
+}
+
 // TODO NIK - add updateModule
-// TODO NIK - add addModule
