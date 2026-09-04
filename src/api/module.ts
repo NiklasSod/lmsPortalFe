@@ -76,7 +76,6 @@ export async function addModule(
   return res.json()
 }
 
-// TODO NIK - add updateModule
 export async function updateModule(
   id: number,
   request: UpdateModuleRequest,
