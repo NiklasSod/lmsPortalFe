@@ -1,5 +1,9 @@
 import { apiFetch } from '../utils/apifetch'
-import type { CourseModule, CreateModuleRequest } from '../types/module'
+import type {
+  CourseModule,
+  CreateModuleRequest,
+  UpdateModuleRequest,
+} from '../types/module'
 
 export async function getCurrentModules(): Promise<CourseModule[]> {
   const res = await apiFetch('/api/modules/current')
@@ -73,3 +77,30 @@ export async function addModule(
 }
 
 // TODO NIK - add updateModule
+export async function updateModule(
+  id: number,
+  request: UpdateModuleRequest,
+): Promise<CourseModule> {
+  const res = await apiFetch(`/api/modules/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    let errorMessage = 'Could not update module.'
+    const text = await res.text()
+    if (text) {
+      try {
+        const data = JSON.parse(text)
+        if (typeof data === 'string') errorMessage = data
+        else if (data?.message) errorMessage = data.message
+        else if (data?.title) errorMessage = data.title
+      } catch {
+        errorMessage = text
+      }
+    }
+    throw new Error(errorMessage)
+  }
+
+  return res.json()
+}

@@ -6,7 +6,13 @@ export interface CreateModuleRequest {
   courseId: number
 }
 
-// TODO NIK - add UpdateModuleRequest
+export interface UpdateModuleRequest {
+  name?: string
+  description?: string
+  startDate?: string
+  endDate?: string
+}
+
 export interface CourseModule {
   id: number
   name: string
