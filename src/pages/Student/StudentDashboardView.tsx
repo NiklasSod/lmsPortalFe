@@ -1,57 +1,32 @@
-import {
-  Alert,
-  Badge,
-  Card,
-  Col,
-  Container,
-  ListGroup,
-  Row,
-} from 'react-bootstrap'
-import { CheckCircle, Clock, ExclamationTriangle } from 'react-bootstrap-icons'
-
-type MockDeadline = {
-  courseName: string
-  assignmentTitle: string
-  dueAt: Date
-  turnedIn: boolean
-}
-
-const mockDeadlines: MockDeadline[] = [
-  {
-    courseName: 'Web Development',
-    assignmentTitle: 'Build a responsive portfolio page',
-    dueAt: new Date(Date.now() + 36 * 60 * 60 * 1000),
-    turnedIn: false,
-  },
-  {
-    courseName: 'Database Design',
-    assignmentTitle: 'Normalize the library database',
-    dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    turnedIn: false,
-  },
-  {
-    courseName: 'JavaScript Fundamentals',
-    assignmentTitle: 'Complete the async programming exercises',
-    dueAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    turnedIn: true,
-  },
-]
-
-function isDueSoon(deadline: MockDeadline) {
-  const hoursUntilDue =
-    (deadline.dueAt.getTime() - Date.now()) / (60 * 60 * 1000)
-  return !deadline.turnedIn && hoursUntilDue >= 24 && hoursUntilDue <= 48
-}
-
-function formatDueDate(deadline: MockDeadline) {
-  return deadline.dueAt.toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
+import { useEffect, useState } from 'react'
+import { Alert, Card, Col, Container, Row, Spinner } from 'react-bootstrap'
+import { getMyCourses } from '../../api/course'
+import { getCurrentModules } from '../../api/module'
+import type { CourseSummary } from '../../types/course'
+import type { CourseModule } from '../../types/module'
 
 function StudentDashboardView() {
-  const upcomingDeadlines = mockDeadlines.filter(isDueSoon)
+  const [courses, setCourses] = useState<CourseSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [modules, setModules] = useState<CourseModule[]>([])
+  const [modulesLoading, setModulesLoading] = useState(true)
+  const [modulesError, setModulesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    getMyCourses()
+      .then(setCourses)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    getCurrentModules()
+      .then(setModules)
+      .catch((err: Error) => setModulesError(err.message))
+      .finally(() => setModulesLoading(false))
+  }, [])
 
   return (
     <Container className="py-4">
@@ -59,70 +34,78 @@ function StudentDashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
-          {upcomingDeadlines.map((deadline) => (
-            <Alert
-              key={`${deadline.courseName}-${deadline.assignmentTitle}`}
-              variant="warning"
-            >
-              <div className="d-flex gap-3">
-                <ExclamationTriangle
-                  className="flex-shrink-0 mt-1"
-                  aria-hidden="true"
-                />
-                <div>
-                  <Alert.Heading className="h5">
-                    Assignment due soon
-                  </Alert.Heading>
-                  <p className="mb-2">
-                    <strong>{deadline.assignmentTitle}</strong> for{' '}
-                    {deadline.courseName}
-                  </p>
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock aria-hidden="true" />
-                    <span>Due {formatDueDate(deadline)}</span>
-                  </div>
-                </div>
-              </div>
-            </Alert>
-          ))}
+          <Card className="border-0 shadow-sm">
+            <Card.Header as="h2" className="h5 mb-0">
+              My courses
+            </Card.Header>
+            <Card.Body>
+              {loading && <Spinner animation="border" size="sm" />}
+              {error && <Alert variant="danger">{error}</Alert>}
+              {!loading && !error && courses.length === 0 && (
+                <p className="text-muted mb-0">
+                  You are not enrolled in any courses yet.
+                </p>
+              )}
+              {!loading && !error && courses.length > 0 && (
+                <Row xs={1} md={2} lg={3} className="g-3">
+                  {courses.map((course) => (
+                    <Col key={course.id}>
+                      <Card className="h-100 border shadow-sm">
+                        <Card.Body>
+                          <Card.Title className="h6 mb-2">
+                            {course.name}
+                          </Card.Title>
+                          <Card.Text className="text-muted small mb-2">
+                            {course.description}
+                          </Card.Text>
+                          <Card.Text className="text-muted small mb-0">
+                            {new Date(course.startDate).toLocaleDateString()} –{' '}
+                            {new Date(course.endDate).toLocaleDateString()}
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
 
-        <Col lg={4}>
-          <Card className="shadow-sm">
+        <Col lg={8}>
+          <Card className="border-0 shadow-sm">
             <Card.Header as="h2" className="h5 mb-0">
-              Assignment deadlines
+              Current modules
             </Card.Header>
-            <ListGroup variant="flush">
-              {mockDeadlines.map((deadline) => (
-                <ListGroup.Item
-                  key={`${deadline.courseName}-${deadline.assignmentTitle}`}
-                  className="py-3"
-                >
-                  <div className="d-flex justify-content-between align-items-start gap-3">
-                    <div>
-                      <div className="fw-semibold">
-                        {deadline.assignmentTitle}
-                      </div>
-                      <div className="text-muted">{deadline.courseName}</div>
-                      <div className="d-flex align-items-center gap-2 mt-2 text-muted">
-                        <Clock aria-hidden="true" />
-                        <span>Due {formatDueDate(deadline)}</span>
-                      </div>
-                    </div>
-                    <Badge bg={deadline.turnedIn ? 'success' : 'secondary'}>
-                      {deadline.turnedIn ? (
-                        <>
-                          <CheckCircle className="me-1" aria-hidden="true" />
-                          Turned in
-                        </>
-                      ) : (
-                        'Not turned in'
-                      )}
-                    </Badge>
-                  </div>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
+            <Card.Body>
+              {modulesLoading && <Spinner animation="border" size="sm" />}
+              {modulesError && <Alert variant="danger">{modulesError}</Alert>}
+              {!modulesLoading && !modulesError && modules.length === 0 && (
+                <p className="text-muted mb-0">You have no current modules.</p>
+              )}
+              {!modulesLoading && !modulesError && modules.length > 0 && (
+                <Row xs={1} md={2} lg={3} className="g-3">
+                  {modules.map((module) => (
+                    <Col key={module.id}>
+                      <Card className="h-100 border shadow-sm">
+                        <Card.Body>
+                          <Card.Title className="h6 mb-2">
+                            {module.name}
+                          </Card.Title>
+                          <Card.Text className="text-muted small mb-2">
+                            {module.description}
+                          </Card.Text>
+                          <Card.Text className="text-muted small mb-0">
+                            {new Date(module.startDate).toLocaleDateString()} –{' '}
+                            {new Date(module.endDate).toLocaleDateString()}
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </Card.Body>
           </Card>
         </Col>
       </Row>
