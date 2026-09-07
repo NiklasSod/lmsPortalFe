@@ -4,11 +4,12 @@ import CoursesPage from '../CoursesPage'
 import ModulesView from '../ModulesView'
 import CourseOverviewView from '../CourseOverviewView'
 import CourseModulesView from '../CourseModulesView'
+import StudentDashboardView from './StudentDashboardView'
 
 function StudentRoutes() {
   return (
     <Routes>
-      <Route index element={<p className="p-4">Student dashboard</p>} />
+      <Route index element={<StudentDashboardView />} />
       <Route path="courses" element={<CoursesPage />} />
       <Route path="courses/:courseId" element={<CourseOverviewView />} />
       <Route path="courses/:courseId/members" element={<CourseMembersPage />} />
