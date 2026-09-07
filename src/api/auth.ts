@@ -1,4 +1,5 @@
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/auth'
+import { parseApiError } from '../utils/apiError'
 
 const ACCESS_TOKEN = 'accessToken'
 const EXPIRES_AT = 'expiresAt'
@@ -135,22 +136,6 @@ function clearSession(): void {
   sessionStorage.removeItem(EXPIRES_AT)
 }
 
-// gives good errors from the backend
-async function errorMessage(res: Response, fallback: string): Promise<string> {
-  const text = await res.text()
-  if (!text) return fallback
-
-  try {
-    const data = JSON.parse(text)
-    if (typeof data === 'string') return data
-    if (data?.message) return String(data.message)
-  } catch {
-    // body is plain text
-  }
-
-  return text
-}
-
 export async function register(
   request: RegisterRequest,
 ): Promise<AuthResponse> {
@@ -162,7 +147,7 @@ export async function register(
   })
 
   if (!res.ok) {
-    throw new Error(await errorMessage(res, 'Could not create account.'))
+    throw new Error(await parseApiError(res, 'Could not create account.'))
   }
 
   const data: AuthResponse = await res.json()
@@ -182,7 +167,7 @@ export async function login(
   })
 
   if (!res.ok) {
-    throw new Error(await errorMessage(res, 'Invalid email or password.'))
+    throw new Error(await parseApiError(res, 'Invalid email or password.'))
   }
 
   const data: AuthResponse = await res.json()

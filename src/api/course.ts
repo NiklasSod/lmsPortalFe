@@ -1,4 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
+import { parseApiError } from '../utils/apiError'
 import type {
   CourseSummary,
   CourseDetail,
@@ -9,7 +10,9 @@ import type {
 export async function getCourses(): Promise<CourseSummary[]> {
   const res = await apiFetch('/api/courses')
   if (!res.ok) {
-    throw new Error(`Failed to fetch courses: ${res.status}`)
+    throw new Error(
+      await parseApiError(res, `Failed to fetch courses: ${res.status}`),
+    )
   }
   return res.json()
 }
@@ -17,7 +20,9 @@ export async function getCourses(): Promise<CourseSummary[]> {
 export async function getMyCourses(): Promise<CourseSummary[]> {
   const res = await apiFetch('/api/courses/mine')
   if (!res.ok) {
-    throw new Error(`Failed to fetch your courses: ${res.status}`)
+    throw new Error(
+      await parseApiError(res, `Failed to fetch your courses: ${res.status}`),
+    )
   }
   return res.json()
 }
@@ -25,7 +30,9 @@ export async function getMyCourses(): Promise<CourseSummary[]> {
 export async function getCourseById(id: string): Promise<CourseDetail> {
   const res = await apiFetch(`/api/courses/${id}`)
   if (!res.ok) {
-    throw new Error(`Failed to fetch course: ${res.status}`)
+    throw new Error(
+      await parseApiError(res, `Failed to fetch course: ${res.status}`),
+    )
   }
   return res.json()
 }
@@ -37,19 +44,7 @@ export async function enrollInCourse(courseId: number): Promise<void> {
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not enroll in course.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not enroll in course.'))
   }
 }
 
@@ -62,19 +57,7 @@ export async function createCourse(
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not create course.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not create course.'))
   }
 
   return res.json()
@@ -90,19 +73,7 @@ export async function updateCourse(
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not update course.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not update course.'))
   }
 
   return res.json()
@@ -114,18 +85,6 @@ export async function deleteCourse(id: string | number): Promise<void> {
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not delete course.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not delete course.'))
   }
 }

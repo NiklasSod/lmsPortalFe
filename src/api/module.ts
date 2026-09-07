@@ -1,4 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
+import { parseApiError } from '../utils/apiError'
 import type {
   CourseModule,
   CreateModuleRequest,
@@ -10,7 +11,10 @@ export async function getCurrentModules(): Promise<CourseModule[]> {
 
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch current modules: ${res.status} ${res.statusText}`,
+      await parseApiError(
+        res,
+        `Failed to fetch current modules: ${res.status} ${res.statusText}`,
+      ),
     )
   }
   return res.json()
@@ -20,7 +24,12 @@ export async function getMineModules(): Promise<CourseModule[]> {
   const res = await apiFetch('/api/modules/mine')
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch modules: ${res.status} ${res.statusText}`)
+    throw new Error(
+      await parseApiError(
+        res,
+        `Failed to fetch modules: ${res.status} ${res.statusText}`,
+      ),
+    )
   }
   return res.json()
 }
@@ -32,7 +41,10 @@ export async function getModulesByCourse(
 
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch course modules: ${res.status} ${res.statusText}`,
+      await parseApiError(
+        res,
+        `Failed to fetch course modules: ${res.status} ${res.statusText}`,
+      ),
     )
   }
   return res.json()
@@ -44,8 +56,9 @@ export async function deleteModule(id: number): Promise<void> {
   })
 
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `Failed to delete module: ${res.status}`)
+    throw new Error(
+      await parseApiError(res, `Failed to delete module: ${res.status}`),
+    )
   }
 }
 
@@ -58,19 +71,7 @@ export async function addModule(
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not add module.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not add module.'))
   }
 
   return res.json()
@@ -86,19 +87,7 @@ export async function updateModule(
   })
 
   if (!res.ok) {
-    let errorMessage = 'Could not update module.'
-    const text = await res.text()
-    if (text) {
-      try {
-        const data = JSON.parse(text)
-        if (typeof data === 'string') errorMessage = data
-        else if (data?.message) errorMessage = data.message
-        else if (data?.title) errorMessage = data.title
-      } catch {
-        errorMessage = text
-      }
-    }
-    throw new Error(errorMessage)
+    throw new Error(await parseApiError(res, 'Could not update module.'))
   }
 
   return res.json()
