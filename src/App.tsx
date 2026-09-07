@@ -7,7 +7,17 @@ import StudentRoutes from './pages/Student/StudentRoutes'
 import TeacherRoutes from './pages/Teacher/TeacherRoutes'
 
 function App() {
-  const { isLoggedIn, role } = useAuth()
+  const { isLoggedIn, role, isRestoring } = useAuth()
+
+  if (isRestoring) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
+      </div>
+    )
+  }
 
   if (!isLoggedIn) {
     return (
