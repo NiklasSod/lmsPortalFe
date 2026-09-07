@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Form, Button, Alert, Spinner } from 'react-bootstrap'
+import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getCourseById, updateCourse } from '../../../api/course'
 
@@ -26,12 +26,8 @@ export default function EditCourseView() {
         const course = await getCourseById(courseId)
         setName(course.name || '')
         setDescription(course.description || '')
-        setStartDate(
-          course.startDate ? course.startDate.split('T')[0] : '',
-        )
-        setEndDate(
-          course.endDate ? course.endDate.split('T')[0] : '',
-        )
+        setStartDate(course.startDate ? course.startDate.split('T')[0] : '')
+        setEndDate(course.endDate ? course.endDate.split('T')[0] : '')
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message)
@@ -88,18 +84,15 @@ export default function EditCourseView() {
 
   if (isFetching) {
     return (
-      <div className="d-flex justify-content-center align-items-center p-5">
+      <Container className="py-4 text-center">
         <Spinner animation="border" role="status" />
-      </div>
+      </Container>
     )
   }
 
   return (
-    <div
-      className="min-vh-100 d-flex flex-column"
-      style={{ backgroundColor: 'var(--card-bg)' }}
-    >
-      <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3 py-4">
+    <Container className="py-4">
+      <div className="d-flex justify-content-center">
         <div style={{ width: '100%', maxWidth: '420px' }}>
           <h1
             className="text-center fw-bold mb-4 fs-3"
@@ -248,7 +241,7 @@ export default function EditCourseView() {
             </div>
           </Form>
         </div>
-      </main>
-    </div>
+      </div>
+    </Container>
   )
 }
