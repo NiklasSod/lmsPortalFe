@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Form, Button, Alert, Spinner } from 'react-bootstrap'
+import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { createCourse } from '../../../api/course'
 
@@ -49,29 +49,8 @@ export default function CreateCourseView() {
   }
 
   return (
-    <div
-      className="min-vh-100 d-flex flex-column"
-      style={{ backgroundColor: 'var(--card-bg)' }}
-    >
-      <header className="p-4 d-flex align-items-center gap-2">
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            backgroundColor: 'var(--logo-bg)',
-            border: '1px solid var(--logo-border)',
-            borderRadius: '4px',
-          }}
-        />
-        <span
-          className="fw-bold fs-5 tracking-wide"
-          style={{ letterSpacing: '0.5px', color: 'var(--text-primary)' }}
-        >
-          LEXICON
-        </span>
-      </header>
-
-      <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3 py-4">
+    <Container className="py-4">
+      <div className="d-flex justify-content-center">
         <div style={{ width: '100%', maxWidth: '420px' }}>
           <h1
             className="text-center fw-bold mb-4 fs-3"
@@ -211,16 +190,16 @@ export default function CreateCourseView() {
 
             <div className="text-center">
               <Link
-                to="/login"
+                to="/teacher/courses"
                 className="text-decoration-underline small"
                 style={{ color: 'var(--link-color)' }}
               >
-                Back to Login
+                Back to Courses
               </Link>
             </div>
           </Form>
         </div>
-      </main>
-    </div>
+      </div>
+    </Container>
   )
 }

@@ -1,4 +1,5 @@
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/auth'
+import { parseApiError } from '../utils/apiError'
 
 const ACCESS_TOKEN = 'accessToken'
 const EXPIRES_AT = 'expiresAt'
@@ -30,6 +31,45 @@ export function getFullName(): string | null {
 
   if (typeof firstName === 'string' && typeof lastName === 'string') {
     return `${firstName} ${lastName}`.trim()
+  }
+
+  return null
+}
+
+export function getEmail(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  const keys = [
+    'email',
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+  ]
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'string' && value) return value
+  }
+
+  return null
+}
+
+export function getUserId(): string | null {
+  const token = getAccessToken()
+  if (!token) return null
+
+  const payload = decodeJwtPayload(token)
+  if (!payload) return null
+
+  const keys = [
+    'sub',
+    'nameid',
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+  ]
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'string' && value) return value
   }
 
   return null
@@ -78,6 +118,14 @@ function extractRole(token: string): string | null {
   return null
 }
 
+export function getSession(): AuthResponse | null {
+  const accessToken = getAccessToken()
+  const expiresAt = getExpiresAt()
+  if (!accessToken || !expiresAt) return null
+
+  return { accessToken, expiresAt }
+}
+
 function storeSession(data: AuthResponse): void {
   sessionStorage.setItem(ACCESS_TOKEN, data.accessToken)
   sessionStorage.setItem(EXPIRES_AT, data.expiresAt)
@@ -86,22 +134,6 @@ function storeSession(data: AuthResponse): void {
 function clearSession(): void {
   sessionStorage.removeItem(ACCESS_TOKEN)
   sessionStorage.removeItem(EXPIRES_AT)
-}
-
-// gives good errors from the backend
-async function errorMessage(res: Response, fallback: string): Promise<string> {
-  const text = await res.text()
-  if (!text) return fallback
-
-  try {
-    const data = JSON.parse(text)
-    if (typeof data === 'string') return data
-    if (data?.message) return String(data.message)
-  } catch {
-    // body is plain text
-  }
-
-  return text
 }
 
 export async function register(
@@ -115,7 +147,7 @@ export async function register(
   })
 
   if (!res.ok) {
-    throw new Error(await errorMessage(res, 'Could not create account.'))
+    throw new Error(await parseApiError(res, 'Could not create account.'))
   }
 
   const data: AuthResponse = await res.json()
@@ -135,7 +167,7 @@ export async function login(
   })
 
   if (!res.ok) {
-    throw new Error(await errorMessage(res, 'Invalid email or password.'))
+    throw new Error(await parseApiError(res, 'Invalid email or password.'))
   }
 
   const data: AuthResponse = await res.json()

@@ -1,4 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
+import { parseApiError } from '../utils/apiError'
 
 export interface UpdateUserRequest {
   firstName: string
@@ -16,7 +17,8 @@ export async function updateUser(
   })
 
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || `Could not update user: ${res.status}`)
+    throw new Error(
+      await parseApiError(res, `Could not update user: ${res.status}`),
+    )
   }
 }
