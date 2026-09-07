@@ -20,5 +20,4 @@ function CoursesRoutes() {
   )
 }
 
-
 export default CoursesRoutes

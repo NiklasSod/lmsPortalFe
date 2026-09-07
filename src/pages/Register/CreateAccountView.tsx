@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../../api/auth'
+import { useAuth } from '../../auth/AuthContext'
 
 export default function CreateAccountView() {
   const [firstName, setFirstName] = useState('')
@@ -13,6 +13,7 @@ export default function CreateAccountView() {
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
+  const { register } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

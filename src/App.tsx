@@ -1,5 +1,5 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { getAccessToken, getRole } from './api/auth'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth/AuthContext'
 import LoginView from './pages/Login/LoginView'
 import CreateAccountView from './pages/Register/CreateAccountView'
 import AppLayout from './components/AppLayout'
@@ -7,10 +7,7 @@ import StudentRoutes from './pages/Student/StudentRoutes'
 import TeacherRoutes from './pages/Teacher/TeacherRoutes'
 
 function App() {
-  useLocation()
-
-  const isLoggedIn = Boolean(getAccessToken())
-  const role = getRole()
+  const { isLoggedIn, role } = useAuth()
 
   if (!isLoggedIn) {
     return (

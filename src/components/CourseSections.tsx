@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Nav } from 'react-bootstrap'
-import { getRole } from '../api/auth'
+import { useAuth } from '../auth/AuthContext'
 
 interface CourseSectionsProps {
   courseId: string
@@ -12,7 +12,8 @@ interface SectionLink {
 }
 
 function CourseSections({ courseId }: CourseSectionsProps) {
-  const isStudent = getRole() === 'student'
+  const { role } = useAuth()
+  const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
   const location = useLocation()
 

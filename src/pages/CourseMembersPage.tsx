@@ -12,11 +12,16 @@ import {
 import { getCourseById } from '../api/course'
 import type { CourseDetail, CourseEnrollment } from '../types/course'
 import CourseSections from '../components/CourseSections'
+import { useAuth } from '../auth/AuthContext'
 
 function CourseMembersPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
+
+  const { role } = useAuth()
+  const isStudent = role === 'student'
+  const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
     if (!courseId) {
@@ -62,13 +67,20 @@ function CourseMembersPage() {
       <Breadcrumb>
         <Breadcrumb.Item
           linkAs={Link}
-          linkProps={{ to: '/' }}
+          linkProps={{ to: base }}
           style={{ color: 'var(--link-color)' }}
         >
-          Dashboard
+          Courses
+        </Breadcrumb.Item>
+        <Breadcrumb.Item
+          linkAs={Link}
+          linkProps={{ to: `${base}/${course.id}` }}
+          style={{ color: 'var(--link-color)' }}
+        >
+          {course.name}
         </Breadcrumb.Item>
         <Breadcrumb.Item active style={{ color: 'var(--text-primary)' }}>
-          {course.name}
+          Members
         </Breadcrumb.Item>
       </Breadcrumb>
 
