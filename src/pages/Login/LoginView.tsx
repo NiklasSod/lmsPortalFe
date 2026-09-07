@@ -144,6 +144,7 @@ export default function LoginView() {
                 className="text-decoration-underline small"
                 style={{ color: 'var(--link-color)' }}
               >
+                {/* TODO add forgot password if time */}
                 Forgot password?
               </Link>
               <Link

@@ -13,6 +13,7 @@ import {
 import { getCourseById, enrollInCourse } from '../api/course'
 import { getModulesByCourse } from '../api/module'
 import { useAuth } from '../auth/AuthContext'
+import { ApiError } from '../utils/apiError'
 import type { Course } from '../types/course'
 import type { CourseModule } from '../types/module'
 import CourseSections from '../components/CourseSections'
@@ -49,7 +50,7 @@ export const CourseModulesView: React.FC = () => {
           const courseModules = await getModulesByCourse(Number(courseId))
           setModules(courseModules)
         } catch (err) {
-          if (err instanceof Error && /403/.test(err.message)) {
+          if (err instanceof ApiError && err.status === 403) {
             setNotEnrolled(true)
           } else {
             setError(

@@ -1,5 +1,5 @@
 import { apiFetch } from '../utils/apifetch'
-import { parseApiError } from '../utils/apiError'
+import { parseApiError, toApiError } from '../utils/apiError'
 import type {
   CourseModule,
   CreateModuleRequest,
@@ -40,11 +40,9 @@ export async function getModulesByCourse(
   const res = await apiFetch(`/api/courses/${courseId}/modules`)
 
   if (!res.ok) {
-    throw new Error(
-      await parseApiError(
-        res,
-        `Failed to fetch course modules: ${res.status} ${res.statusText}`,
-      ),
+    throw await toApiError(
+      res,
+      `Failed to fetch course modules: ${res.status} ${res.statusText}`,
     )
   }
   return res.json()

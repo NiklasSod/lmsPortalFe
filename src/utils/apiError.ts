@@ -1,3 +1,13 @@
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 export async function parseApiError(
   res: Response,
   fallback: string,
@@ -15,4 +25,11 @@ export async function parseApiError(
   }
 
   return text
+}
+
+export async function toApiError(
+  res: Response,
+  fallback: string,
+): Promise<ApiError> {
+  return new ApiError(res.status, await parseApiError(res, fallback))
 }
