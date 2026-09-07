@@ -9,12 +9,12 @@ import {
   Col,
   Spinner,
 } from 'react-bootstrap'
-import { getCourseById } from '../api/course'
-import type { CourseDetail, CourseEnrollment } from '../types/course'
-import CourseSections from '../components/CourseSections'
-import { useAuth } from '../auth/AuthContext'
+import { getCourseById } from '../../api/course'
+import type { CourseDetail, CourseEnrollment } from '../../types/course'
+import CourseSections from '../../components/CourseSections'
+import { useAuth } from '../../auth/AuthContext'
 
-function CourseMembersPage() {
+function CourseMembersView() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
@@ -121,4 +121,4 @@ function CourseMembersPage() {
   )
 }
 
-export default CourseMembersPage
+export default CourseMembersView

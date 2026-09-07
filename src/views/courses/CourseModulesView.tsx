@@ -10,14 +10,14 @@ import {
   Spinner,
   Button,
 } from 'react-bootstrap'
-import { getCourseById, enrollInCourse } from '../api/course'
-import { getModulesByCourse } from '../api/module'
-import { useAuth } from '../auth/AuthContext'
-import { ApiError } from '../utils/apiError'
-import type { Course } from '../types/course'
-import type { CourseModule } from '../types/module'
-import CourseSections from '../components/CourseSections'
-import ModuleFormModal from '../components/modules/ModuleFormModal'
+import { getCourseById, enrollInCourse } from '../../api/course'
+import { getModulesByCourse } from '../../api/module'
+import { useAuth } from '../../auth/AuthContext'
+import { ApiError } from '../../utils/apiError'
+import type { Course } from '../../types/course'
+import type { CourseModule } from '../../types/module'
+import CourseSections from '../../components/CourseSections'
+import ModuleFormModal from '../../components/modules/ModuleFormModal'
 
 export const CourseModulesView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()

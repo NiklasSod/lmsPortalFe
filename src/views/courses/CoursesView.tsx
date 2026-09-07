@@ -11,9 +11,9 @@ import {
 } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { PlusLg } from 'react-bootstrap-icons'
-import { getCourses, getMyCourses, deleteCourse } from '../api/course'
-import { useAuth } from '../auth/AuthContext'
-import type { CourseSummary } from '../types/course'
+import { getCourses, getMyCourses, deleteCourse } from '../../api/course'
+import { useAuth } from '../../auth/AuthContext'
+import type { CourseSummary } from '../../types/course'
 
 interface CourseGridProps {
   courses: CourseSummary[]
@@ -72,7 +72,7 @@ function CourseGrid({ courses, base, onDeleteRequest }: CourseGridProps) {
   )
 }
 
-function CoursesPage() {
+function CoursesView() {
   const [allCourses, setAllCourses] = useState<CourseSummary[]>([])
   const [myCourses, setMyCourses] = useState<CourseSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -230,4 +230,4 @@ function CoursesPage() {
   )
 }
 
-export default CoursesPage
+export default CoursesView

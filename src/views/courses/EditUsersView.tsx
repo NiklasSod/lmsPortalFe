@@ -10,15 +10,15 @@ import {
   Table,
 } from 'react-bootstrap'
 import { Pencil } from 'react-bootstrap-icons'
-import { getCourseById, getMyCourses } from '../../../api/course'
-import { updateUser } from '../../../api/user'
-import type { CourseEnrollment, CourseSummary } from '../../../types/course'
+import { getCourseById, getMyCourses } from '../../api/course'
+import { updateUser } from '../../api/user'
+import type { CourseEnrollment, CourseSummary } from '../../types/course'
 
 interface UserWithCourses extends CourseEnrollment {
   courses: string[]
 }
 
-function UsersPage() {
+function UsersView() {
   const [users, setUsers] = useState<UserWithCourses[]>([])
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -249,4 +249,4 @@ function UsersPage() {
   )
 }
 
-export default UsersPage
+export default UsersView
