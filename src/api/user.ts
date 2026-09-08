@@ -7,6 +7,26 @@ export interface UpdateUserRequest {
   email: string
 }
 
+export interface UserDto {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+}
+
+export async function getUser(userId: string): Promise<UserDto> {
+  const res = await apiFetch(`/api/users/${userId}`)
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(res, `Could not fetch user: ${res.status}`),
+    )
+  }
+
+  return res.json()
+}
+
 export async function updateUser(
   userId: string,
   request: UpdateUserRequest,
