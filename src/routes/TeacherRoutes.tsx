@@ -8,7 +8,7 @@ import CourseModulesView from '../views/courses/CourseModulesView'
 import CourseMembersView from '../views/courses/CourseMembersView'
 import EditUsersView from '../views/courses/EditUsersView'
 import ModulesView from '../views/modules/ModulesView'
-import ActivitiesView from '../pages/Activities/ActivitiesView'
+import ActivitiesView from '../views/activities/ActivitiesView'
 
 function TeacherRoutes() {
   return (

@@ -5,7 +5,7 @@ import ModulesView from '../views/modules/ModulesView'
 import CourseOverviewView from '../views/courses/CourseOverviewView'
 import CourseModulesView from '../views/courses/CourseModulesView'
 import DashboardView from '../views/dashboard/DashboardView'
-import ActivitiesView from '../pages/Activities/ActivitiesView'
+import ActivitiesView from '../views/activities/ActivitiesView'
 
 function StudentRoutes() {
   return (
