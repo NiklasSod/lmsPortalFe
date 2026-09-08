@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Alert, Col, Container, Row, Spinner } from 'react-bootstrap'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
-import { getUser } from '../../api/user'
+import { deleteAccount, getUser } from '../../api/user'
 import type { UserDto } from '../../api/user'
 import { getProfile } from '../../api/userProfile'
 import type { ProfileRequest } from '../../types/userProfile'
@@ -10,18 +10,24 @@ import ProfileHeader from '../../components/profile/ProfileHeader'
 import ProfileAbout from '../../components/profile/ProfileAbout'
 import ProfileSkills from '../../components/profile/ProfileSkills'
 import ProfileDetails from '../../components/profile/ProfileDetails'
+import ConfirmModal from '../../components/ConfirmModal'
 
 const ProfileView = () => {
   const [user, setUser] = useState<UserDto>()
   const [userProfile, setUserProfile] = useState<ProfileRequest>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const location = useLocation()
+  const navigate = useNavigate()
   const currUserId = location.state?.currUserId as string | undefined
 
-  const { userId } = useAuth()
+  const { userId, role, logout } = useAuth()
   const myProfile = !currUserId || currUserId === userId
+  const canDeleteSelf = myProfile && role?.toLowerCase() !== 'admin'
 
   useEffect(() => {
     const ownerId = currUserId ?? userId
@@ -54,6 +60,21 @@ const ProfileView = () => {
   const skills = userProfile?.skills?.filter((skill) => skill.trim()) ?? []
   const whatsAppNumber = userProfile?.whatsAppNumber?.trim()
   const gitHubLink = userProfile?.gitHubLink?.trim()
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true)
+      setDeleteError(null)
+      await deleteAccount()
+      await logout()
+      navigate('/login', { replace: true })
+    } catch (err: unknown) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Could not delete your account.',
+      )
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <Container className="py-4">
@@ -93,8 +114,51 @@ const ProfileView = () => {
               />
             </Col>
           </Row>
+
+          {canDeleteSelf && (
+            <>
+              <hr className="my-5" />
+              <section className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                  <h2 className="h5 fw-semibold mb-1 text-danger">
+                    Delete account
+                  </h2>
+                  <p className="text-body-secondary mb-0">
+                    Permanently delete your account, your profile and all of
+                    your data. This action cannot be undone.
+                  </p>
+                </div>
+                <Button
+                  variant="outline-danger"
+                  className="flex-shrink-0"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete account
+                </Button>
+              </section>
+            </>
+          )}
         </>
       )}
+
+      <ConfirmModal
+        show={showDeleteModal}
+        title="Delete account"
+        confirmLabel="Delete account"
+        busyLabel="Deleting..."
+        variant="danger"
+        isBusy={isDeleting}
+        error={deleteError}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setShowDeleteModal(false)}
+        message={
+          <>
+            Are you sure you want to permanently delete your account? This will
+            remove your profile and all of your data. This action cannot be
+            undone.
+          </>
+        }
+      />
     </Container>
   )
 }
