@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   Container,
   ListGroup,
@@ -11,7 +11,6 @@ import {
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
-import { getProfile } from '../../api/userProfile'
 import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -20,13 +19,13 @@ function CourseMembersView() {
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
 
+  const navigate = useNavigate()
   const { role } = useAuth()
   const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
-  const getUserProfile = async (userId: string) => {
-    const profileInfo = await getProfile(userId)
-    console.log(profileInfo)
+  const handleMemberClick = (userId: string) => {
+    navigate(`/${role}/profile`, { state: { currUserId: userId } })
   }
 
   useEffect(() => {
@@ -63,7 +62,7 @@ function CourseMembersView() {
     <ListGroup.Item
       key={member.userId}
       action
-      onClick={() => getUserProfile(member.userId)}
+      onClick={() => handleMemberClick(member.userId)}
     >
       <div className="fw-semibold">
         {member.firstName} {member.lastName}
