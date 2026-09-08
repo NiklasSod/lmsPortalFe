@@ -18,6 +18,7 @@ import type { Course } from '../types/course'
 import type { CourseModule } from '../types/module'
 import CourseSections from '../components/CourseSections'
 import ModuleFormModal from '../components/modules/ModuleFormModal'
+import ModuleActivitiesList from '../components/modules/ModuleActivitiesList'
 
 export const CourseModulesView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()
@@ -172,6 +173,7 @@ export const CourseModulesView: React.FC = () => {
                       {new Date(module.startDate).toLocaleDateString()} -{' '}
                       {new Date(module.endDate).toLocaleDateString()}
                     </div>
+                    <ModuleActivitiesList moduleId={module.id} />
                   </ListGroup.Item>
                 ))
               ) : (

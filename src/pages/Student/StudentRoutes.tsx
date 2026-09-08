@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import CourseMembersPage from '../CourseMembersPage'
 import CoursesPage from '../CoursesPage'
 import ModulesView from '../ModulesView'
+import ActivitiesView from '../Activities/ActivitiesView'
 import CourseOverviewView from '../CourseOverviewView'
 import CourseModulesView from '../CourseModulesView'
 
@@ -14,6 +15,7 @@ function StudentRoutes() {
       <Route path="courses/:courseId/members" element={<CourseMembersPage />} />
       <Route path="courses/:courseId/modules" element={<CourseModulesView />} />
       <Route path="modules" element={<ModulesView />} />
+      <Route path="activities" element={<ActivitiesView />} />
       <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
