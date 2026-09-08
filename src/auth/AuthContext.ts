@@ -4,6 +4,8 @@ import type { AuthResponse, RegisterRequest } from '../types/auth'
 export interface AuthContextValue {
   /** True when an access token exists in the session. */
   isLoggedIn: boolean
+  /** True while a silent session refresh is in progress. */
+  isRestoring: boolean
   role: string | null
   fullName: string | null
   email: string | null

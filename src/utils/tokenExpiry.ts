@@ -13,15 +13,19 @@ export function isExpiredOrExpiringSoon(): boolean {
 }
 
 export async function getValidAccessToken(): Promise<string | null> {
-  if (!getAccessToken()) return null
+  const token = getAccessToken()
 
-  if (isExpiredOrExpiringSoon()) {
-    try {
-      await refresh()
-    } catch {
-      return null
-    }
+  // We already have a token that is valid for a while — use it as is.
+  if (token && !isExpiredOrExpiringSoon()) {
+    return token
   }
 
-  return getAccessToken()
+  // No token (fresh page load) or a token that expires soon. Try to refresh.
+  // This also restores the session when only the refresh_token cookie exists.
+  try {
+    await refresh()
+    return getAccessToken()
+  } catch {
+    return null
+  }
 }
