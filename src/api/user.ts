@@ -7,6 +7,11 @@ export interface UpdateUserRequest {
   email: string
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 export interface UserDto {
   id: string
   firstName: string
@@ -52,6 +57,21 @@ export async function updateAccount(request: UpdateUserRequest): Promise<void> {
   if (!res.ok) {
     throw new Error(
       await parseApiError(res, `Could not update account: ${res.status}`),
+    )
+  }
+}
+
+export async function changePassword(
+  request: ChangePasswordRequest,
+): Promise<void> {
+  const res = await apiFetch('/api/account/change-password', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(res, `Could not change password: ${res.status}`),
     )
   }
 }
