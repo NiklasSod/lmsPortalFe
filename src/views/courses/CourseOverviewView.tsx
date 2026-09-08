@@ -13,7 +13,7 @@ import {
 import { getCourseById, enrollInCourse } from '../../api/course'
 import { useAuth } from '../../auth/AuthContext'
 import type { CourseDetail } from '../../types/course'
-import CourseSections from '../../components/CourseSections'
+import CourseSections from '../../components/courses/CourseSections'
 
 export const CourseOverviewView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()

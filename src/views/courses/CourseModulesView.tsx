@@ -16,7 +16,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { ApiError } from '../../utils/apiError'
 import type { Course } from '../../types/course'
 import type { CourseModule } from '../../types/module'
-import CourseSections from '../../components/CourseSections'
+import CourseSections from '../../components/courses/CourseSections'
 import ModuleFormModal from '../../components/modules/ModuleFormModal'
 
 export const CourseModulesView: React.FC = () => {

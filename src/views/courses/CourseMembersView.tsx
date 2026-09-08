@@ -11,7 +11,7 @@ import {
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
-import CourseSections from '../../components/CourseSections'
+import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
 
 function CourseMembersView() {
