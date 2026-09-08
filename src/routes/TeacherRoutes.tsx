@@ -21,6 +21,7 @@ function TeacherRoutes() {
       <Route path="courses/:courseId/members" element={<CourseMembersView />} />
       <Route path="courses/users" element={<EditUsersView />} />
       <Route path="modules" element={<ModulesView />} />
+      <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
 }

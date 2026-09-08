@@ -15,6 +15,7 @@ function StudentRoutes() {
       <Route path="courses/:courseId/members" element={<CourseMembersView />} />
       <Route path="courses/:courseId/modules" element={<CourseModulesView />} />
       <Route path="modules" element={<ModulesView />} />
+      <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
 }
