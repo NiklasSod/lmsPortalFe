@@ -21,6 +21,7 @@ import ProfileSkills from '../../components/profile/ProfileSkills'
 import ProfileDetails from '../../components/profile/ProfileDetails'
 import ConfirmModal from '../../components/ConfirmModal'
 import EditAccountForm from '../../components/profile/EditAccountForm'
+import ChangePasswordForm from '../../components/profile/ChangePasswordForm'
 
 const ProfileView = () => {
   const [user, setUser] = useState<UserDto>()
@@ -31,6 +32,7 @@ const ProfileView = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [showEditSection, setShowEditSection] = useState(false)
+  const [showPasswordSection, setShowPasswordSection] = useState(false)
   const [showDeleteSection, setShowDeleteSection] = useState(false)
 
   const location = useLocation()
@@ -169,6 +171,40 @@ const ProfileView = () => {
                         user={user}
                         onUpdated={setUser}
                       />
+                    </div>
+                  </Collapse>
+                </div>
+
+                <div className="border-top pt-4" style={{ maxWidth: '400px' }}>
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => setShowPasswordSection((open) => !open)}
+                    aria-expanded={showPasswordSection}
+                    aria-controls="change-password-collapse"
+                    className="d-flex align-items-center justify-content-between w-100 p-0 border-0 text-decoration-none pb-4"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    <span className="h5 fw-semibold mb-0">Change password</span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      size={20}
+                      className="text-body-secondary"
+                      style={{
+                        transform: showPasswordSection
+                          ? 'rotate(180deg)'
+                          : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0,
+                      }}
+                    />
+                  </Button>
+                  <Collapse in={showPasswordSection}>
+                    <div id="change-password-collapse" className="pt-3 pb-4">
+                      <p className="text-body-secondary mb-3">
+                        Set a new password for your account.
+                      </p>
+                      <ChangePasswordForm />
                     </div>
                   </Collapse>
                 </div>
