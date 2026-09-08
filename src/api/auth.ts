@@ -175,7 +175,16 @@ export async function login(
   return data
 }
 
-export async function refresh(): Promise<AuthResponse> {
+let refreshInFlight: Promise<AuthResponse> | null = null
+
+export function refresh(): Promise<AuthResponse> {
+  refreshInFlight ??= doRefresh().finally(() => {
+    refreshInFlight = null
+  })
+  return refreshInFlight
+}
+
+async function doRefresh(): Promise<AuthResponse> {
   const res = await fetch('/api/auth/refresh', {
     method: 'POST',
     credentials: 'include',
@@ -183,7 +192,9 @@ export async function refresh(): Promise<AuthResponse> {
 
   if (!res.ok) {
     clearSession()
-    throw new Error('Session expired, please log in again.')
+    throw new Error(
+      await parseApiError(res, 'Session expired, please log in again.'),
+    )
   }
 
   const data: AuthResponse = await res.json()

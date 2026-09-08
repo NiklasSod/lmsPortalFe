@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Nav } from 'react-bootstrap'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../auth/AuthContext'
 
 interface CourseSectionsProps {
   courseId: string

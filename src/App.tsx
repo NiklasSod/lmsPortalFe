@@ -1,13 +1,23 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import LoginView from './pages/Login/LoginView'
-import CreateAccountView from './pages/Register/CreateAccountView'
+import LoginView from './views/auth/LoginView'
+import CreateAccountView from './views/auth/CreateAccountView'
 import AppLayout from './components/AppLayout'
-import StudentRoutes from './pages/Student/StudentRoutes'
-import TeacherRoutes from './pages/Teacher/TeacherRoutes'
+import StudentRoutes from './routes/StudentRoutes'
+import TeacherRoutes from './routes/TeacherRoutes'
 
 function App() {
-  const { isLoggedIn, role } = useAuth()
+  const { isLoggedIn, role, isRestoring } = useAuth()
+
+  if (isRestoring) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
+      </div>
+    )
+  }
 
   if (!isLoggedIn) {
     return (
