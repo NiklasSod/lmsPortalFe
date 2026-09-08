@@ -44,3 +44,15 @@ body {
   --input-text: #f8f9fa;
   --input-border: #444444;
 }
+
+@media (min-width: 676px) {
+  .profile-hero {
+    flex-direction: row !important;
+    text-align: start !important;
+  }
+
+  .profile-hero-meta {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+  }
+}
