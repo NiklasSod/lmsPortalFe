@@ -11,6 +11,7 @@ import {
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
+import { getProfile } from '../../api/userProfile'
 import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
 
@@ -22,6 +23,11 @@ function CourseMembersView() {
   const { role } = useAuth()
   const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
+
+  const getUserProfile = async (userId: string) => {
+    const profileInfo = await getProfile(userId)
+    console.log(profileInfo)
+  }
 
   useEffect(() => {
     if (!courseId) {
@@ -54,7 +60,11 @@ function CourseMembersView() {
   const students = course.enrollments.filter((e) => e.role === 'Student')
 
   const renderMember = (member: CourseEnrollment) => (
-    <ListGroup.Item key={member.userId}>
+    <ListGroup.Item
+      key={member.userId}
+      action
+      onClick={() => getUserProfile(member.userId)}
+    >
       <div className="fw-semibold">
         {member.firstName} {member.lastName}
       </div>
