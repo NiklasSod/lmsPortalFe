@@ -8,7 +8,6 @@ import {
   Row,
   Col,
   Spinner,
-  Button,
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
