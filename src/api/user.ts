@@ -42,3 +42,15 @@ export async function updateUser(
     )
   }
 }
+
+export async function deleteAccount(): Promise<void> {
+  const res = await apiFetch('/api/account', {
+    method: 'DELETE',
+  })
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(res, `Could not delete account: ${res.status}`),
+    )
+  }
+}
