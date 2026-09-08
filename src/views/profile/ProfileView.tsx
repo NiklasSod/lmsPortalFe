@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
+import {
+  Alert,
+  Button,
+  Col,
+  Collapse,
+  Container,
+  Row,
+  Spinner,
+} from 'react-bootstrap'
+import { ChevronDown } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
 import { deleteAccount, getUser } from '../../api/user'
 import type { UserDto } from '../../api/user'
@@ -21,6 +30,8 @@ const ProfileView = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [showEditSection, setShowEditSection] = useState(false)
+  const [showDeleteSection, setShowDeleteSection] = useState(false)
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -118,43 +129,93 @@ const ProfileView = () => {
 
           {canDeleteSelf && (
             <>
-              <hr className="my-5" />
-              <section className="d-flex flex-column gap-5">
-                <div className="d-flex flex-column gap-3">
-                  <div>
-                    <h2 className="h5 fw-semibold mb-1">Account details</h2>
-                    <p className="text-body-secondary mb-0">
-                      Update your first name, last name and / or email address.
-                    </p>
-                  </div>
-                  <EditAccountForm
-                    key={user.id}
-                    user={user}
-                    onUpdated={setUser}
-                  />
+              <hr className="my-4" style={{ maxWidth: '400px' }} />
+              <section
+                className="d-flex flex-column"
+                style={{ maxWidth: '400px' }}
+              >
+                <div>
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => setShowEditSection((open) => !open)}
+                    aria-expanded={showEditSection}
+                    aria-controls="edit-account-collapse"
+                    className="d-flex align-items-center justify-content-between w-100 p-0 border-0 text-decoration-none pb-4"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    <span className="h5 fw-semibold mb-0">Edit profile</span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      size={20}
+                      className="text-body-secondary"
+                      style={{
+                        transform: showEditSection
+                          ? 'rotate(180deg)'
+                          : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0,
+                      }}
+                    />
+                  </Button>
+                  <Collapse in={showEditSection}>
+                    <div id="edit-account-collapse" className="pt-3 pb-4">
+                      <p className="text-body-secondary mb-3">
+                        Update your first name, last name and / or email
+                        address.
+                      </p>
+                      <EditAccountForm
+                        key={user.id}
+                        user={user}
+                        onUpdated={setUser}
+                      />
+                    </div>
+                  </Collapse>
                 </div>
 
-                <hr className="my-0 border-secondary-subtle" />
-
-                <div className="d-flex flex-column gap-3">
-                  <div>
-                    <h2 className="h5 fw-semibold mb-1 text-danger">
-                      Delete account
-                    </h2>
-                    <p className="text-body-secondary mb-0">
-                      Permanently delete your account, your profile and all of
-                      your data.
-                      <br /> This action cannot be undone.
-                    </p>
-                  </div>
+                <div className="border-top pt-4" style={{ maxWidth: '400px' }}>
                   <Button
-                    variant="outline-danger"
-                    size="sm"
-                    style={{ maxWidth: '150px' }}
-                    onClick={() => setShowDeleteModal(true)}
+                    type="button"
+                    variant="link"
+                    onClick={() => setShowDeleteSection((open) => !open)}
+                    aria-expanded={showDeleteSection}
+                    aria-controls="delete-account-collapse"
+                    className="d-flex align-items-center justify-content-between w-100 p-0 border-0 text-decoration-none"
+                    style={{ color: 'var(--text-primary)' }}
                   >
-                    Delete account
+                    <span className="h5 fw-semibold mb-0 text-danger">
+                      Delete profile
+                    </span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      size={20}
+                      className="text-danger"
+                      style={{
+                        transform: showDeleteSection
+                          ? 'rotate(180deg)'
+                          : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0,
+                      }}
+                    />
                   </Button>
+                  <Collapse in={showDeleteSection}>
+                    <div id="delete-account-collapse" className="pt-3">
+                      <p className="text-body-secondary mb-3">
+                        Permanently delete your account, your profile and all of
+                        your data.
+                        <br /> This action cannot be undone.
+                      </p>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        style={{ maxWidth: '150px' }}
+                        onClick={() => setShowDeleteModal(true)}
+                      >
+                        Delete account
+                      </Button>
+                    </div>
+                  </Collapse>
                 </div>
               </section>
             </>

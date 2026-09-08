@@ -16,7 +16,6 @@ const inputStyle = {
 }
 
 function EditAccountForm({ user, onUpdated }: EditAccountFormProps) {
-  // Prefill the inputs with the user's real account data
   const [firstName, setFirstName] = useState(user.firstName)
   const [lastName, setLastName] = useState(user.lastName)
   const [email, setEmail] = useState(user.email)
