@@ -8,6 +8,7 @@ import {
   Row,
   Col,
   Spinner,
+  Button,
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
@@ -86,6 +87,17 @@ function CourseMembersView() {
 
       <Row>
         <Col md={8}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2 className="h6 fw-semibold mb-0">Members</h2>
+            {!isStudent && (
+              <Link
+                to="/teacher/courses/users"
+                className="btn btn-primary btn-sm"
+              >
+                Edit members
+              </Link>
+            )}
+          </div>
           <ListGroup>
             <ListGroup.Item variant="secondary" className="fw-semibold">
               Teachers
