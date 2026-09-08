@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getCourseById, updateCourse } from '../../../api/course'
+import { getCourseById, updateCourse } from '../../api/course'
 
 export default function EditCourseView() {
   const { courseId } = useParams<{ courseId: string }>()

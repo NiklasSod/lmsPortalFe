@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { createCourse } from '../../../api/course'
+import { createCourse } from '../../api/course'
 
 export default function CreateCourseView() {
   const [name, setName] = useState('')
