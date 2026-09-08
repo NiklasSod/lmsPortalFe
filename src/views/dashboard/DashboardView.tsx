@@ -4,8 +4,9 @@ import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
+import { useAuth } from '../../auth/AuthContext'
 
-function StudentDashboardView() {
+function DashboardView() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -13,6 +14,8 @@ function StudentDashboardView() {
   const [modules, setModules] = useState<CourseModule[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
+
+  const { role } = useAuth()
 
   useEffect(() => {
     getMyCourses()
@@ -28,9 +31,13 @@ function StudentDashboardView() {
       .finally(() => setModulesLoading(false))
   }, [])
 
+  if (role === null) return
+
   return (
     <Container className="py-4">
-      <h1 className="h3 mb-4">Student dashboard</h1>
+      <h1 className="h3 mb-4">
+        {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
+      </h1>
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
@@ -59,7 +66,7 @@ function StudentDashboardView() {
                             {course.description}
                           </Card.Text>
                           <Card.Text className="text-muted small mb-0">
-                            {new Date(course.startDate).toLocaleDateString()} –{' '}
+                            {new Date(course.startDate).toLocaleDateString()} -{' '}
                             {new Date(course.endDate).toLocaleDateString()}
                           </Card.Text>
                         </Card.Body>
@@ -96,7 +103,7 @@ function StudentDashboardView() {
                             {module.description}
                           </Card.Text>
                           <Card.Text className="text-muted small mb-0">
-                            {new Date(module.startDate).toLocaleDateString()} –{' '}
+                            {new Date(module.startDate).toLocaleDateString()} -{' '}
                             {new Date(module.endDate).toLocaleDateString()}
                           </Card.Text>
                         </Card.Body>
@@ -113,4 +120,4 @@ function StudentDashboardView() {
   )
 }
 
-export default StudentDashboardView
+export default DashboardView
