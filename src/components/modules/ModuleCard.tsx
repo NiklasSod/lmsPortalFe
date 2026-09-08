@@ -4,6 +4,7 @@ import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
 import { deleteModule, updateModule } from '../../api/module'
 import type { CourseModule } from '../../types/module'
+import ModuleActivitiesList from './ModuleActivitiesList'
 
 interface ModuleCardProps {
   module: CourseModule
@@ -123,6 +124,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             {new Date(moduleData.startDate).toLocaleDateString()} -{' '}
             {new Date(moduleData.endDate).toLocaleDateString()}
           </Card.Text>
+          <ModuleActivitiesList moduleId={moduleData.id} />
           {isTeacher && (
             <Button
               variant="outline-danger"

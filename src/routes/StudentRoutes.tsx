@@ -5,6 +5,7 @@ import ModulesView from '../views/modules/ModulesView'
 import CourseOverviewView from '../views/courses/CourseOverviewView'
 import CourseModulesView from '../views/courses/CourseModulesView'
 import DashboardView from '../views/dashboard/DashboardView'
+import ActivitiesView from '../views/activities/ActivitiesView'
 
 function StudentRoutes() {
   return (
@@ -15,6 +16,7 @@ function StudentRoutes() {
       <Route path="courses/:courseId/members" element={<CourseMembersView />} />
       <Route path="courses/:courseId/modules" element={<CourseModulesView />} />
       <Route path="modules" element={<ModulesView />} />
+      <Route path="activities" element={<ActivitiesView />} />
       <Route path="*" element={<p className="p-4">Page not found.</p>} />
     </Routes>
   )
