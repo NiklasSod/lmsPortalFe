@@ -43,6 +43,19 @@ export async function updateUser(
   }
 }
 
+export async function updateAccount(request: UpdateUserRequest): Promise<void> {
+  const res = await apiFetch('/api/account', {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  })
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(res, `Could not update account: ${res.status}`),
+    )
+  }
+}
+
 export async function deleteAccount(): Promise<void> {
   const res = await apiFetch('/api/account', {
     method: 'DELETE',
