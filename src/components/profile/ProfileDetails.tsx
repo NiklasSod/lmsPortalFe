@@ -26,7 +26,7 @@ interface DetailRowProps {
 
 function DetailRow({ icon, label, children }: DetailRowProps) {
   return (
-    <div className="d-flex align-items-center gap-3 py-3 border-bottom">
+    <div className="d-flex align-items-center gap-3 py-3">
       <span className="text-body-secondary d-inline-flex" aria-hidden="true">
         {icon}
       </span>

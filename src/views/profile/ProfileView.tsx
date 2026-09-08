@@ -118,19 +118,21 @@ const ProfileView = () => {
           {canDeleteSelf && (
             <>
               <hr className="my-5" />
-              <section className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                <div>
+              <section className="d-flex flex-column gap-4">
+                <div className="d-flex flex-column gap-3">
                   <h2 className="h5 fw-semibold mb-1 text-danger">
                     Delete account
                   </h2>
                   <p className="text-body-secondary mb-0">
                     Permanently delete your account, your profile and all of
-                    your data. This action cannot be undone.
+                    your data.
+                    <br /> This action cannot be undone.
                   </p>
                 </div>
                 <Button
                   variant="outline-danger"
-                  className="flex-shrink-0"
+                  size="sm"
+                  style={{ maxWidth: '150px' }}
                   onClick={() => setShowDeleteModal(true)}
                 >
                   Delete account
