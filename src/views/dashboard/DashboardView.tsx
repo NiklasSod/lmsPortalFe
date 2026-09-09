@@ -103,7 +103,9 @@ function DashboardView() {
 
   if (role === null) return
 
-  const visibleDeadlines = deadlines.filter((deadline) => !deadline.hasFeedback)
+  const visibleDeadlines = deadlines.filter(
+    (deadline) => !deadline.hasFeedback && deadline.status !== 'approved',
+  )
   const atRiskDeadlines = visibleDeadlines.filter(
     (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
   )
