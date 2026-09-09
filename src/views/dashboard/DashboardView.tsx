@@ -1,10 +1,42 @@
 import { useEffect, useState } from 'react'
-import { Alert, Card, Col, Container, Row, Spinner } from 'react-bootstrap'
+import {
+  Alert,
+  Card,
+  Col,
+  Container,
+  ListGroup,
+  Row,
+  Spinner,
+} from 'react-bootstrap'
+import { Clock } from 'react-bootstrap-icons'
+import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
+import type { Assignment } from '../../types/assignment'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import { useAuth } from '../../auth/AuthContext'
+
+type Deadline = {
+  id: number
+  assignmentTitle: string
+  dueAt: Date
+}
+
+function mapToDeadline(assignment: Assignment): Deadline {
+  return {
+    id: assignment.id,
+    assignmentTitle: assignment.name,
+    dueAt: new Date(assignment.dueDate),
+  }
+}
+
+function formatDueDate(deadline: Deadline) {
+  return deadline.dueAt.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
 
 function DashboardView() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
@@ -14,6 +46,10 @@ function DashboardView() {
   const [modules, setModules] = useState<CourseModule[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
   const [modulesError, setModulesError] = useState<string | null>(null)
+
+  const [deadlines, setDeadlines] = useState<Deadline[]>([])
+  const [deadlinesLoading, setDeadlinesLoading] = useState(false)
+  const [deadlinesError, setDeadlinesError] = useState<string | null>(null)
 
   const { role } = useAuth()
 
@@ -31,6 +67,15 @@ function DashboardView() {
       .finally(() => setModulesLoading(false))
   }, [])
 
+  useEffect(() => {
+    if (role !== 'student') return
+
+    getCurrentAssignments()
+      .then((data) => setDeadlines(data.map(mapToDeadline)))
+      .catch((err: Error) => setDeadlinesError(err.message))
+      .finally(() => setDeadlinesLoading(false))
+  }, [role])
+
   if (role === null) return
 
   return (
@@ -40,7 +85,7 @@ function DashboardView() {
       </h1>
 
       <Row className="g-4 align-items-start">
-        <Col lg={8}>
+        <Col lg={role === 'student' ? 8 : 12}>
           <Card className="border-0 shadow-sm">
             <Card.Header as="h2" className="h5 mb-0">
               My courses
@@ -77,10 +122,8 @@ function DashboardView() {
               )}
             </Card.Body>
           </Card>
-        </Col>
 
-        <Col lg={8}>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm mt-4">
             <Card.Header as="h2" className="h5 mb-0">
               Current modules
             </Card.Header>
@@ -115,6 +158,48 @@ function DashboardView() {
             </Card.Body>
           </Card>
         </Col>
+
+        {role === 'student' && (
+          <Col lg={4}>
+            <Card className="shadow-sm">
+              <Card.Header as="h2" className="h5 mb-0">
+                Assignment deadlines
+              </Card.Header>
+              {deadlinesLoading && (
+                <Card.Body>
+                  <Spinner animation="border" size="sm" />
+                </Card.Body>
+              )}
+              {deadlinesError && (
+                <Card.Body>
+                  <Alert variant="danger" className="mb-0">
+                    {deadlinesError}
+                  </Alert>
+                </Card.Body>
+              )}
+              {!deadlinesLoading && !deadlinesError && (
+                <ListGroup variant="flush">
+                  {deadlines.length === 0 && (
+                    <ListGroup.Item className="text-muted">
+                      No upcoming assignments.
+                    </ListGroup.Item>
+                  )}
+                  {deadlines.map((deadline) => (
+                    <ListGroup.Item key={deadline.id} className="py-3">
+                      <div className="fw-semibold">
+                        {deadline.assignmentTitle}
+                      </div>
+                      <div className="d-flex align-items-center gap-2 mt-2 text-muted">
+                        <Clock aria-hidden="true" />
+                        <span>Due {formatDueDate(deadline)}</span>
+                      </div>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              )}
+            </Card>
+          </Col>
+        )}
       </Row>
     </Container>
   )
