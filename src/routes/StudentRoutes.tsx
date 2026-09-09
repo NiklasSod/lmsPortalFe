@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import ProfileView from '../views/profile/ProfileView'
 import CourseMembersView from '../views/courses/CourseMembersView'
 import CoursesView from '../views/courses/CoursesView'
 import ModulesView from '../views/modules/ModulesView'
@@ -11,6 +12,7 @@ function StudentRoutes() {
   return (
     <Routes>
       <Route index element={<DashboardView />} />
+      <Route path="profile" element={<ProfileView />} />
       <Route path="courses" element={<CoursesView />} />
       <Route path="courses/:courseId" element={<CourseOverviewView />} />
       <Route path="courses/:courseId/members" element={<CourseMembersView />} />

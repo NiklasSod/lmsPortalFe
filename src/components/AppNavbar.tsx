@@ -7,6 +7,7 @@ import {
   ListCheck,
   MortarboardFill,
   Speedometer,
+  HouseGear,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
@@ -26,6 +27,9 @@ function AppNavbar() {
     await logout()
     navigate('/login')
   }
+
+  // temp hardcoded
+  const darkTheme = true
 
   return (
     <Navbar
@@ -89,8 +93,18 @@ function AppNavbar() {
       </Nav>
       <div className="mt-auto">
         {fullName && (
-          <div className="text-white mb-2">
-            <span className="text-truncate ms-2">{fullName}</span>
+          <div className="text-white ms-2 mb-2 d-flex flex-column gap-2">
+            <div className="d-flex flex-row align-items-center gap-2">
+              <HouseGear />
+              <Link
+                className={darkTheme ? 'link-light' : 'link-dark'}
+                to={`/${role}/profile`}
+                style={{ textDecoration: 'none' }}
+              >
+                Profile
+              </Link>
+            </div>
+            <span className="text-truncate">{fullName}</span>
           </div>
         )}
         <div className="pt-3 border-top border-secondary">

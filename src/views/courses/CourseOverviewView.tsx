@@ -150,7 +150,7 @@ export const CourseOverviewView: React.FC = () => {
                 </Alert>
               )}
               <Card.Text className="text-muted small mb-3">
-                {new Date(course.startDate).toLocaleDateString()} –{' '}
+                {new Date(course.startDate).toLocaleDateString()} -{' '}
                 {new Date(course.endDate).toLocaleDateString()}
               </Card.Text>
               <Card.Text>{course.description}</Card.Text>
