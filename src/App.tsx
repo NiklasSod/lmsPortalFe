@@ -1,10 +1,56 @@
-import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth/AuthContext'
+import LoginView from './views/auth/LoginView'
+import CreateAccountView from './views/auth/CreateAccountView'
+import AppLayout from './components/AppLayout'
+import StudentRoutes from './routes/StudentRoutes'
+import TeacherRoutes from './routes/TeacherRoutes'
 
 function App() {
+  const { isLoggedIn, role, isRestoring } = useAuth()
+
+  if (isRestoring) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginView />} />
+        <Route path="/register" element={<CreateAccountView />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
+
+  const isStudent = role === 'student'
+
   return (
-    <>
-      <p>Ello Worldi!</p>
-    </>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route
+          path="/"
+          element={
+            <Navigate to={isStudent ? '/student' : '/teacher'} replace />
+          }
+        />
+        <Route
+          path="/student/*"
+          element={isStudent ? <StudentRoutes /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/teacher/*"
+          element={isStudent ? <Navigate to="/" replace /> : <TeacherRoutes />}
+        />
+        <Route path="*" element={<p className="p-4">Page not found.</p>} />
+      </Route>
+    </Routes>
   )
 }
 
