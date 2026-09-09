@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Alert,
+  Badge,
   Card,
   Col,
   Container,
@@ -8,7 +9,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import { Clock } from 'react-bootstrap-icons'
+import { Clock, ExclamationTriangle } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -19,16 +20,39 @@ import { useAuth } from '../../auth/AuthContext'
 
 type Deadline = {
   id: number
+  moduleId: number
   assignmentTitle: string
   dueAt: Date
+  status: string | null
+  hasFeedback: boolean
 }
 
 function mapToDeadline(assignment: Assignment): Deadline {
   return {
     id: assignment.id,
+    moduleId: assignment.moduleId,
     assignmentTitle: assignment.name,
     dueAt: new Date(assignment.dueDate),
+    status: assignment.latestSubmissionStatus,
+    hasFeedback: assignment.latestFeedback.trim().length > 0,
   }
+}
+
+function isNotTurnedIn(deadline: Deadline) {
+  return deadline.status == null || deadline.status === 'Unsent'
+}
+
+function getHoursUntilDue(deadline: Deadline) {
+  return (deadline.dueAt.getTime() - Date.now()) / (60 * 60 * 1000)
+}
+
+function isDueSoon(deadline: Deadline) {
+  const hoursUntilDue = getHoursUntilDue(deadline)
+  return hoursUntilDue >= 0 && hoursUntilDue <= 48
+}
+
+function isAtRisk(deadline: Deadline) {
+  return isNotTurnedIn(deadline) && isDueSoon(deadline)
 }
 
 function formatDueDate(deadline: Deadline) {
@@ -50,6 +74,7 @@ function DashboardView() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [deadlinesLoading, setDeadlinesLoading] = useState(false)
   const [deadlinesError, setDeadlinesError] = useState<string | null>(null)
+  const [dismissedIds, setDismissedIds] = useState<number[]>([])
 
   const { role } = useAuth()
 
@@ -78,6 +103,11 @@ function DashboardView() {
 
   if (role === null) return
 
+  const visibleDeadlines = deadlines.filter((deadline) => !deadline.hasFeedback)
+  const atRiskDeadlines = visibleDeadlines.filter(
+    (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
+  )
+
   return (
     <Container className="py-4">
       <h1 className="h3 mb-4">
@@ -86,6 +116,34 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={role === 'student' ? 8 : 12}>
+          {atRiskDeadlines.map((deadline) => (
+            <Alert
+              key={deadline.id}
+              variant="warning"
+              dismissible
+              onClose={() => setDismissedIds((prev) => [...prev, deadline.id])}
+            >
+              <div className="d-flex gap-3">
+                <ExclamationTriangle
+                  className="flex-shrink-0 mt-1"
+                  aria-hidden="true"
+                />
+                <div>
+                  <Alert.Heading className="h5">
+                    Assignment due soon
+                  </Alert.Heading>
+                  <p className="mb-2">
+                    <strong>{deadline.assignmentTitle}</strong>
+                  </p>
+                  <div className="d-flex align-items-center gap-2">
+                    <Clock aria-hidden="true" />
+                    <span>Due {formatDueDate(deadline)}</span>
+                  </div>
+                </div>
+              </div>
+            </Alert>
+          ))}
+
           <Card className="border-0 shadow-sm">
             <Card.Header as="h2" className="h5 mb-0">
               My courses
@@ -179,12 +237,12 @@ function DashboardView() {
               )}
               {!deadlinesLoading && !deadlinesError && (
                 <ListGroup variant="flush">
-                  {deadlines.length === 0 && (
+                  {visibleDeadlines.length === 0 && (
                     <ListGroup.Item className="text-muted">
                       No upcoming assignments.
                     </ListGroup.Item>
                   )}
-                  {deadlines.map((deadline) => (
+                  {visibleDeadlines.map((deadline) => (
                     <ListGroup.Item key={deadline.id} className="py-3">
                       <div className="fw-semibold">
                         {deadline.assignmentTitle}
@@ -192,6 +250,15 @@ function DashboardView() {
                       <div className="d-flex align-items-center gap-2 mt-2 text-muted">
                         <Clock aria-hidden="true" />
                         <span>Due {formatDueDate(deadline)}</span>
+                      </div>
+                      <div className="mt-1">
+                        <Badge
+                          bg={isNotTurnedIn(deadline) ? 'secondary' : 'success'}
+                        >
+                          {isNotTurnedIn(deadline)
+                            ? 'Not turned in'
+                            : 'Turned in'}
+                        </Badge>
                       </div>
                     </ListGroup.Item>
                   ))}
