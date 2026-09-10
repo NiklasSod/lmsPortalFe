@@ -47,7 +47,7 @@ body {
 
 .card {
     --bs-card-bg: var(--bs-tertiary-bg);
-  }
+}
 
 @media (min-width: 676px) {
   .profile-hero {
@@ -88,7 +88,7 @@ body {
   display: block;
   height: 2px;
   width: 100%;
-  background-color: #ffffff;
+  background-color: var(--bs-body-color);
   border-radius: 2px;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -116,7 +116,6 @@ body {
     position: relative !important;
     flex-direction: column !important;
     margin-bottom: 0;
-    background-color: #212529 !important;
   }
 }
 
