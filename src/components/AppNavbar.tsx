@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import {
@@ -16,6 +16,8 @@ function AppNavbar() {
   const navigate = useNavigate()
   const { role, fullName, logout } = useAuth()
   const [expanded, setExpanded] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
@@ -23,6 +25,28 @@ function AppNavbar() {
   const activitiesPath = isStudent
     ? '/student/activities'
     : '/teacher/activities'
+
+  useEffect(() => {
+    function handleScroll() {
+      const currentScrollY = window.scrollY
+
+      // Always show if menu is expanded or near the top
+      if (expanded || currentScrollY < 50) {
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        // Scrolling down
+        setIsVisible(false)
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY, expanded])
 
   async function handleLogout() {
     setExpanded(false)
@@ -37,7 +61,7 @@ function AppNavbar() {
       expand="sm"
       expanded={expanded}
       onToggle={setExpanded}
-      className="p-3 app-navbar-responsive bg-dark"
+      className={`p-3 app-navbar-responsive bg-dark ${!isVisible ? 'navbar-hidden' : ''}`}
     >
       <div className="d-flex align-items-center justify-content-between w-100">
         <Navbar.Brand

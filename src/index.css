@@ -112,3 +112,24 @@ body {
     padding: 1rem !important;
   }
 }
+
+/* Mobile smart navbar hiding on scroll down */
+@media (max-width: 575.98px) {
+  .app-navbar-responsive {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    z-index: 1050;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .app-navbar-responsive.navbar-hidden {
+    transform: translateY(-100%);
+  }
+
+  /* Add padding to body or main layout wrapper so content doesn't jump behind fixed bar */
+  .app-layout {
+    padding-top: 65px;
+  }
+}
