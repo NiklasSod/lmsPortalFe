@@ -131,8 +131,7 @@ function AppNavbar() {
             to={modulesPath}
             className="d-flex align-items-center gap-2 px-2 py-2"
           >
-            <JournalBookmark />{' '}
-            {isStudent ? 'Current Modules' : 'Modules Teaching'}
+            <JournalBookmark /> Modules
           </Nav.Link>
           <Nav.Link
             as={Link}
