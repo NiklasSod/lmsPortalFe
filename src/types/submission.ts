@@ -5,6 +5,7 @@ export interface Submission {
   content: string
   feedback: string
   handinDate: string
+  gradedAt?: string
   status: string
 }
 

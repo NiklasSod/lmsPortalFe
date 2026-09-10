@@ -32,6 +32,23 @@ export async function getAssignmentSubmissions(
   return res.json()
 }
 
+export async function getStudentAssignmentSubmissions(
+  assignmentId: number,
+  studentId: string,
+): Promise<Submission[]> {
+  const res = await apiFetch(
+    `/api/submissions/assignment/${assignmentId}/student/${studentId}`,
+  )
+
+  if (!res.ok) {
+    throw await toApiError(
+      res,
+      `Failed to fetch student submissions: ${res.status} ${res.statusText}`,
+    )
+  }
+  return res.json()
+}
+
 export async function getPendingSubmissions(): Promise<Submission[]> {
   const res = await apiFetch('/api/submissions/pending')
 
