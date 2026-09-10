@@ -33,7 +33,7 @@ export async function getUser(userId: string): Promise<UserDto> {
 }
 
 export async function getUsers(): Promise<UserDto[]> {
-  const res = await apiFetch('/api/users')
+  const res = await apiFetch('/api/users/students')
 
   if (!res.ok) {
     throw new Error(
