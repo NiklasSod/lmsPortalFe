@@ -32,6 +32,18 @@ export async function getUser(userId: string): Promise<UserDto> {
   return res.json()
 }
 
+export async function getUsers(): Promise<UserDto[]> {
+  const res = await apiFetch('/api/users/students')
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(res, `Could not fetch users: ${res.status}`),
+    )
+  }
+
+  return res.json()
+}
+
 export async function updateUser(
   userId: string,
   request: UpdateUserRequest,

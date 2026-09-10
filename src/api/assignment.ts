@@ -32,7 +32,9 @@ export async function getAssignmentById(id: number): Promise<Assignment> {
   return res.json()
 }
 
-export async function getModuleAssignments(moduleId: number): Promise<Assignment[]> {
+export async function getModuleAssignments(
+  moduleId: number,
+): Promise<Assignment[]> {
   const res = await apiFetch(`/api/modules/${moduleId}/assignments`)
 
   if (!res.ok) {
@@ -75,7 +77,6 @@ export async function createModuleAssignment(
   return res.json()
 }
 
-
 export async function updateAssignment(
   id: number,
   request: UpdateAssignmentRequest,
@@ -101,4 +102,18 @@ export async function deleteAssignment(id: number): Promise<void> {
       await parseApiError(res, `Failed to delete assignment: ${res.status}`),
     )
   }
+}
+
+export async function getMyAssignments(): Promise<Assignment[]> {
+  const res = await apiFetch('/api/assignments/mine')
+
+  if (!res.ok) {
+    throw new Error(
+      await parseApiError(
+        res,
+        `Failed to fetch your assignments: ${res.status} ${res.statusText}`,
+      ),
+    )
+  }
+  return res.json()
 }
