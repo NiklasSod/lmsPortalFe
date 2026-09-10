@@ -44,3 +44,63 @@ body {
   --input-text: #f8f9fa;
   --input-border: #444444;
 }
+
+/* Mobile view (< 576px): Horizontal top bar with full-screen overlay menu */
+@media (max-width: 575.98px) {
+  .app-navbar-responsive {
+    width: 100% !important;
+    position: relative !important;
+    flex-direction: column !important;
+    margin-bottom: 0;
+  }
+
+  .app-navbar-responsive > div:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .app-navbar-responsive .navbar-collapse.show,
+  .app-navbar-responsive .navbar-collapse.collapsing {
+    position: fixed !important;
+    top: 73px;
+    left: 0;
+    width: 100vw !important;
+    height: calc(100vh - 73px) !important;
+    background-color: #212529 !important;
+    z-index: 1050;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+}
+
+/* Desktop and tablet (>= 576px): Fixed sidebar on the left using Bootstrap sm breakpoint */
+@media (min-width: 576px) {
+  .app-navbar-responsive {
+    width: 220px !important;
+    min-height: 100vh !important;
+    position: sticky !important;
+    top: 0;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}
+
+/* Mobile view (< 576px): Stack navbar on top of the content */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Desktop and tablet (>= 576px): Place navbar as a sidebar to the left */
+@media (min-width: 576px) {
+  .app-layout {
+    flex-direction: row;
+  }
+}
