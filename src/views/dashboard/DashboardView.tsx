@@ -104,7 +104,7 @@ function DashboardView() {
   if (role === null) return
 
   const visibleDeadlines = deadlines.filter(
-    (deadline) => !deadline.hasFeedback && deadline.status !== 'approved',
+    (deadline) => deadline.status !== 'approved',
   )
   const atRiskDeadlines = visibleDeadlines.filter(
     (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
@@ -255,11 +255,19 @@ function DashboardView() {
                       </div>
                       <div className="mt-1">
                         <Badge
-                          bg={isNotTurnedIn(deadline) ? 'secondary' : 'success'}
+                          bg={
+                            isNotTurnedIn(deadline)
+                              ? 'secondary'
+                              : deadline.status === 'Revision'
+                                ? 'danger'
+                                : 'success'
+                          }
                         >
                           {isNotTurnedIn(deadline)
                             ? 'Not turned in'
-                            : 'Turned in'}
+                            : deadline.status === 'Revision'
+                              ? 'Rejected'
+                              : 'Turned in'}
                         </Badge>
                       </div>
                     </ListGroup.Item>
