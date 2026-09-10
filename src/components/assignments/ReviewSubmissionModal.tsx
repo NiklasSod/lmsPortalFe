@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Alert, Button, Form, Modal, Spinner } from 'react-bootstrap'
+import { Alert, Badge, Button, Form, Modal, Spinner } from 'react-bootstrap'
 import { updateSubmission } from '../../api/submission'
 import type { Submission } from '../../types/submission'
 import type { UserDto } from '../../api/user'
+import { statusBadgeBg, statusLabel } from '../../utils/submissionStatus'
 
 interface ReviewSubmissionModalProps {
   show: boolean
   submission: Submission | null
   usersById?: Map<string, UserDto>
+  readOnly?: boolean
   onHide: () => void
   onReviewed?: () => void
 }
@@ -25,6 +27,7 @@ function ReviewSubmissionModal({
   show,
   submission,
   usersById,
+  readOnly = false,
   onHide,
   onReviewed,
 }: ReviewSubmissionModalProps) {
@@ -63,17 +66,13 @@ function ReviewSubmissionModal({
   return (
     <Modal show={show} onHide={handleHide} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Review submission</Modal.Title>
+        <Modal.Title>
+          {readOnly ? 'Submission' : 'Review submission'}
+        </Modal.Title>
       </Modal.Header>
 
-      <Form onSubmit={handleSubmit}>
+      {readOnly ? (
         <Modal.Body>
-          {error && (
-            <Alert variant="danger" onClose={() => setError(null)} dismissible>
-              {error}
-            </Alert>
-          )}
-
           {submission && (
             <>
               <p className="mb-1 small text-secondary">Student</p>
@@ -83,82 +82,124 @@ function ReviewSubmissionModal({
 
               <p className="mb-1 small text-secondary">Answer</p>
               <p className="border rounded p-2">{submission.content}</p>
+
+              <p className="mb-1 small text-secondary">Feedback</p>
+              <p className="border rounded p-2">
+                {submission.feedback.trim() ? (
+                  submission.feedback
+                ) : (
+                  <span className="text-muted">No feedback</span>
+                )}
+              </p>
+
+              <p className="mb-1 small text-secondary">Status</p>
+              <div>
+                <Badge bg={statusBadgeBg(submission.status)}>
+                  {statusLabel(submission.status)}
+                </Badge>
+              </div>
             </>
           )}
-
-          <Form.Group className="mb-3" controlId="reviewFeedback">
-            <Form.Label
-              className="fw-normal mb-1 small"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Feedback
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Give feedback to the student…"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              className="py-2 px-3 shadow-none"
-              style={{
-                borderRadius: '6px',
-                backgroundColor: 'var(--input-bg)',
-                color: 'var(--input-text)',
-                borderColor: 'var(--input-border)',
-              }}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="reviewStatus">
-            <Form.Label
-              className="fw-normal mb-1 small"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Status
-            </Form.Label>
-            <Form.Select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="py-2 px-3 shadow-none"
-              style={{
-                borderRadius: '6px',
-                backgroundColor: 'var(--input-bg)',
-                color: 'var(--input-text)',
-                borderColor: 'var(--input-border)',
-              }}
-            >
-              <option value="approved">Approved</option>
-              <option value="revision">Needs revision</option>
-            </Form.Select>
-          </Form.Group>
         </Modal.Body>
-
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleHide} disabled={saving}>
-            Cancel
-          </Button>
-          <Button
-            variant="dark"
-            type="submit"
-            disabled={saving}
-            style={{
-              backgroundColor: 'var(--btn-bg)',
-              borderColor: 'var(--btn-bg)',
-              color: 'var(--btn-text)',
-              borderRadius: '6px',
-            }}
-          >
-            {saving ? (
-              <>
-                <Spinner animation="border" size="sm" className="me-2" />
-                Saving…
-              </>
-            ) : (
-              'Save review'
+      ) : (
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            {error && (
+              <Alert
+                variant="danger"
+                onClose={() => setError(null)}
+                dismissible
+              >
+                {error}
+              </Alert>
             )}
-          </Button>
-        </Modal.Footer>
-      </Form>
+
+            {submission && (
+              <>
+                <p className="mb-1 small text-secondary">Student</p>
+                <p className="fw-semibold">
+                  {studentName(submission, usersById)}
+                </p>
+
+                <p className="mb-1 small text-secondary">Answer</p>
+                <p className="border rounded p-2">{submission.content}</p>
+              </>
+            )}
+
+            <Form.Group className="mb-3" controlId="reviewFeedback">
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Feedback
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Give feedback to the student…"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                className="py-2 px-3 shadow-none"
+                style={{
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--input-bg)',
+                  color: 'var(--input-text)',
+                  borderColor: 'var(--input-border)',
+                }}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="reviewStatus">
+              <Form.Label
+                className="fw-normal mb-1 small"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Status
+              </Form.Label>
+              <Form.Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="py-2 px-3 shadow-none"
+                style={{
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--input-bg)',
+                  color: 'var(--input-text)',
+                  borderColor: 'var(--input-border)',
+                }}
+              >
+                <option value="approved">Approved</option>
+                <option value="revision">Needs revision</option>
+              </Form.Select>
+            </Form.Group>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleHide} disabled={saving}>
+              Cancel
+            </Button>
+            <Button
+              variant="dark"
+              type="submit"
+              disabled={saving}
+              style={{
+                backgroundColor: 'var(--btn-bg)',
+                borderColor: 'var(--btn-bg)',
+                color: 'var(--btn-text)',
+                borderRadius: '6px',
+              }}
+            >
+              {saving ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Saving…
+                </>
+              ) : (
+                'Send review'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      )}
     </Modal>
   )
 }

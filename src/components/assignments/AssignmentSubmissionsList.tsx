@@ -40,6 +40,10 @@ interface SubmissionRowProps {
 }
 
 function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
+  const readOnly =
+    normalizeStatus(sub.status) === 'approved' ||
+    normalizeStatus(sub.status) === 'revision'
+
   return (
     <ListGroup.Item className="px-0 py-2 bg-transparent border-bottom">
       <div className="d-flex justify-content-between align-items-start gap-2">
@@ -68,7 +72,7 @@ function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
           size="sm"
           onClick={() => onReview(sub)}
         >
-          Review
+          {readOnly ? 'Show' : 'Review'}
         </Button>
       </div>
     </ListGroup.Item>
@@ -231,6 +235,11 @@ function AssignmentSubmissionsList({
         show={reviewing !== null}
         submission={reviewing}
         usersById={usersById}
+        readOnly={
+          reviewing !== null &&
+          (normalizeStatus(reviewing.status) === 'approved' ||
+            normalizeStatus(reviewing.status) === 'revision')
+        }
         onHide={() => setReviewing(null)}
         onReviewed={loadSubmissions}
       />
