@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Alert, Button, Form, Modal, Spinner } from 'react-bootstrap'
 import {
   createAssignment,
   createModuleAssignment,
   updateAssignment,
 } from '../../api/assignment'
+import { getMineModules } from '../../api/module'
 import type { Assignment } from '../../types/assignment'
 
 interface AssignmentFormModalProps {
@@ -34,11 +35,25 @@ export function AssignmentFormModal({
     defaultModuleId || '',
   )
 
+  const [fetchedModules, setFetchedModules] = useState<{ id: number; name: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [prevAssignment, setPrevAssignment] = useState(assignment)
   const [prevShow, setPrevShow] = useState(show)
+
+  useEffect(() => {
+    if (show && (!modules || modules.length === 0)) {
+      getMineModules()
+        .then((m) =>
+          setFetchedModules(m.map((mod) => ({ id: mod.id, name: mod.name }))),
+        )
+        .catch(() => {})
+    }
+  }, [show, modules])
+
+  const availableModules =
+    modules && modules.length > 0 ? modules : fetchedModules
 
   if (show !== prevShow || assignment !== prevAssignment) {
     setPrevShow(show)
@@ -85,10 +100,6 @@ export function AssignmentFormModal({
     }
 
     const numericModuleId = Number(moduleId)
-    if (isNaN(numericModuleId) || numericModuleId <= 0) {
-      setError('Valid Module ID is required.')
-      return
-    }
 
     setIsLoading(true)
 
@@ -101,22 +112,26 @@ export function AssignmentFormModal({
           name: name.trim(),
           description: description.trim(),
           dueDate: isoDueDate,
-          moduleId: numericModuleId,
+          ...(numericModuleId > 0 ? { moduleId: numericModuleId } : {}),
         })
       } else if (defaultModuleId) {
-        savedAssignment = await createModuleAssignment(numericModuleId, {
+        savedAssignment = await createModuleAssignment(defaultModuleId, {
           name: name.trim(),
           description: description.trim(),
           dueDate: isoDueDate,
-          moduleId: numericModuleId,
+          moduleId: defaultModuleId,
         })
-      } else {
+      } else if (numericModuleId > 0) {
         savedAssignment = await createAssignment({
           name: name.trim(),
           description: description.trim(),
           dueDate: isoDueDate,
           moduleId: numericModuleId,
         })
+      } else {
+        setError('Please select a module.')
+        setIsLoading(false)
+        return
       }
 
       onSaved(savedAssignment)
@@ -176,31 +191,21 @@ export function AssignmentFormModal({
             />
           </Form.Group>
 
-          {!defaultModuleId && (
+          {availableModules.length > 0 && (
             <Form.Group className="mb-3" controlId="assignmentModuleId">
               <Form.Label>Module</Form.Label>
-              {modules && modules.length > 0 ? (
-                <Form.Select
-                  value={moduleId}
-                  onChange={(e) => setModuleId(e.target.value)}
-                  required
-                >
-                  <option value="">Select a module...</option>
-                  {modules.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </Form.Select>
-              ) : (
-                <Form.Control
-                  type="number"
-                  placeholder="Enter module ID"
-                  value={moduleId}
-                  onChange={(e) => setModuleId(e.target.value)}
-                  required
-                />
-              )}
+              <Form.Select
+                value={moduleId}
+                onChange={(e) => setModuleId(e.target.value)}
+                required
+              >
+                <option value="">Select a module...</option>
+                {availableModules.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
           )}
         </Modal.Body>

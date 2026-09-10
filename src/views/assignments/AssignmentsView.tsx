@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Alert, Col, Container, Row, Spinner } from 'react-bootstrap'
+import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
 import { JournalCheck } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getUsers } from '../../api/user'
+import { getMineModules } from '../../api/module'
 import type { UserDto } from '../../api/user'
 import type { Assignment } from '../../types/assignment'
+import type { CourseModule } from '../../types/module'
 import AssignmentCard from '../../components/assignments/AssignmentCard'
+import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
 
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
@@ -14,8 +17,10 @@ export const AssignmentsView: React.FC = () => {
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
+  const [teacherModules, setTeacherModules] = useState<CourseModule[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const loadAssignments = async () => {
     try {
@@ -37,10 +42,14 @@ export const AssignmentsView: React.FC = () => {
 
         if (isTeacher) {
           try {
-            const users = await getUsers()
+            const [users, modules] = await Promise.all([
+              getUsers().catch(() => []),
+              getMineModules().catch(() => []),
+            ])
             setUsersById(new Map(users.map((user) => [user.id, user])))
+            setTeacherModules(modules)
           } catch {
-            // Student names are a nice-to-have, not required for the view.
+            // Nice to have items, do not block main view
           }
         }
       } catch (err) {
@@ -71,9 +80,21 @@ export const AssignmentsView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <JournalCheck size={28} className="text-primary" />
-        <h1 className="h2 mb-0">Assignments</h1>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <JournalCheck size={28} className="text-primary" />
+          <h1 className="h2 mb-0">Assignments</h1>
+        </div>
+
+        {isTeacher && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add assignment
+          </Button>
+        )}
       </div>
 
       <p className="text-muted mb-4">
@@ -91,11 +112,23 @@ export const AssignmentsView: React.FC = () => {
               <AssignmentCard
                 assignment={assignment}
                 usersById={isTeacher ? usersById : undefined}
+                modules={teacherModules}
                 onSubmitted={loadAssignments}
+                onUpdated={loadAssignments}
+                onDeleted={loadAssignments}
               />
             </Col>
           ))}
         </Row>
+      )}
+
+      {isTeacher && (
+        <AssignmentFormModal
+          show={showAddModal}
+          onHide={() => setShowAddModal(false)}
+          onSaved={loadAssignments}
+          modules={teacherModules}
+        />
       )}
     </Container>
   )

@@ -6,11 +6,16 @@ import type { UserDto } from '../../api/user'
 import { statusBadgeBg, statusLabel } from '../../utils/submissionStatus'
 import SubmitAssignmentModal from './SubmitAssignmentModal'
 import AssignmentSubmissionsList from './AssignmentSubmissionsList'
+import { AssignmentFormModal } from './AssignmentFormModal'
+import { DeleteAssignmentModal } from './DeleteAssignmentModal'
 
 interface AssignmentCardProps {
   assignment: Assignment
   usersById?: Map<string, UserDto>
+  modules?: { id: number; name: string }[]
   onSubmitted?: () => void
+  onUpdated?: () => void
+  onDeleted?: () => void
 }
 
 function formatDueDate(dueDate: string) {
@@ -25,35 +30,62 @@ function formatDueDate(dueDate: string) {
 function AssignmentCard({
   assignment,
   usersById,
+  modules,
   onSubmitted,
+  onUpdated,
+  onDeleted,
 }: AssignmentCardProps) {
   const { role } = useAuth()
   const isTeacher = role !== 'student'
+
   const [showSubmit, setShowSubmit] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
 
   return (
     <>
       <Card className="h-100 shadow-sm">
-        <Card.Body className="d-flex flex-column">
-          <div className="d-flex justify-content-between align-items-start mb-2">
-            <Card.Title className="h5 mb-0">{assignment.name}</Card.Title>
-            {!isTeacher && (
-              <Badge
-                bg={statusBadgeBg(assignment.latestSubmissionStatus)}
-                className="ms-2"
+        <Card.Body className="position-relative d-flex flex-column">
+          {isTeacher && (
+            <div
+              style={{ position: 'absolute', top: 6, right: 6 }}
+              className="d-flex flex-column gap-1"
+            >
+              <Button
+                variant="outline-primary"
+                size="sm"
+                onClick={() => setShowEdit(true)}
               >
-                {statusLabel(assignment.latestSubmissionStatus)}
-              </Badge>
-            )}
-          </div>
+                Edit
+              </Button>
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() => setShowDelete(true)}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
+
+          <Card.Title className="h5 pe-5 mb-2">{assignment.name}</Card.Title>
+
+          {!isTeacher && (
+            <Badge
+              bg={statusBadgeBg(assignment.latestSubmissionStatus)}
+              className="ms-2"
+            >
+              {statusLabel(assignment.latestSubmissionStatus)}
+            </Badge>
+          )}
 
           {assignment.description && (
-            <Card.Text className="text-muted small mb-2">
+            <Card.Text className="text-muted small pe-5 mb-2">
               {assignment.description}
             </Card.Text>
           )}
 
-          <Card.Text className="text-muted small mb-3">
+          <Card.Text className="text-muted small pe-5 mb-3">
             Due {formatDueDate(assignment.dueDate)}
           </Card.Text>
 
@@ -90,6 +122,29 @@ function AssignmentCard({
         onHide={() => setShowSubmit(false)}
         onSubmitted={onSubmitted}
       />
+
+      {isTeacher && (
+        <>
+          <AssignmentFormModal
+            show={showEdit}
+            assignment={assignment}
+            modules={modules}
+            onHide={() => setShowEdit(false)}
+            onSaved={() => {
+              onUpdated?.()
+            }}
+          />
+
+          <DeleteAssignmentModal
+            show={showDelete}
+            assignment={assignment}
+            onHide={() => setShowDelete(false)}
+            onDeleted={() => {
+              onDeleted?.()
+            }}
+          />
+        </>
+      )}
     </>
   )
 }
