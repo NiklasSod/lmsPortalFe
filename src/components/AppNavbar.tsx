@@ -60,19 +60,17 @@ function AppNavbar() {
 
   return (
     <Navbar
-      bg="dark"
-      variant="dark"
       expand="sm"
       expanded={expanded}
       onToggle={setExpanded}
-      className={`p-3 app-navbar-responsive bg-dark ${!isVisible ? 'navbar-hidden' : ''}`}
+      className={`p-3 app-navbar-responsive border-bottom ${!isVisible ? 'navbar-hidden' : ''}`}
     >
       <div className="d-flex align-items-center justify-content-between w-100">
         <Navbar.Brand
           as={Link}
           to="/"
           onClick={() => setExpanded(false)}
-          className="d-flex align-items-center gap-2 text-white text-decoration-none m-0"
+          className="d-flex align-items-center gap-2 text-decoration-none m-0"
         >
           <span
             className="d-flex align-items-center justify-content-center bg-danger rounded"
@@ -84,7 +82,7 @@ function AppNavbar() {
         </Navbar.Brand>
         <Navbar.Toggle
           aria-controls="navbar-nav"
-          className={`border-0 text-white shadow-none bg-transparent p-0 d-sm-none custom-toggler ${
+          className={`border-0 shadow-none bg-transparent p-0 d-sm-none custom-toggler ${
             expanded ? 'open' : ''
           }`}
         >
@@ -104,21 +102,21 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to="/"
-            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+            className="d-flex align-items-center gap-2 px-2 py-2"
           >
             <Speedometer /> Dashboard
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={coursesPath}
-            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+            className="d-flex align-items-center gap-2 px-2 py-2"
           >
             <MortarboardFill /> Courses
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={modulesPath}
-            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+            className="d-flex align-items-center gap-2 px-2 py-2"
           >
             <JournalBookmark />{' '}
             {isStudent ? 'Current Modules' : 'Modules Teaching'}
@@ -126,21 +124,21 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to={activitiesPath}
-            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+            className="d-flex align-items-center gap-2 px-2 py-2"
           >
             <ListCheck /> Activities
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={assignmentsPath}
-            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+            className="d-flex align-items-center gap-2 px-2 py-2"
           >
             <JournalCheck /> Assignments
           </Nav.Link>
           <Nav.Link
             as="button"
             onClick={handleLogout}
-            className="d-flex align-items-center gap-2 text-white border-0 bg-transparent text-start px-2 py-2 mt-2"
+            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 mt-2"
           >
             <BoxArrowLeft /> Logout
           </Nav.Link>
@@ -148,11 +146,11 @@ function AppNavbar() {
 
         <div className="mt-auto w-100 pt-3">
           {fullName && (
-            <div className="text-white mb-2">
+            <div className="mb-2">
               <span className="text-truncate ms-2">{fullName}</span>
             </div>
           )}
-          <div className="pt-3 border-top border-secondary">
+          <div className="pt-3 border-top">
             <ThemeSwitch />
           </div>
         </div>

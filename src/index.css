@@ -8,8 +8,6 @@ html,
 body {
   margin: 0;
   padding: 0;
-  color: var(--text-primary);
-  background-color: var(--card-bg);
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
@@ -26,9 +24,10 @@ body {
   --btn-text: #ffffff;
   --logo-bg: #e0e0e0;
   --logo-border: #cccccc;
-  --input-bg: #ffffff;
+  --input-bg: #554c4c;
   --input-text: #212529;
   --input-border: #dee2e6;
+  --navbar-bg: var(--bs-secondary-bg);
 }
 
 [data-bs-theme='dark'] {
@@ -43,14 +42,19 @@ body {
   --input-bg: #2d2d2d;
   --input-text: #f8f9fa;
   --input-border: #444444;
+  --navbar-bg: var(--bs-tertiary-bg);
 }
+
+.card {
+    --bs-card-bg: var(--bs-tertiary-bg);
+  }
 
 @media (min-width: 676px) {
   .profile-hero {
     flex-direction: row !important;
     text-align: start !important;
   }
-
+  
   .profile-hero-meta {
     flex-direction: row !important;
     justify-content: flex-start !important;
@@ -99,6 +103,10 @@ body {
 
 .custom-toggler.open .hamburger-icon span:nth-child(3) {
   transform: translateY(-8px) rotate(-45deg);
+}
+
+.navbar {
+  background-color: var(--navbar-bg);
 }
 
 /* Mobile view (< 576px): Top header bar styling */
