@@ -10,20 +10,29 @@ import {
   Card,
   Button,
 } from 'react-bootstrap'
+import { PlusLg } from 'react-bootstrap-icons'
 import { getCourseById, enrollInCourse } from '../../api/course'
+import { getModulesByCourse } from '../../api/module'
 import { useAuth } from '../../auth/AuthContext'
 import type { CourseDetail } from '../../types/course'
+import type { CourseModule } from '../../types/module'
+import type { Assignment } from '../../types/assignment'
 import CourseSections from '../../components/courses/CourseSections'
+import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
 
 export const CourseOverviewView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()
 
   const [course, setCourse] = useState<CourseDetail | null>(null)
+  const [modules, setModules] = useState<CourseModule[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [enrolled, setEnrolled] = useState<boolean>(true)
   const [enrolling, setEnrolling] = useState<boolean>(false)
   const [enrollError, setEnrollError] = useState<string | null>(null)
+
+  const [showAddAssignment, setShowAddAssignment] = useState<boolean>(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const { role, email, userId } = useAuth()
   const isStudent = role === 'student'
@@ -34,8 +43,18 @@ export const CourseOverviewView: React.FC = () => {
       if (!courseId) return
       try {
         setLoading(true)
+        setError(null)
+
         const data = await getCourseById(courseId)
         setCourse(data)
+
+        try {
+          const courseModules = await getModulesByCourse(Number(courseId))
+          setModules(courseModules)
+        } catch {
+          // Ignore module fetch errors if user is not enrolled yet
+        }
+
 
         const myEmail = email
         const myUserId = userId
@@ -79,6 +98,15 @@ export const CourseOverviewView: React.FC = () => {
     }
   }
 
+  const handleAssignmentSaved = (saved: Assignment) => {
+    setSuccessMessage(
+      `Assignment "${saved.name}" (ID: ${saved.id}) saved successfully!`,
+    )
+    setTimeout(() => {
+      setSuccessMessage(null)
+    }, 4000)
+  }
+
   if (loading) {
     return (
       <Container className="py-4 text-center">
@@ -117,6 +145,34 @@ export const CourseOverviewView: React.FC = () => {
           Overview
         </Breadcrumb.Item>
       </Breadcrumb>
+
+      {successMessage && (
+        <Alert
+          variant="success"
+          onClose={() => setSuccessMessage(null)}
+          dismissible
+        >
+          {successMessage}
+        </Alert>
+      )}
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h2 mb-0">{course.name}</h1>
+        {!isStudent && (
+          <Button
+            className="d-flex align-items-center gap-2 fw-medium"
+            style={{
+              backgroundColor: 'var(--btn-bg)',
+              color: 'var(--btn-text)',
+              borderColor: 'var(--btn-bg)',
+              borderRadius: '6px',
+            }}
+            onClick={() => setShowAddAssignment(true)}
+          >
+            <PlusLg /> Add Assignment
+          </Button>
+        )}
+      </div>
 
       <Row>
         <Col md={8}>
@@ -162,6 +218,13 @@ export const CourseOverviewView: React.FC = () => {
           <CourseSections courseId={String(course.id)} />
         </Col>
       </Row>
+
+      <AssignmentFormModal
+        show={showAddAssignment}
+        onHide={() => setShowAddAssignment(false)}
+        onSaved={handleAssignmentSaved}
+        modules={modules}
+      />
     </Container>
   )
 }

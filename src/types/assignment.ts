@@ -8,3 +8,18 @@ export interface Assignment {
   latestSubmissionStatus: string | null
   latestFeedback: string
 }
+
+export interface CreateAssignmentRequest {
+  moduleId: number
+  name: string
+  description: string
+  dueDate: string
+}
+
+export interface UpdateAssignmentRequest {
+  moduleId?: number
+  name?: string
+  description?: string
+  dueDate?: string
+}
+
