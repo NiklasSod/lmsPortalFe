@@ -12,6 +12,13 @@ body {
   background-color: var(--card-bg);
 }
 
+/* Prevent background scrolling when mobile navigation is expanded */
+body.modal-open,
+body:has(.app-navbar-responsive .navbar-collapse.show),
+body:has(.app-navbar-responsive .navbar-collapse.collapsing) {
+  overflow: hidden;
+}
+
 .breadcrumb-item + .breadcrumb-item::before {
   color: var(--text-secondary);
 }
@@ -45,13 +52,60 @@ body {
   --input-border: #444444;
 }
 
-/* Mobile view (< 576px): Horizontal top bar with full-screen overlay menu */
+/* App layout wrapper to handle mobile column vs desktop row */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+@media (min-width: 576px) {
+  .app-layout {
+    flex-direction: row;
+  }
+}
+
+/* Animated hamburger icon */
+.hamburger-icon {
+  width: 24px;
+  height: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.custom-toggler.open .hamburger-icon span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.custom-toggler.open .hamburger-icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.custom-toggler.open .hamburger-icon span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile view (< 576px): Fullscreen overlay sliding down behind top bar */
 @media (max-width: 575.98px) {
   .app-navbar-responsive {
     width: 100% !important;
     position: relative !important;
     flex-direction: column !important;
     margin-bottom: 0;
+    padding: 0 !important;
+    background-color: #212529 !important;
+    z-index: 1050;
   }
 
   .app-navbar-responsive > div:first-child {
@@ -60,22 +114,36 @@ body {
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
+    background-color: #212529 !important;
+    padding: 1rem;
+    position: relative;
+    z-index: 1060;
   }
 
-  .app-navbar-responsive .navbar-collapse.show,
-  .app-navbar-responsive .navbar-collapse.collapsing {
+  .app-navbar-responsive .navbar-collapse {
     position: fixed !important;
-    top: 73px;
+    top: 0;
     left: 0;
     width: 100vw !important;
-    height: calc(100vh - 73px) !important;
+    height: 100vh !important;
     background-color: #212529 !important;
-    z-index: 1050;
+    z-index: 1040 !important;
     display: flex !important;
     flex-direction: column;
     justify-content: space-between;
     padding: 1.5rem;
+    padding-top: calc(1.5rem + 73px);
     overflow-y: auto;
+    opacity: 1 !important;
+    visibility: hidden;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  }
+
+  .app-navbar-responsive .navbar-collapse.show,
+  .app-navbar-responsive .navbar-collapse.collapsing {
+    visibility: visible;
+    transform: translateY(0);
   }
 }
 
@@ -88,19 +156,6 @@ body {
     top: 0;
     flex-direction: column !important;
     align-items: stretch !important;
-  }
-}
-
-/* Mobile view (< 576px): Stack navbar on top of the content */
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Desktop and tablet (>= 576px): Place navbar as a sidebar to the left */
-@media (min-width: 576px) {
-  .app-layout {
-    flex-direction: row;
+    padding: 1rem !important;
   }
 }

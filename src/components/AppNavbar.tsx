@@ -5,11 +5,9 @@ import {
   Book,
   BoxArrowLeft,
   JournalBookmark,
-  List,
   ListCheck,
   MortarboardFill,
   Speedometer,
-  X,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
@@ -58,9 +56,15 @@ function AppNavbar() {
         </Navbar.Brand>
         <Navbar.Toggle
           aria-controls="navbar-nav"
-          className="border-0 text-white shadow-none bg-transparent p-0 d-sm-none"
+          className={`border-0 text-white shadow-none bg-transparent p-0 d-sm-none custom-toggler ${
+            expanded ? 'open' : ''
+          }`}
         >
-          {expanded ? <X size={28} /> : <List size={28} />}
+          <div className="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </Navbar.Toggle>
       </div>
 
