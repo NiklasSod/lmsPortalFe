@@ -84,6 +84,7 @@ function AssignmentSubmissionsList({
   const [error, setError] = useState<string | null>(null)
   const [reviewing, setReviewing] = useState<Submission | null>(null)
   const [showGraded, setShowGraded] = useState(false)
+  const [showAllActive, setShowAllActive] = useState(false)
 
   const loadSubmissions = async () => {
     try {
@@ -137,6 +138,8 @@ function AssignmentSubmissionsList({
     const kind = normalizeStatus(sub.status)
     return kind === 'approved' || kind === 'revision'
   })
+  const visibleActive = active.slice(0, 2)
+  const hiddenActive = active.slice(2)
 
   return (
     <div className="mt-3 pt-2 border-top">
@@ -151,16 +154,48 @@ function AssignmentSubmissionsList({
       ) : active.length === 0 ? (
         <p className="text-muted small mb-0">No submissions to review.</p>
       ) : (
-        <ListGroup variant="flush">
-          {active.map((sub) => (
-            <SubmissionRow
-              key={sub.id}
-              sub={sub}
-              usersById={usersById}
-              onReview={setReviewing}
-            />
-          ))}
-        </ListGroup>
+        <>
+          <ListGroup variant="flush">
+            {visibleActive.map((sub) => (
+              <SubmissionRow
+                key={sub.id}
+                sub={sub}
+                usersById={usersById}
+                onReview={setReviewing}
+              />
+            ))}
+          </ListGroup>
+
+          {hiddenActive.length > 0 && (
+            <div className="mt-2">
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                onClick={() => setShowAllActive((prev) => !prev)}
+                aria-expanded={showAllActive}
+              >
+                {showAllActive ? <ChevronDown /> : <ChevronRight />}
+                {showAllActive
+                  ? 'Show fewer'
+                  : `Show more (${hiddenActive.length})`}
+              </Button>
+
+              {showAllActive && (
+                <ListGroup variant="flush" className="mt-1">
+                  {hiddenActive.map((sub) => (
+                    <SubmissionRow
+                      key={sub.id}
+                      sub={sub}
+                      usersById={usersById}
+                      onReview={setReviewing}
+                    />
+                  ))}
+                </ListGroup>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {graded.length > 0 && (
