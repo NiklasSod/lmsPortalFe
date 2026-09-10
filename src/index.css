@@ -10,6 +10,10 @@ body {
   padding: 0;
 }
 
+body.menu-open {
+  overflow: hidden;
+}
+
 .breadcrumb-item + .breadcrumb-item::before {
   color: var(--text-secondary);
 }

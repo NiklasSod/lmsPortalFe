@@ -30,18 +30,16 @@ function AppNavbar() {
     ? '/student/assignments'
     : '/teacher/assignments'
 
+  // Effect 1: Handle scroll behavior
   useEffect(() => {
     function handleScroll() {
       const currentScrollY = window.scrollY
 
-      // Always show if menu is expanded or near the top
       if (expanded || currentScrollY < 50) {
         setIsVisible(true)
       } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        // Scrolling down
         setIsVisible(false)
       } else if (currentScrollY < lastScrollY) {
-        // Scrolling up
         setIsVisible(true)
       }
 
@@ -51,6 +49,18 @@ function AppNavbar() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY, expanded])
+
+  // Effect 2: Lock body scroll when mobile menu is expanded
+  useEffect(() => {
+    if (expanded) {
+      document.body.classList.add('menu-open')
+    } else {
+      document.body.classList.remove('menu-open')
+    }
+    return () => {
+      document.body.classList.remove('menu-open')
+    }
+  }, [expanded])
 
   async function handleLogout() {
     setExpanded(false)
