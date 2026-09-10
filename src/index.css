@@ -12,13 +12,6 @@ body {
   background-color: var(--card-bg);
 }
 
-/* Prevent background scrolling when mobile navigation is expanded */
-body.modal-open,
-body:has(.app-navbar-responsive .navbar-collapse.show),
-body:has(.app-navbar-responsive .navbar-collapse.collapsing) {
-  overflow: hidden;
-}
-
 .breadcrumb-item + .breadcrumb-item::before {
   color: var(--text-secondary);
 }
@@ -96,54 +89,14 @@ body:has(.app-navbar-responsive .navbar-collapse.collapsing) {
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* Mobile view (< 576px): Fullscreen overlay sliding down behind top bar */
+/* Mobile view (< 576px): Top header bar styling */
 @media (max-width: 575.98px) {
   .app-navbar-responsive {
     width: 100% !important;
     position: relative !important;
     flex-direction: column !important;
     margin-bottom: 0;
-    padding: 0 !important;
     background-color: #212529 !important;
-    z-index: 1050;
-  }
-
-  .app-navbar-responsive > div:first-child {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    background-color: #212529 !important;
-    padding: 1rem;
-    position: relative;
-    z-index: 1060;
-  }
-
-  .app-navbar-responsive .navbar-collapse {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    width: 100vw !important;
-    height: 100vh !important;
-    background-color: #212529 !important;
-    z-index: 1040 !important;
-    display: flex !important;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1.5rem;
-    padding-top: calc(1.5rem + 73px);
-    overflow-y: auto;
-    opacity: 1 !important;
-    visibility: hidden;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
-  }
-
-  .app-navbar-responsive .navbar-collapse.show,
-  .app-navbar-responsive .navbar-collapse.collapsing {
-    visibility: visible;
-    transform: translateY(0);
   }
 }
 
