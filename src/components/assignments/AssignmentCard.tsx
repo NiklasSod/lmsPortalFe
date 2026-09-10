@@ -74,6 +74,7 @@ function AssignmentCard({
             <AssignmentSubmissionsList
               assignmentId={assignment.id}
               usersById={usersById}
+              dueDate={assignment.dueDate}
             />
           ) : (
             <div className="mt-auto">
