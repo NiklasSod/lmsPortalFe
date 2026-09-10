@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Badge, Button, Card } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
 import type { Assignment } from '../../types/assignment'
+import type { Submission } from '../../types/submission'
 import type { UserDto } from '../../api/user'
 import {
   normalizeStatus,
@@ -15,11 +16,14 @@ import ViewSubmissionModal from './ViewSubmissionModal'
 interface AssignmentCardProps {
   assignment: Assignment
   usersById?: Map<string, UserDto>
+  submissionsById?: Map<number, Submission>
   onSubmitted?: () => void
 }
 
-function formatDueDate(dueDate: string) {
-  const d = new Date(dueDate)
+const REVISION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+
+function formatDate(value: Date | string) {
+  const d = typeof value === 'string' ? new Date(value) : value
   if (isNaN(d.getTime())) return ''
   return d.toLocaleString(undefined, {
     dateStyle: 'medium',
@@ -30,6 +34,7 @@ function formatDueDate(dueDate: string) {
 function AssignmentCard({
   assignment,
   usersById,
+  submissionsById,
   onSubmitted,
 }: AssignmentCardProps) {
   const { role } = useAuth()
@@ -37,6 +42,17 @@ function AssignmentCard({
   const statusKind = normalizeStatus(assignment.latestSubmissionStatus)
   const isCompleted =
     !isTeacher && (statusKind === 'handedIn' || statusKind === 'approved')
+  const isResubmit = !isTeacher && statusKind === 'revision'
+
+  const resubmitDeadline = (() => {
+    if (!isResubmit || !assignment.latestSubmissionId) return null
+    const sub = submissionsById?.get(assignment.latestSubmissionId)
+    if (!sub?.gradedAt) return null
+    const gradedAt = new Date(sub.gradedAt).getTime()
+    if (isNaN(gradedAt)) return null
+    return new Date(gradedAt + REVISION_WINDOW_MS)
+  })()
+
   const [showSubmit, setShowSubmit] = useState(false)
   const [showSubmission, setShowSubmission] = useState(false)
 
@@ -67,7 +83,9 @@ function AssignmentCard({
           )}
 
           <Card.Text className="text-muted small mb-3">
-            Due {formatDueDate(assignment.dueDate)}
+            {isResubmit && resubmitDeadline
+              ? `Resubmit by ${formatDate(resubmitDeadline)}`
+              : `Due ${formatDate(assignment.dueDate)}`}
           </Card.Text>
 
           {isTeacher ? (

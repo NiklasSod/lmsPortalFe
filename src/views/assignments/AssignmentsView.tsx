@@ -4,8 +4,10 @@ import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getUsers } from '../../api/user'
+import { getMySubmissions } from '../../api/submission'
 import type { UserDto } from '../../api/user'
 import type { Assignment } from '../../types/assignment'
+import type { Submission } from '../../types/submission'
 import { normalizeStatus } from '../../utils/submissionStatus'
 import AssignmentCard from '../../components/assignments/AssignmentCard'
 
@@ -15,6 +17,9 @@ export const AssignmentsView: React.FC = () => {
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
+  const [submissionsById, setSubmissionsById] = useState<
+    Map<number, Submission>
+  >(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showHandedIn, setShowHandedIn] = useState(false)
@@ -26,6 +31,16 @@ export const AssignmentsView: React.FC = () => {
       setAssignments(Array.isArray(data) ? data : [])
     } catch (err) {
       setError((err as Error).message)
+    }
+
+    if (!isTeacher) {
+      try {
+        const subs = await getMySubmissions()
+        const list = Array.isArray(subs) ? subs : []
+        setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+      } catch {
+        // Resubmit deadline is a nice-to-have, not required for the view.
+      }
     }
   }
 
@@ -44,6 +59,14 @@ export const AssignmentsView: React.FC = () => {
             setUsersById(new Map(users.map((user) => [user.id, user])))
           } catch {
             // Student names are a nice-to-have, not required for the view.
+          }
+        } else {
+          try {
+            const subs = await getMySubmissions()
+            const list = Array.isArray(subs) ? subs : []
+            setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+          } catch {
+            // Resubmit deadline is a nice-to-have, not required for the view.
           }
         }
       } catch (err) {
@@ -97,6 +120,7 @@ export const AssignmentsView: React.FC = () => {
           <AssignmentCard
             assignment={assignment}
             usersById={isTeacher ? usersById : undefined}
+            submissionsById={isTeacher ? undefined : submissionsById}
             onSubmitted={loadAssignments}
           />
         </Col>
