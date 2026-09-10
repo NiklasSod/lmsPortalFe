@@ -30,14 +30,18 @@ function AppNavbar() {
     ? '/student/assignments'
     : '/teacher/assignments'
 
-  // Effect 1: Handle scroll behavior
   useEffect(() => {
     function handleScroll() {
       const currentScrollY = window.scrollY
 
-      if (expanded || currentScrollY < 50) {
+      if (expanded) {
         setIsVisible(true)
-      } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        return
+      }
+
+      if (currentScrollY < 10) {
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsVisible(false)
       } else if (currentScrollY < lastScrollY) {
         setIsVisible(true)
@@ -50,7 +54,6 @@ function AppNavbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY, expanded])
 
-  // Effect 2: Lock body scroll when mobile menu is expanded
   useEffect(() => {
     if (expanded) {
       document.body.classList.add('menu-open')
@@ -72,8 +75,7 @@ function AppNavbar() {
     <Navbar
       expand="sm"
       expanded={expanded}
-      onToggle={setExpanded}
-      className={`p-3 app-navbar-responsive border-bottom ${!isVisible ? 'navbar-hidden' : ''}`}
+      className={`p-3 app-navbar-responsive border-bottom ${!isVisible ? 'navbar-hidden' : ''} ${expanded ? 'expanded' : ''}`}
     >
       <div className="d-flex align-items-center justify-content-between w-100">
         <Navbar.Brand
@@ -90,8 +92,10 @@ function AppNavbar() {
           </span>
           Lexicon
         </Navbar.Brand>
-        <Navbar.Toggle
-          aria-controls="navbar-nav"
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          aria-label="Toggle navigation"
           className={`border-0 shadow-none bg-transparent p-0 d-sm-none custom-toggler ${
             expanded ? 'open' : ''
           }`}
@@ -101,12 +105,11 @@ function AppNavbar() {
             <span></span>
             <span></span>
           </div>
-        </Navbar.Toggle>
+        </button>
       </div>
 
-      <Navbar.Collapse
-        id="navbar-nav"
-        className="flex-column align-items-stretch w-100 mt-3"
+      <div
+        className={`custom-mobile-collapse d-sm-flex flex-column align-items-stretch w-100 mt-3`}
       >
         <Nav className="flex-column w-100" onClick={() => setExpanded(false)}>
           <Nav.Link
@@ -154,7 +157,7 @@ function AppNavbar() {
           </Nav.Link>
         </Nav>
 
-        <div className="mt-auto w-100 pt-3">
+        <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
           {fullName && (
             <div className="mb-2">
               <span className="text-truncate ms-2">{fullName}</span>
@@ -164,7 +167,7 @@ function AppNavbar() {
             <ThemeSwitch />
           </div>
         </div>
-      </Navbar.Collapse>
+      </div>
     </Navbar>
   )
 }

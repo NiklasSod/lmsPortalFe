@@ -4,14 +4,24 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body.menu-open {
-  overflow: hidden;
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
@@ -50,7 +60,7 @@ body.menu-open {
 }
 
 .card {
-    --bs-card-bg: var(--bs-tertiary-bg);
+  --bs-card-bg: var(--bs-tertiary-bg);
 }
 
 @media (min-width: 676px) {
@@ -65,7 +75,6 @@ body.menu-open {
   }
 }
 
-/* App layout wrapper to handle mobile column vs desktop row */
 .app-layout {
   display: flex;
   flex-direction: column;
@@ -75,10 +84,10 @@ body.menu-open {
 @media (min-width: 576px) {
   .app-layout {
     flex-direction: row;
+    margin-left: 220px;
   }
 }
 
-/* Animated hamburger icon */
 .hamburger-icon {
   width: 24px;
   height: 18px;
@@ -113,46 +122,84 @@ body.menu-open {
   background-color: var(--navbar-bg);
 }
 
-/* Mobile view (< 576px): Top header bar styling */
+/* Mobile view (< 576px) */
 @media (max-width: 575.98px) {
   .app-navbar-responsive {
     width: 100% !important;
-    position: relative !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    height: 65px;
     flex-direction: column !important;
+    align-items: stretch !important;
     margin-bottom: 0;
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+  }
+
+  .app-navbar-responsive.navbar-hidden {
+    transform: translateY(-100%) !important;
+  }
+
+  .app-navbar-responsive.expanded {
+    height: 100vh !important;
+    overflow: hidden !important;
+    border-bottom: none !important;
+    transform: translateY(0) !important;
+  }
+
+  .custom-mobile-collapse {
+    position: absolute !important;
+    top: 65px;
+    left: 0;
+    width: 100% !important;
+    height: calc(100vh - 65px) !important;
+    background-color: var(--navbar-bg);
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1rem;
+    box-sizing: border-box;
+    z-index: 1051;
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  }
+
+  .app-navbar-responsive.expanded .custom-mobile-collapse {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .app-layout {
+    padding-top: 65px;
   }
 }
 
-/* Desktop and tablet (>= 576px): Fixed sidebar on the left using Bootstrap sm breakpoint */
+/* Desktop and tablet (>= 576px) */
 @media (min-width: 576px) {
   .app-navbar-responsive {
     width: 220px !important;
-    min-height: 100vh !important;
-    position: sticky !important;
+    height: 100vh !important;
+    position: fixed !important;
     top: 0;
+    left: 0;
+    z-index: 1030;
     flex-direction: column !important;
     align-items: stretch !important;
     padding: 1rem !important;
   }
-}
 
-/* Mobile smart navbar hiding on scroll down */
-@media (max-width: 575.98px) {
-  .app-navbar-responsive {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    z-index: 1050;
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .app-navbar-responsive.navbar-hidden {
-    transform: translateY(-100%);
-  }
-
-  /* Add padding to body or main layout wrapper so content doesn't jump behind fixed bar */
-  .app-layout {
-    padding-top: 65px;
+  .custom-mobile-collapse {
+    display: flex !important;
+    flex-direction: column;
+    flex-grow: 1;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
