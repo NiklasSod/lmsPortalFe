@@ -26,6 +26,7 @@ const ACTIVITY_TYPES = [
   'Lecture',
   'ELearning',
   'Mentorship',
+  'Workshop',
   'Seminar',
   'Practice',
 ]
@@ -418,12 +419,7 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
             >
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              type="submit"
-              disabled={saving}
-            >
+            <Button variant="primary" size="sm" type="submit" disabled={saving}>
               {saving
                 ? 'Saving…'
                 : modalState?.mode === 'add'

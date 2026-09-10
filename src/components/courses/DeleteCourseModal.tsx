@@ -1,7 +1,7 @@
-import { Spinner, Alert, Button, Modal } from 'react-bootstrap'
 import type { CourseSummary } from '../../types/course'
+import ConfirmModal from '../ConfirmModal'
 
-interface DeletCourseModalProps {
+interface DeleteCourseModalProps {
   isDeleting: boolean
   deleteError: string | null
   handleConfirmDelete: () => Promise<void>
@@ -15,45 +15,25 @@ const DeleteCourseModal = ({
   handleConfirmDelete,
   courseToDelete,
   setCourseToDelete,
-}: DeletCourseModalProps) => {
+}: DeleteCourseModalProps) => {
   return (
-    <Modal
+    <ConfirmModal
       show={Boolean(courseToDelete)}
-      onHide={() => setCourseToDelete(null)}
-      centered
-    >
-      <Modal.Header closeButton>
-        <Modal.Title>Delete Course</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {deleteError && <Alert variant="danger">{deleteError}</Alert>}
-        Are you sure you want to delete <strong>{courseToDelete?.name}</strong>?
-        This action cannot be undone.
-      </Modal.Body>
-      <Modal.Footer>
-        <Button
-          variant="secondary"
-          onClick={() => setCourseToDelete(null)}
-          disabled={isDeleting}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          onClick={handleConfirmDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <>
-              <Spinner animation="border" size="sm" className="me-1" />{' '}
-              Deleting...
-            </>
-          ) : (
-            'Delete Course'
-          )}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+      title="Delete Course"
+      confirmLabel="Delete Course"
+      busyLabel="Deleting..."
+      variant="danger"
+      isBusy={isDeleting}
+      error={deleteError}
+      onConfirm={handleConfirmDelete}
+      onCancel={() => setCourseToDelete(null)}
+      message={
+        <>
+          Are you sure you want to delete{' '}
+          <strong>{courseToDelete?.name}</strong>? This action cannot be undone.
+        </>
+      }
+    />
   )
 }
 

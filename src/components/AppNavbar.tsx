@@ -5,6 +5,7 @@ import {
   Book,
   BoxArrowLeft,
   JournalBookmark,
+  JournalCheck,
   ListCheck,
   MortarboardFill,
   Speedometer,
@@ -25,6 +26,9 @@ function AppNavbar() {
   const activitiesPath = isStudent
     ? '/student/activities'
     : '/teacher/activities'
+  const assignmentsPath = isStudent
+    ? '/student/assignments'
+    : '/teacher/assignments'
 
   useEffect(() => {
     function handleScroll() {
@@ -125,6 +129,13 @@ function AppNavbar() {
             className="d-flex align-items-center gap-2 text-white px-2 py-2"
           >
             <ListCheck /> Activities
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to={assignmentsPath}
+            className="d-flex align-items-center gap-2 text-white px-2 py-2"
+          >
+            <JournalCheck /> Assignments
           </Nav.Link>
           <Nav.Link
             as="button"

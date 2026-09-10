@@ -45,6 +45,18 @@ body {
   --input-border: #444444;
 }
 
+@media (min-width: 676px) {
+  .profile-hero {
+    flex-direction: row !important;
+    text-align: start !important;
+  }
+
+  .profile-hero-meta {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+  }
+}
+
 /* App layout wrapper to handle mobile column vs desktop row */
 .app-layout {
   display: flex;
