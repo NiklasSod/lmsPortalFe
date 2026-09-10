@@ -26,14 +26,14 @@ export function statusLabel(status: string | null | undefined): string {
 
 export function statusBadgeBg(
   status: string | null | undefined,
-): 'success' | 'danger' | 'warning' | 'secondary' {
+): 'success' | 'danger' | 'primary' | 'secondary' {
   switch (normalizeStatus(status)) {
     case 'approved':
       return 'success'
     case 'revision':
       return 'danger'
     case 'handedIn':
-      return 'warning'
+      return 'primary'
     default:
       return 'secondary'
   }
