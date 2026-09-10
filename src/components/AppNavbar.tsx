@@ -4,6 +4,7 @@ import {
   Book,
   BoxArrowLeft,
   JournalBookmark,
+  JournalCheck,
   ListCheck,
   MortarboardFill,
   Speedometer,
@@ -22,6 +23,9 @@ function AppNavbar() {
   const activitiesPath = isStudent
     ? '/student/activities'
     : '/teacher/activities'
+  const assignmentsPath = isStudent
+    ? '/student/assignments'
+    : '/teacher/assignments'
 
   async function handleLogout() {
     await logout()
@@ -81,6 +85,14 @@ function AppNavbar() {
           className="d-flex align-items-center gap-2 text-white"
         >
           <ListCheck /> Activities
+        </Nav.Link>
+
+        <Nav.Link
+          as={Link}
+          to={assignmentsPath}
+          className="d-flex align-items-center gap-2 text-white"
+        >
+          <JournalCheck /> Assignments
         </Nav.Link>
 
         <Nav.Link
