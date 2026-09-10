@@ -40,7 +40,7 @@ function AppNavbar() {
       bg="dark"
       variant="dark"
       className="flex-column align-items-stretch p-3"
-      style={{ width: 220, minHeight: '100vh' }}
+      style={{ width: 220, height: '100vh' }}
     >
       <Navbar.Brand
         as={Link}
