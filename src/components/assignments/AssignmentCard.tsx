@@ -47,25 +47,14 @@ function AssignmentCard({
       <Card className="h-100 shadow-sm">
         <Card.Body className="position-relative d-flex flex-column">
           {isTeacher && (
-            <div
+            <Button
+              variant="outline-primary"
+              size="sm"
               style={{ position: 'absolute', top: 6, right: 6 }}
-              className="d-flex flex-column gap-1"
+              onClick={() => setShowEdit(true)}
             >
-              <Button
-                variant="outline-primary"
-                size="sm"
-                onClick={() => setShowEdit(true)}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="outline-danger"
-                size="sm"
-                onClick={() => setShowDelete(true)}
-              >
-                Delete
-              </Button>
-            </div>
+              Edit
+            </Button>
           )}
 
           <Card.Title className="h5 pe-5 mb-2">{assignment.name}</Card.Title>
@@ -88,6 +77,18 @@ function AssignmentCard({
           <Card.Text className="text-muted small pe-5 mb-3">
             Due {formatDueDate(assignment.dueDate)}
           </Card.Text>
+
+          {isTeacher && (
+            <div className="d-flex justify-content-end mb-1">
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() => setShowDelete(true)}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
 
           {isTeacher ? (
             <AssignmentSubmissionsList
