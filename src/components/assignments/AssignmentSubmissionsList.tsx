@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Alert, Badge, Button, ListGroup, Spinner } from 'react-bootstrap'
+import { ChevronDown, ChevronRight } from 'react-bootstrap-icons'
 import { getAssignmentSubmissions } from '../../api/submission'
 import type { Submission } from '../../types/submission'
 import type { UserDto } from '../../api/user'
-import { statusBadgeBg, statusLabel } from '../../utils/submissionStatus'
+import {
+  normalizeStatus,
+  statusBadgeBg,
+  statusLabel,
+} from '../../utils/submissionStatus'
 import ReviewSubmissionModal from './ReviewSubmissionModal'
 
 interface AssignmentSubmissionsListProps {
@@ -28,6 +33,48 @@ function formatHandinDate(handinDate: string) {
   })
 }
 
+interface SubmissionRowProps {
+  sub: Submission
+  usersById?: Map<string, UserDto>
+  onReview: (sub: Submission) => void
+}
+
+function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
+  return (
+    <ListGroup.Item className="px-0 py-2 bg-transparent border-bottom">
+      <div className="d-flex justify-content-between align-items-start gap-2">
+        <div className="flex-grow-1">
+          <div className="d-flex align-items-center gap-2">
+            <span className="fw-semibold small">
+              {studentName(sub, usersById)}
+            </span>
+            <Badge bg={statusBadgeBg(sub.status)}>
+              {statusLabel(sub.status)}
+            </Badge>
+          </div>
+          <div className="text-muted small mt-1">{sub.content}</div>
+          <div className="text-muted small mt-1">
+            {formatHandinDate(sub.handinDate)}
+          </div>
+          {sub.feedback.trim() && (
+            <div className="small mt-1">
+              <span className="text-muted">Feedback: </span>
+              {sub.feedback}
+            </div>
+          )}
+        </div>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={() => onReview(sub)}
+        >
+          Review
+        </Button>
+      </div>
+    </ListGroup.Item>
+  )
+}
+
 function AssignmentSubmissionsList({
   assignmentId,
   usersById,
@@ -36,6 +83,7 @@ function AssignmentSubmissionsList({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [reviewing, setReviewing] = useState<Submission | null>(null)
+  const [showGraded, setShowGraded] = useState(false)
 
   const loadSubmissions = async () => {
     try {
@@ -81,55 +129,66 @@ function AssignmentSubmissionsList({
     )
   }
 
+  const active = submissions.filter((sub) => {
+    const kind = normalizeStatus(sub.status)
+    return kind !== 'approved' && kind !== 'revision'
+  })
+  const graded = submissions.filter((sub) => {
+    const kind = normalizeStatus(sub.status)
+    return kind === 'approved' || kind === 'revision'
+  })
+
   return (
     <div className="mt-3 pt-2 border-top">
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h6 className="fw-bold small text-secondary mb-0">
-          Submissions ({submissions.length})
+          Needs review ({active.length})
         </h6>
       </div>
 
       {submissions.length === 0 ? (
         <p className="text-muted small mb-0">No submissions yet.</p>
+      ) : active.length === 0 ? (
+        <p className="text-muted small mb-0">No submissions to review.</p>
       ) : (
         <ListGroup variant="flush">
-          {submissions.map((sub) => (
-            <ListGroup.Item
+          {active.map((sub) => (
+            <SubmissionRow
               key={sub.id}
-              className="px-0 py-2 bg-transparent border-bottom"
-            >
-              <div className="d-flex justify-content-between align-items-start gap-2">
-                <div className="flex-grow-1">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fw-semibold small">
-                      {studentName(sub, usersById)}
-                    </span>
-                    <Badge bg={statusBadgeBg(sub.status)}>
-                      {statusLabel(sub.status)}
-                    </Badge>
-                  </div>
-                  <div className="text-muted small mt-1">{sub.content}</div>
-                  <div className="text-muted small mt-1">
-                    {formatHandinDate(sub.handinDate)}
-                  </div>
-                  {sub.feedback.trim() && (
-                    <div className="small mt-1">
-                      <span className="text-muted">Feedback: </span>
-                      {sub.feedback}
-                    </div>
-                  )}
-                </div>
-                <Button
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={() => setReviewing(sub)}
-                >
-                  Review
-                </Button>
-              </div>
-            </ListGroup.Item>
+              sub={sub}
+              usersById={usersById}
+              onReview={setReviewing}
+            />
           ))}
         </ListGroup>
+      )}
+
+      {graded.length > 0 && (
+        <div className="mt-2">
+          <Button
+            variant="link"
+            size="sm"
+            className="p-0 text-decoration-none d-flex align-items-center gap-1"
+            onClick={() => setShowGraded((prev) => !prev)}
+            aria-expanded={showGraded}
+          >
+            {showGraded ? <ChevronDown /> : <ChevronRight />}
+            Graded ({graded.length})
+          </Button>
+
+          {showGraded && (
+            <ListGroup variant="flush" className="mt-1">
+              {graded.map((sub) => (
+                <SubmissionRow
+                  key={sub.id}
+                  sub={sub}
+                  usersById={usersById}
+                  onReview={setReviewing}
+                />
+              ))}
+            </ListGroup>
+          )}
+        </div>
       )}
 
       <ReviewSubmissionModal
