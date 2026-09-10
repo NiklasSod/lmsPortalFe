@@ -14,6 +14,7 @@ import ReviewSubmissionModal from './ReviewSubmissionModal'
 interface AssignmentSubmissionsListProps {
   assignmentId: number
   usersById?: Map<string, UserDto>
+  dueDate?: string
 }
 
 function studentName(sub: Submission, usersById?: Map<string, UserDto>) {
@@ -33,13 +34,58 @@ function formatHandinDate(handinDate: string) {
   })
 }
 
+const REVISION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+
+function submissionDeadline(
+  sub: Submission,
+  all: Submission[],
+  dueDate?: string,
+): number | null {
+  const previous = all
+    .filter((s) => s.studentId === sub.studentId && s.id !== sub.id)
+    .sort(
+      (a, b) =>
+        new Date(a.handinDate).getTime() - new Date(b.handinDate).getTime(),
+    )
+    .pop()
+
+  if (previous?.gradedAt && normalizeStatus(previous.status) === 'revision') {
+    const gradedAt = new Date(previous.gradedAt).getTime()
+    if (!isNaN(gradedAt)) return gradedAt + REVISION_WINDOW_MS
+  }
+
+  if (dueDate) {
+    const due = new Date(dueDate).getTime()
+    if (!isNaN(due)) return due
+  }
+
+  return null
+}
+
+function isLateSubmission(
+  sub: Submission,
+  all: Submission[],
+  dueDate?: string,
+): boolean {
+  const deadline = submissionDeadline(sub, all, dueDate)
+  if (deadline === null) return false
+  const handin = new Date(sub.handinDate).getTime()
+  return !isNaN(handin) && handin > deadline
+}
+
 interface SubmissionRowProps {
   sub: Submission
   usersById?: Map<string, UserDto>
+  late?: boolean
   onReview: (sub: Submission) => void
 }
 
-function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
+function SubmissionRow({
+  sub,
+  usersById,
+  late = false,
+  onReview,
+}: SubmissionRowProps) {
   const readOnly =
     normalizeStatus(sub.status) === 'approved' ||
     normalizeStatus(sub.status) === 'revision'
@@ -55,6 +101,11 @@ function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
             <Badge bg={statusBadgeBg(sub.status)}>
               {statusLabel(sub.status)}
             </Badge>
+            {late && (
+              <Badge bg="warning" text="dark">
+                Late
+              </Badge>
+            )}
           </div>
           <div className="text-muted small mt-1">{sub.content}</div>
           <div className="text-muted small mt-1">
@@ -82,6 +133,7 @@ function SubmissionRow({ sub, usersById, onReview }: SubmissionRowProps) {
 function AssignmentSubmissionsList({
   assignmentId,
   usersById,
+  dueDate,
 }: AssignmentSubmissionsListProps) {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
@@ -134,10 +186,23 @@ function AssignmentSubmissionsList({
     )
   }
 
-  const active = submissions.filter((sub) => {
-    const kind = normalizeStatus(sub.status)
-    return kind !== 'approved' && kind !== 'revision'
-  })
+  const lateIds = new Set<number>()
+  for (const sub of submissions) {
+    if (isLateSubmission(sub, submissions, dueDate)) {
+      lateIds.add(sub.id)
+    }
+  }
+
+  const active = submissions
+    .filter((sub) => {
+      const kind = normalizeStatus(sub.status)
+      return kind !== 'approved' && kind !== 'revision'
+    })
+    .sort((a, b) => {
+      const aLate = Number(lateIds.has(a.id))
+      const bLate = Number(lateIds.has(b.id))
+      return bLate - aLate
+    })
   const graded = submissions.filter((sub) => {
     const kind = normalizeStatus(sub.status)
     return kind === 'approved' || kind === 'revision'
@@ -165,6 +230,7 @@ function AssignmentSubmissionsList({
                 key={sub.id}
                 sub={sub}
                 usersById={usersById}
+                late={lateIds.has(sub.id)}
                 onReview={setReviewing}
               />
             ))}
@@ -192,6 +258,7 @@ function AssignmentSubmissionsList({
                       key={sub.id}
                       sub={sub}
                       usersById={usersById}
+                      late={lateIds.has(sub.id)}
                       onReview={setReviewing}
                     />
                   ))}
@@ -222,6 +289,7 @@ function AssignmentSubmissionsList({
                   key={sub.id}
                   sub={sub}
                   usersById={usersById}
+                  late={lateIds.has(sub.id)}
                   onReview={setReviewing}
                 />
               ))}

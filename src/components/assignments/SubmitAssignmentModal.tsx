@@ -1,8 +1,19 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Alert, Button, Form, Modal, Spinner } from 'react-bootstrap'
-import { createSubmission } from '../../api/submission'
+import { Alert, Badge, Button, Form, Modal, Spinner } from 'react-bootstrap'
+import { createSubmission, getMySubmissions } from '../../api/submission'
 import type { Assignment } from '../../types/assignment'
+import type { Submission } from '../../types/submission'
+import { statusBadgeBg, statusLabel } from '../../utils/submissionStatus'
+
+function formatDate(value: string) {
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
 
 interface SubmitAssignmentModalProps {
   show: boolean
@@ -17,9 +28,37 @@ function SubmitAssignmentModal({
   onHide,
   onSubmitted,
 }: SubmitAssignmentModalProps) {
+  const isResubmit = assignment.latestSubmissionId != null
   const [content, setContent] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [history, setHistory] = useState<Submission[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  const loadHistory = () => {
+    setHistoryLoading(true)
+    setHistory([])
+
+    getMySubmissions()
+      .then((data) => {
+        const list = (Array.isArray(data) ? data : []).filter(
+          (sub) => sub.assignmentId === assignment.id,
+        )
+        setHistory(
+          list.sort(
+            (a, b) =>
+              new Date(a.handinDate).getTime() -
+              new Date(b.handinDate).getTime(),
+          ),
+        )
+      })
+      .catch(() => {
+        setHistory([])
+      })
+      .finally(() => {
+        setHistoryLoading(false)
+      })
+  }
 
   const handleHide = () => {
     setContent('')
@@ -52,14 +91,49 @@ function SubmitAssignmentModal({
   }
 
   return (
-    <Modal show={show} onHide={handleHide} centered>
+    <Modal show={show} onHide={handleHide} onShow={loadHistory} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Submit assignment</Modal.Title>
+        <Modal.Title>
+          {isResubmit ? 'Resubmit assignment' : 'Submit assignment'}
+        </Modal.Title>
       </Modal.Header>
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
           <p className="text-muted small mb-3">{assignment.name}</p>
+
+          {historyLoading && (
+            <div className="text-center py-2">
+              <Spinner animation="border" size="sm" role="status" />
+            </div>
+          )}
+
+          {!historyLoading && history.length > 0 && (
+            <div className="mb-3">
+              <p className="fw-semibold small text-secondary mb-2">
+                Previous submissions
+              </p>
+              {history.map((sub) => (
+                <div key={sub.id} className="border rounded p-2 mb-2 small">
+                  <div className="d-flex justify-content-between align-items-start gap-2 mb-1">
+                    <Badge bg={statusBadgeBg(sub.status)}>
+                      {statusLabel(sub.status)}
+                    </Badge>
+                    <span className="text-muted">
+                      {formatDate(sub.handinDate)}
+                    </span>
+                  </div>
+                  <p className="mb-1">{sub.content}</p>
+                  {sub.feedback.trim() && (
+                    <p className="mb-0">
+                      <span className="text-muted">Feedback: </span>
+                      {sub.feedback}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
@@ -112,6 +186,8 @@ function SubmitAssignmentModal({
                 <Spinner animation="border" size="sm" className="me-2" />
                 Submitting…
               </>
+            ) : isResubmit ? (
+              'Resubmit'
             ) : (
               'Submit'
             )}
