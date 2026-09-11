@@ -86,7 +86,9 @@ body.menu-open {
   width: 100%;
   background-color: var(--bs-body-color);
   border-radius: 2px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .custom-toggler.open .hamburger-icon span:nth-child(1) {
@@ -114,7 +116,9 @@ body.menu-open {
     align-items: stretch !important;
     margin-bottom: 0;
     overflow: hidden;
-    transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+    transition:
+      transform 0.3s ease-in-out,
+      height 0.3s ease-in-out;
   }
 
   .app-navbar-responsive.navbar-hidden {
@@ -144,8 +148,17 @@ body.menu-open {
     transform: translateY(-20px);
     opacity: 0;
     visibility: hidden;
-    overflow: hidden;
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transition:
+      transform 0.3s ease-in-out,
+      opacity 0.3s ease-in-out,
+      visibility 0.3s ease-in-out;
+  }
+
+  .custom-mobile-collapse > * {
+    flex-shrink: 0;
   }
 
   .app-navbar-responsive.expanded .custom-mobile-collapse {
@@ -165,7 +178,7 @@ body.menu-open {
     flex-direction: row !important;
     text-align: start !important;
   }
-  
+
   .profile-hero-meta {
     flex-direction: row !important;
     justify-content: flex-start !important;
