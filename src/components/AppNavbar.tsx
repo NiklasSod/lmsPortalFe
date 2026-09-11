@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import {
   Book,
@@ -16,6 +16,7 @@ import { useAuth } from '../auth/AuthContext'
 
 function AppNavbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { role, fullName, logout } = useAuth()
   const [expanded, setExpanded] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
@@ -30,6 +31,28 @@ function AppNavbar() {
   const assignmentsPath = isStudent
     ? '/student/assignments'
     : '/teacher/assignments'
+
+  const base = isStudent ? '/student' : '/teacher'
+
+  const pathSegments = location.pathname.split('/')
+  const coursesIndex = pathSegments.indexOf('courses')
+  const pathCourseId =
+    coursesIndex !== -1 && pathSegments.length > coursesIndex + 1
+      ? pathSegments[coursesIndex + 1]
+      : null
+
+  const searchParams = new URLSearchParams(location.search)
+  const queryCourseId = searchParams.get('courseId')
+  const activeCourseId = pathCourseId || queryCourseId
+
+  const courseSections = activeCourseId
+    ? [
+        { label: 'Overview', to: `${base}/courses/${activeCourseId}` },
+        { label: 'Modules', to: `${base}/courses/${activeCourseId}/modules` },
+        { label: 'Assignments', to: `${base}/assignments?courseId=${activeCourseId}` },
+        { label: 'Members', to: `${base}/courses/${activeCourseId}/members` },
+      ]
+    : []
 
   useEffect(() => {
     function handleScroll() {
@@ -123,10 +146,40 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to={coursesPath}
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            className={`d-flex align-items-center gap-2 px-2 py-2 ${
+              activeCourseId ? 'fw-bold' : ''
+            }`}
           >
             <MortarboardFill /> Courses
           </Nav.Link>
+
+          {activeCourseId && (
+            <div className="ms-3 ps-2 border-start border-secondary d-flex flex-column my-1">
+              {courseSections.map((section) => {
+                const toPath = section.to.split('?')[0]
+                const isAssignmentsSection = section.to.includes('assignments')
+                const isActive = isAssignmentsSection
+                  ? location.pathname.startsWith(toPath) && searchParams.get('courseId') === activeCourseId
+                  : section.to === `${base}/courses/${activeCourseId}`
+                  ? location.pathname === toPath && !location.search
+                  : location.pathname.startsWith(toPath)
+
+                return (
+                  <Nav.Link
+                    key={section.label}
+                    as={Link}
+                    to={section.to}
+                    className={`py-1 small ${
+                      isActive ? 'fw-bold text-decoration-underline' : 'text-muted'
+                    }`}
+                  >
+                    {section.label}
+                  </Nav.Link>
+                )
+              })}
+            </div>
+          )}
+
           <Nav.Link
             as={Link}
             to={modulesPath}
