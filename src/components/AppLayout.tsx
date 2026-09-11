@@ -3,14 +3,11 @@ import AppNavbar from './AppNavbar'
 
 function AppLayout() {
   return (
-    <div className="d-flex" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="app-layout d-flex">
       <AppNavbar />
-      <div
-        className="flex-grow-1"
-        style={{ height: '100vh', overflowY: 'auto' }}
-      >
+      <main className="flex-grow-1 p-4">
         <Outlet />
-      </div>
+      </main>
     </div>
   )
 }

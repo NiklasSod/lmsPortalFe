@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import {
@@ -7,8 +8,8 @@ import {
   JournalCheck,
   ListCheck,
   MortarboardFill,
-  Speedometer,
   HouseGear,
+  Speedometer,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
@@ -16,6 +17,9 @@ import { useAuth } from '../auth/AuthContext'
 function AppNavbar() {
   const navigate = useNavigate()
   const { role, fullName, logout } = useAuth()
+  const [expanded, setExpanded] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
@@ -27,100 +31,149 @@ function AppNavbar() {
     ? '/student/assignments'
     : '/teacher/assignments'
 
+  useEffect(() => {
+    function handleScroll() {
+      const currentScrollY = window.scrollY
+
+      if (expanded) {
+        setIsVisible(true)
+        return
+      }
+
+      if (currentScrollY < 10) {
+        setIsVisible(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false)
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY, expanded])
+
+  useEffect(() => {
+    if (expanded) {
+      document.body.classList.add('menu-open')
+    } else {
+      document.body.classList.remove('menu-open')
+    }
+    return () => {
+      document.body.classList.remove('menu-open')
+    }
+  }, [expanded])
+
   async function handleLogout() {
+    setExpanded(false)
     await logout()
     navigate('/login')
   }
 
-  // temp hardcoded
-  const darkTheme = true
-
   return (
     <Navbar
-      bg="dark"
-      variant="dark"
-      className="flex-column align-items-stretch p-3"
-      style={{ width: 220, height: '100vh' }}
+      expand="sm"
+      expanded={expanded}
+      className={`p-3 app-navbar-responsive border-bottom ${!isVisible ? 'navbar-hidden' : ''} ${expanded ? 'expanded' : ''}`}
     >
-      <Navbar.Brand
-        as={Link}
-        to="/"
-        className="d-flex align-items-center gap-2 mb-3"
-      >
-        <span
-          className="d-flex align-items-center justify-content-center bg-danger rounded"
-          style={{ width: 28, height: 28 }}
-        >
-          <Book color="white" size={16} />
-        </span>
-        Lexicon
-      </Navbar.Brand>
-      <Nav className="flex-column">
-        <Nav.Link
+      <div className="d-flex align-items-center justify-content-between w-100">
+        <Navbar.Brand
           as={Link}
           to="/"
-          className="d-flex align-items-center gap-2 text-white"
+          onClick={() => setExpanded(false)}
+          className="d-flex align-items-center gap-2 text-decoration-none m-0"
         >
-          <Speedometer /> Dashboard
-        </Nav.Link>
-        <Nav.Link
-          as={Link}
-          to={coursesPath}
-          className="d-flex align-items-center gap-2 text-white"
+          <span
+            className="d-flex align-items-center justify-content-center bg-danger rounded"
+            style={{ width: 28, height: 28 }}
+          >
+            <Book color="white" size={16} />
+          </span>
+          Lexicon
+        </Navbar.Brand>
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          aria-label="Toggle navigation"
+          className={`border-0 shadow-none bg-transparent p-0 d-sm-none custom-toggler ${
+            expanded ? 'open' : ''
+          }`}
         >
-          <MortarboardFill /> Courses
-        </Nav.Link>
-        <Nav.Link
-          as={Link}
-          to={modulesPath}
-          className="d-flex align-items-center gap-2 text-white"
-        >
-          <JournalBookmark />{' '}
-          {isStudent ? 'Current Modules' : 'Modules Teaching'}
-        </Nav.Link>
-
-        <Nav.Link
-          as={Link}
-          to={activitiesPath}
-          className="d-flex align-items-center gap-2 text-white"
-        >
-          <ListCheck /> Activities
-        </Nav.Link>
-
-        <Nav.Link
-          as={Link}
-          to={assignmentsPath}
-          className="d-flex align-items-center gap-2 text-white"
-        >
-          <JournalCheck /> Assignments
-        </Nav.Link>
-
-        <Nav.Link
-          as="button"
-          onClick={handleLogout}
-          className="d-flex align-items-center gap-2 text-white border-0 bg-transparent"
-        >
-          <BoxArrowLeft /> Logout
-        </Nav.Link>
-      </Nav>
-      <div className="mt-auto">
-        {fullName && (
-          <div className="text-white ms-2 mb-2 d-flex flex-column gap-2">
-            <div className="d-flex flex-row align-items-center gap-2">
-              <HouseGear />
-              <Link
-                className={darkTheme ? 'link-light' : 'link-dark'}
-                to={`/${role}/profile`}
-                style={{ textDecoration: 'none' }}
-              >
-                Profile
-              </Link>
-            </div>
-            <span className="text-truncate">{fullName}</span>
+          <div className="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
-        )}
-        <div className="pt-3 border-top border-secondary">
-          <ThemeSwitch />
+        </button>
+      </div>
+
+      <div
+        className={`custom-mobile-collapse d-sm-flex flex-column align-items-stretch w-100 mt-3`}
+      >
+        <Nav className="flex-column w-100" onClick={() => setExpanded(false)}>
+          <Nav.Link
+            as={Link}
+            to="/"
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <Speedometer /> Dashboard
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to={coursesPath}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <MortarboardFill /> Courses
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to={modulesPath}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <JournalBookmark /> Modules
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to={activitiesPath}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <ListCheck /> Activities
+          </Nav.Link>
+          <Nav.Link
+            as={Link}
+            to={assignmentsPath}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <JournalCheck /> Assignments
+          </Nav.Link>
+          <Nav.Link
+            as="button"
+            onClick={handleLogout}
+            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 mt-2"
+          >
+            <BoxArrowLeft /> Logout
+          </Nav.Link>
+        </Nav>
+
+        <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
+          <Nav.Link
+            as={Link}
+            to={`/${role}/profile`}
+            onClick={() => setExpanded(false)}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <HouseGear /> Profile
+          </Nav.Link>
+          {fullName && (
+            <div className="mb-2 mt-2">
+              <span className="text-truncate ms-2">{fullName}</span>
+            </div>
+          )}
+          <div className="pt-3 border-top">
+            <ThemeSwitch />
+          </div>
         </div>
       </div>
     </Navbar>
