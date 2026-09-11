@@ -6,12 +6,15 @@ import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getModulesByCourse } from '../../api/module'
 import { getUsers } from '../../api/user'
+import { getMineModules } from '../../api/module'
 import { getMySubmissions } from '../../api/submission'
 import type { UserDto } from '../../api/user'
 import type { Assignment } from '../../types/assignment'
+import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { normalizeStatus } from '../../utils/submissionStatus'
 import AssignmentCard from '../../components/assignments/AssignmentCard'
+import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
 
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
@@ -26,11 +29,13 @@ export const AssignmentsView: React.FC = () => {
     null,
   )
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
+  const [teacherModules, setTeacherModules] = useState<CourseModule[]>([])
   const [submissionsById, setSubmissionsById] = useState<
     Map<number, Submission>
   >(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showHandedIn, setShowHandedIn] = useState(false)
   const [showApproved, setShowApproved] = useState(false)
 
@@ -42,13 +47,24 @@ export const AssignmentsView: React.FC = () => {
       setError((err as Error).message)
     }
 
-    if (!isTeacher) {
+    if (isTeacher) {
+      try {
+        const [users, modules] = await Promise.all([
+          getUsers().catch(() => []),
+          getMineModules().catch(() => []),
+        ])
+        setUsersById(new Map(users.map((user) => [user.id, user])))
+        setTeacherModules(modules)
+      } catch {
+        // Optional metadata fetch
+      }
+    } else {
       try {
         const subs = await getMySubmissions()
         const list = Array.isArray(subs) ? subs : []
         setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
       } catch {
-        // Resubmit deadline is a nice-to-have, not required for the view.
+        // Optional metadata fetch
       }
     }
   }
@@ -80,10 +96,14 @@ export const AssignmentsView: React.FC = () => {
 
         if (isTeacher) {
           try {
-            const users = await getUsers()
+            const [users, modules] = await Promise.all([
+              getUsers().catch(() => []),
+              getMineModules().catch(() => []),
+            ])
             setUsersById(new Map(users.map((user) => [user.id, user])))
+            setTeacherModules(modules)
           } catch {
-            // Student names are a nice-to-have, not required for the view.
+            // Optional metadata fetch
           }
         } else {
           try {
@@ -91,7 +111,7 @@ export const AssignmentsView: React.FC = () => {
             const list = Array.isArray(subs) ? subs : []
             setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
           } catch {
-            // Resubmit deadline is a nice-to-have, not required for the view.
+            // Optional metadata fetch
           }
         }
       } catch (err) {
@@ -150,8 +170,11 @@ export const AssignmentsView: React.FC = () => {
           <AssignmentCard
             assignment={assignment}
             usersById={isTeacher ? usersById : undefined}
+            modules={teacherModules}
             submissionsById={isTeacher ? undefined : submissionsById}
             onSubmitted={loadAssignments}
+            onUpdated={loadAssignments}
+            onDeleted={loadAssignments}
           />
         </Col>
       ))}
@@ -160,9 +183,21 @@ export const AssignmentsView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <JournalCheck size={28} className="text-primary" />
-        <h1 className="h2 mb-0">Assignments</h1>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <JournalCheck size={28} className="text-primary" />
+          <h1 className="h2 mb-0">Assignments</h1>
+        </div>
+
+        {isTeacher && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add assignment
+          </Button>
+        )}
       </div>
 
       <p className="text-muted mb-4">
@@ -223,6 +258,15 @@ export const AssignmentsView: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {isTeacher && (
+        <AssignmentFormModal
+          show={showAddModal}
+          onHide={() => setShowAddModal(false)}
+          onSaved={loadAssignments}
+          modules={teacherModules}
+        />
       )}
     </Container>
   )

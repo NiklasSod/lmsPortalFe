@@ -34,6 +34,8 @@ export const CourseOverviewView: React.FC = () => {
       if (!courseId) return
       try {
         setLoading(true)
+        setError(null)
+
         const data = await getCourseById(courseId)
         setCourse(data)
 

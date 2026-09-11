@@ -11,13 +11,18 @@ import {
 } from '../../utils/submissionStatus'
 import SubmitAssignmentModal from './SubmitAssignmentModal'
 import AssignmentSubmissionsList from './AssignmentSubmissionsList'
+import { AssignmentFormModal } from './AssignmentFormModal'
+import { DeleteAssignmentModal } from './DeleteAssignmentModal'
 import ViewSubmissionModal from './ViewSubmissionModal'
 
 interface AssignmentCardProps {
   assignment: Assignment
   usersById?: Map<string, UserDto>
+  modules?: { id: number; name: string }[]
   submissionsById?: Map<number, Submission>
   onSubmitted?: () => void
+  onUpdated?: () => void
+  onDeleted?: () => void
 }
 
 const REVISION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
@@ -34,11 +39,15 @@ function formatDate(value: Date | string) {
 function AssignmentCard({
   assignment,
   usersById,
+  modules,
   submissionsById,
   onSubmitted,
+  onUpdated,
+  onDeleted,
 }: AssignmentCardProps) {
   const { role } = useAuth()
   const isTeacher = role !== 'student'
+
   const statusKind = normalizeStatus(assignment.latestSubmissionStatus)
   const isCompleted =
     !isTeacher && (statusKind === 'handedIn' || statusKind === 'approved')
@@ -55,6 +64,8 @@ function AssignmentCard({
 
   const [showSubmit, setShowSubmit] = useState(false)
   const [showSubmission, setShowSubmission] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
 
   return (
     <>
@@ -63,21 +74,35 @@ function AssignmentCard({
         onClick={isCompleted ? () => setShowSubmission(true) : undefined}
         style={isCompleted ? { cursor: 'pointer' } : undefined}
       >
-        <Card.Body className="d-flex flex-column">
+        <Card.Body className="position-relative d-flex flex-column">
           <div className="d-flex justify-content-between align-items-start mb-2">
             <Card.Title className="h5 mb-0">{assignment.name}</Card.Title>
-            {!isTeacher && (
-              <Badge
-                bg={statusBadgeBg(assignment.latestSubmissionStatus)}
-                className="ms-2"
-              >
-                {statusLabel(assignment.latestSubmissionStatus)}
-              </Badge>
-            )}
+            <div className="d-flex align-items-center gap-2">
+              {!isTeacher && (
+                <Badge
+                  bg={statusBadgeBg(assignment.latestSubmissionStatus)}
+                  className="ms-2"
+                >
+                  {statusLabel(assignment.latestSubmissionStatus)}
+                </Badge>
+              )}
+              {isTeacher && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowEdit(true)
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
           </div>
 
           {assignment.description && (
-            <Card.Text className="text-muted small mb-2">
+            <Card.Text className="text-muted small pe-5 mb-2">
               {assignment.description}
             </Card.Text>
           )}
@@ -87,6 +112,21 @@ function AssignmentCard({
               ? `Resubmit by ${formatDate(resubmitDeadline)}`
               : `Due ${formatDate(assignment.dueDate)}`}
           </Card.Text>
+
+          {isTeacher && (
+            <div className="d-flex justify-content-end mb-1">
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowDelete(true)
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
 
           {isTeacher ? (
             <AssignmentSubmissionsList
@@ -134,6 +174,29 @@ function AssignmentCard({
         assignment={assignment}
         onHide={() => setShowSubmission(false)}
       />
+
+      {isTeacher && (
+        <>
+          <AssignmentFormModal
+            show={showEdit}
+            assignment={assignment}
+            modules={modules}
+            onHide={() => setShowEdit(false)}
+            onSaved={() => {
+              onUpdated?.()
+            }}
+          />
+
+          <DeleteAssignmentModal
+            show={showDelete}
+            assignment={assignment}
+            onHide={() => setShowDelete(false)}
+            onDeleted={() => {
+              onDeleted?.()
+            }}
+          />
+        </>
+      )}
     </>
   )
 }
