@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
 import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
+import { getModulesByCourse } from '../../api/module'
 import { getUsers } from '../../api/user'
 import { getMySubmissions } from '../../api/submission'
 import type { UserDto } from '../../api/user'
@@ -14,8 +16,15 @@ import AssignmentCard from '../../components/assignments/AssignmentCard'
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
   const isTeacher = role !== 'student'
+  const [searchParams] = useSearchParams()
+  const courseIdParam = searchParams.get('courseId')
+  const courseId = courseIdParam ? Number(courseIdParam) : null
+  const hasCourseFilter = courseId !== null && Number.isInteger(courseId)
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [courseModuleIds, setCourseModuleIds] = useState<Set<number> | null>(
+    null,
+  )
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
   const [submissionsById, setSubmissionsById] = useState<
     Map<number, Submission>
@@ -53,6 +62,22 @@ export const AssignmentsView: React.FC = () => {
         const data = await getMyAssignments()
         setAssignments(Array.isArray(data) ? data : [])
 
+        if (courseId !== null && Number.isInteger(courseId)) {
+          try {
+            const modules = await getModulesByCourse(courseId)
+            setCourseModuleIds(
+              new Set(
+                (Array.isArray(modules) ? modules : []).map((m) => m.id),
+              ),
+            )
+          } catch {
+            // If the course can't be loaded, show no assignments for it.
+            setCourseModuleIds(new Set())
+          }
+        } else {
+          setCourseModuleIds(null)
+        }
+
         if (isTeacher) {
           try {
             const users = await getUsers()
@@ -77,7 +102,7 @@ export const AssignmentsView: React.FC = () => {
     }
 
     fetchAssignments()
-  }, [isTeacher])
+  }, [isTeacher, courseId])
 
   if (loading) {
     return (
@@ -95,21 +120,26 @@ export const AssignmentsView: React.FC = () => {
     )
   }
 
+  const filteredAssignments =
+    hasCourseFilter && courseModuleIds
+      ? assignments.filter((a) => courseModuleIds.has(a.moduleId))
+      : assignments
+
   const activeAssignments = isTeacher
-    ? assignments
-    : assignments.filter(
+    ? filteredAssignments
+    : filteredAssignments.filter(
         (a) =>
           normalizeStatus(a.latestSubmissionStatus) !== 'handedIn' &&
           normalizeStatus(a.latestSubmissionStatus) !== 'approved',
       )
   const handedInAssignments = isTeacher
     ? []
-    : assignments.filter(
+    : filteredAssignments.filter(
         (a) => normalizeStatus(a.latestSubmissionStatus) === 'handedIn',
       )
   const approvedAssignments = isTeacher
     ? []
-    : assignments.filter(
+    : filteredAssignments.filter(
         (a) => normalizeStatus(a.latestSubmissionStatus) === 'approved',
       )
 

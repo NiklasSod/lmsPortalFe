@@ -14,14 +14,15 @@ interface SectionLink {
 function CourseSections({ courseId }: CourseSectionsProps) {
   const { role } = useAuth()
   const isStudent = role === 'student'
-  const base = isStudent ? '/student/courses' : '/teacher/courses'
+  const base = isStudent ? '/student' : '/teacher'
+  const coursesPath = '/courses'
   const location = useLocation()
 
   const sections: SectionLink[] = [
-    { label: 'Overview', to: `${base}/${courseId}` },
-    { label: 'Modules', to: `${base}/${courseId}/modules` },
-    { label: 'Assignments', to: `${base}/${courseId}/assignments` },
-    { label: 'Members', to: `${base}/${courseId}/members` },
+    { label: 'Overview', to: `${base}${coursesPath}/${courseId}` },
+    { label: 'Modules', to: `${base}${coursesPath}/${courseId}/modules` },
+    { label: 'Assignments', to: `${base}/assignments?courseId=${courseId}` },
+    { label: 'Members', to: `${base}${coursesPath}/${courseId}/members` },
   ]
 
   return (
@@ -29,10 +30,11 @@ function CourseSections({ courseId }: CourseSectionsProps) {
       <h2 className="h6 border-bottom pb-2">Sections</h2>
       <Nav className="flex-column text-start">
         {sections.map((section) => {
+          const toPath = section.to.split('?')[0]
           const isActive =
-            section.to === `${base}/${courseId}`
-              ? location.pathname === section.to
-              : location.pathname.startsWith(section.to)
+            section.to === `${base}${coursesPath}/${courseId}`
+              ? location.pathname === toPath
+              : location.pathname.startsWith(toPath)
 
           return (
             <Nav.Link
