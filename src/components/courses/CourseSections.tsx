@@ -30,10 +30,11 @@ function CourseSections({ courseId }: CourseSectionsProps) {
       <h2 className="h6 border-bottom pb-2">Sections</h2>
       <Nav className="flex-column text-start">
         {sections.map((section) => {
+          const toPath = section.to.split('?')[0]
           const isActive =
-            section.to === `${base}/${courseId}`
-              ? location.pathname === section.to
-              : location.pathname.startsWith(section.to)
+            section.to === `${base}${coursesPath}/${courseId}`
+              ? location.pathname === toPath
+              : location.pathname.startsWith(toPath)
 
           return (
             <Nav.Link
