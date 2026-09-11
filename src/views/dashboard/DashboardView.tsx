@@ -9,13 +9,20 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import { Clock, ExclamationTriangle } from 'react-bootstrap-icons'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  ExclamationTriangle,
+} from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
+import { getMySubmissions } from '../../api/submission'
 import type { Assignment } from '../../types/assignment'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
+import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
 
 type Deadline = {
@@ -24,7 +31,13 @@ type Deadline = {
   assignmentTitle: string
   dueAt: Date
   status: string | null
-  hasFeedback: boolean
+}
+
+type FeedbackItem = {
+  id: number
+  assignmentTitle: string
+  feedback: string
+  handinDate: Date
 }
 
 function mapToDeadline(assignment: Assignment): Deadline {
@@ -34,8 +47,11 @@ function mapToDeadline(assignment: Assignment): Deadline {
     assignmentTitle: assignment.name,
     dueAt: new Date(assignment.dueDate),
     status: assignment.latestSubmissionStatus,
-    hasFeedback: assignment.latestFeedback.trim().length > 0,
   }
+}
+
+function hasFeedback(submission: Submission) {
+  return submission.feedback.trim().length > 0
 }
 
 function isNotTurnedIn(deadline: Deadline) {
@@ -62,6 +78,30 @@ function formatDueDate(deadline: Deadline) {
   })
 }
 
+function buildFeedbackItems(
+  submissions: Submission[],
+  deadlines: Deadline[],
+): FeedbackItem[] {
+  const assignmentTitleById = new Map(
+    deadlines.map((deadline) => [deadline.id, deadline.assignmentTitle]),
+  )
+
+  return submissions
+    .filter(hasFeedback)
+    .map((submission) => ({
+      id: submission.id,
+      assignmentTitle:
+        (submission.assignmentId != null
+          ? assignmentTitleById.get(submission.assignmentId)
+          : undefined) ?? `Submission #${submission.id}`,
+      feedback: submission.feedback,
+      handinDate: submission.handinDate
+        ? new Date(submission.handinDate)
+        : new Date(0),
+    }))
+    .sort((a, b) => b.handinDate.getTime() - a.handinDate.getTime())
+}
+
 function DashboardView() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,9 +112,14 @@ function DashboardView() {
   const [modulesError, setModulesError] = useState<string | null>(null)
 
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
-  const [deadlinesLoading, setDeadlinesLoading] = useState(false)
+  const [deadlinesLoading, setDeadlinesLoading] = useState(true)
   const [deadlinesError, setDeadlinesError] = useState<string | null>(null)
   const [dismissedIds, setDismissedIds] = useState<number[]>([])
+
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
+  const [feedbackLoading, setFeedbackLoading] = useState(true)
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+  const [feedbackPage, setFeedbackPage] = useState(1)
 
   const { role } = useAuth()
 
@@ -101,6 +146,17 @@ function DashboardView() {
       .finally(() => setDeadlinesLoading(false))
   }, [role])
 
+  useEffect(() => {
+    if (role !== 'student') return
+
+    getMySubmissions()
+      .then((data) =>
+        setFeedbackItems(buildFeedbackItems(data, deadlines).slice(0, 5)),
+      )
+      .catch((err: Error) => setFeedbackError(err.message))
+      .finally(() => setFeedbackLoading(false))
+  }, [role, deadlines])
+
   if (role === null) return
 
   const visibleDeadlines = deadlines.filter(
@@ -108,6 +164,16 @@ function DashboardView() {
   )
   const atRiskDeadlines = visibleDeadlines.filter(
     (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
+  )
+
+  const feedbackPageSize = 4
+  const feedbackPageCount = Math.max(
+    1,
+    Math.ceil(feedbackItems.length / feedbackPageSize),
+  )
+  const currentFeedbackItems = feedbackItems.slice(
+    (feedbackPage - 1) * feedbackPageSize,
+    feedbackPage * feedbackPageSize,
   )
 
   return (
@@ -217,6 +283,113 @@ function DashboardView() {
               )}
             </Card.Body>
           </Card>
+
+          {role === 'student' && (
+            <Card className="border-0 shadow-sm mt-4">
+              <Card.Header as="h2" className="h5 mb-0">
+                Latest Feedback
+              </Card.Header>
+              {feedbackLoading && (
+                <Card.Body>
+                  <Spinner animation="border" size="sm" />
+                </Card.Body>
+              )}
+              {feedbackError && (
+                <Card.Body>
+                  <Alert variant="danger" className="mb-0">
+                    {feedbackError}
+                  </Alert>
+                </Card.Body>
+              )}
+              {!feedbackLoading && !feedbackError && (
+                <ListGroup variant="flush">
+                  {feedbackItems.length === 0 && (
+                    <ListGroup.Item className="text-muted bg-transparent">
+                      No submissions have received feedback yet.
+                    </ListGroup.Item>
+                  )}
+                  {currentFeedbackItems.map((feedbackItem, index) => (
+                    <ListGroup.Item
+                      key={feedbackItem.id}
+                      className={`bg-transparent${
+                        index === currentFeedbackItems.length - 1
+                          ? ' border-bottom'
+                          : ''
+                      }`}
+                    >
+                      <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
+                        <div className="fw-semibold">
+                          {feedbackItem.assignmentTitle}
+                        </div>
+                        <small className="text-muted">
+                          Submitted:{' '}
+                          {new Intl.DateTimeFormat('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          }).format(feedbackItem.handinDate)}
+                        </small>
+                      </div>
+                      <blockquote className="border-start border-3 ps-3 mb-0 text-muted small">
+                        “{feedbackItem.feedback}”
+                      </blockquote>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              )}
+            </Card>
+          )}
+
+          {role === 'student' &&
+            !feedbackLoading &&
+            !feedbackError &&
+            feedbackItems.length > 0 && (
+              <div className="d-flex justify-content-end align-items-center gap-2 mt-2">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary text-body border-secondary"
+                  onClick={() =>
+                    setFeedbackPage((page) => Math.max(1, page - 1))
+                  }
+                  disabled={feedbackPage === 1}
+                  aria-label="Previous page"
+                >
+                  <ArrowLeft size={14} />
+                </button>
+
+                {Array.from(
+                  { length: feedbackPageCount },
+                  (_, index) => index + 1,
+                ).map((pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    className={`btn btn-sm ${
+                      pageNumber === feedbackPage
+                        ? 'btn-secondary text-white'
+                        : 'btn-outline-secondary text-body border-secondary'
+                    }`}
+                    onClick={() => setFeedbackPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary text-body border-secondary"
+                  onClick={() =>
+                    setFeedbackPage((page) =>
+                      Math.min(feedbackPageCount, page + 1),
+                    )
+                  }
+                  disabled={feedbackPage === feedbackPageCount}
+                  aria-label="Next page"
+                >
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            )}
         </Col>
 
         {role === 'student' && (
