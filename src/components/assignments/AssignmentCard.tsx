@@ -2,24 +2,33 @@ import { useState } from 'react'
 import { Badge, Button, Card } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
 import type { Assignment } from '../../types/assignment'
+import type { Submission } from '../../types/submission'
 import type { UserDto } from '../../api/user'
-import { statusBadgeBg, statusLabel } from '../../utils/submissionStatus'
+import {
+  normalizeStatus,
+  statusBadgeBg,
+  statusLabel,
+} from '../../utils/submissionStatus'
 import SubmitAssignmentModal from './SubmitAssignmentModal'
 import AssignmentSubmissionsList from './AssignmentSubmissionsList'
 import { AssignmentFormModal } from './AssignmentFormModal'
 import { DeleteAssignmentModal } from './DeleteAssignmentModal'
+import ViewSubmissionModal from './ViewSubmissionModal'
 
 interface AssignmentCardProps {
   assignment: Assignment
   usersById?: Map<string, UserDto>
   modules?: { id: number; name: string }[]
+  submissionsById?: Map<number, Submission>
   onSubmitted?: () => void
   onUpdated?: () => void
   onDeleted?: () => void
 }
 
-function formatDueDate(dueDate: string) {
-  const d = new Date(dueDate)
+const REVISION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+
+function formatDate(value: Date | string) {
+  const d = typeof value === 'string' ? new Date(value) : value
   if (isNaN(d.getTime())) return ''
   return d.toLocaleString(undefined, {
     dateStyle: 'medium',
@@ -31,6 +40,7 @@ function AssignmentCard({
   assignment,
   usersById,
   modules,
+  submissionsById,
   onSubmitted,
   onUpdated,
   onDeleted,
@@ -38,35 +48,58 @@ function AssignmentCard({
   const { role } = useAuth()
   const isTeacher = role !== 'student'
 
+  const statusKind = normalizeStatus(assignment.latestSubmissionStatus)
+  const isCompleted =
+    !isTeacher && (statusKind === 'handedIn' || statusKind === 'approved')
+  const isResubmit = !isTeacher && statusKind === 'revision'
+
+  const resubmitDeadline = (() => {
+    if (!isResubmit || !assignment.latestSubmissionId) return null
+    const sub = submissionsById?.get(assignment.latestSubmissionId)
+    if (!sub?.gradedAt) return null
+    const gradedAt = new Date(sub.gradedAt).getTime()
+    if (isNaN(gradedAt)) return null
+    return new Date(gradedAt + REVISION_WINDOW_MS)
+  })()
+
   const [showSubmit, setShowSubmit] = useState(false)
+  const [showSubmission, setShowSubmission] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
   return (
     <>
-      <Card className="h-100 shadow-sm">
+      <Card
+        className="h-100 shadow-sm"
+        onClick={isCompleted ? () => setShowSubmission(true) : undefined}
+        style={isCompleted ? { cursor: 'pointer' } : undefined}
+      >
         <Card.Body className="position-relative d-flex flex-column">
-          {isTeacher && (
-            <Button
-              variant="outline-primary"
-              size="sm"
-              style={{ position: 'absolute', top: 6, right: 6 }}
-              onClick={() => setShowEdit(true)}
-            >
-              Edit
-            </Button>
-          )}
-
-          <Card.Title className="h5 pe-5 mb-2">{assignment.name}</Card.Title>
-
-          {!isTeacher && (
-            <Badge
-              bg={statusBadgeBg(assignment.latestSubmissionStatus)}
-              className="ms-2"
-            >
-              {statusLabel(assignment.latestSubmissionStatus)}
-            </Badge>
-          )}
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <Card.Title className="h5 mb-0">{assignment.name}</Card.Title>
+            <div className="d-flex align-items-center gap-2">
+              {!isTeacher && (
+                <Badge
+                  bg={statusBadgeBg(assignment.latestSubmissionStatus)}
+                  className="ms-2"
+                >
+                  {statusLabel(assignment.latestSubmissionStatus)}
+                </Badge>
+              )}
+              {isTeacher && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowEdit(true)
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
+          </div>
 
           {assignment.description && (
             <Card.Text className="text-muted small pe-5 mb-2">
@@ -74,8 +107,10 @@ function AssignmentCard({
             </Card.Text>
           )}
 
-          <Card.Text className="text-muted small pe-5 mb-3">
-            Due {formatDueDate(assignment.dueDate)}
+          <Card.Text className="text-muted small mb-3">
+            {isResubmit && resubmitDeadline
+              ? `Resubmit by ${formatDate(resubmitDeadline)}`
+              : `Due ${formatDate(assignment.dueDate)}`}
           </Card.Text>
 
           {isTeacher && (
@@ -83,7 +118,10 @@ function AssignmentCard({
               <Button
                 variant="outline-danger"
                 size="sm"
-                onClick={() => setShowDelete(true)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowDelete(true)
+                }}
               >
                 Delete
               </Button>
@@ -94,6 +132,7 @@ function AssignmentCard({
             <AssignmentSubmissionsList
               assignmentId={assignment.id}
               usersById={usersById}
+              dueDate={assignment.dueDate}
             />
           ) : (
             <div className="mt-auto">
@@ -103,15 +142,21 @@ function AssignmentCard({
                   {assignment.latestFeedback}
                 </Card.Text>
               )}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowSubmit(true)}
-              >
-                {assignment.latestSubmissionId
-                  ? 'Resubmit'
-                  : 'Submit assignment'}
-              </Button>
+              {isCompleted ? (
+                <p className="small text-muted mb-0">
+                  Click to view your submission
+                </p>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShowSubmit(true)}
+                >
+                  {assignment.latestSubmissionId
+                    ? 'Resubmit'
+                    : 'Submit assignment'}
+                </Button>
+              )}
             </div>
           )}
         </Card.Body>
@@ -122,6 +167,12 @@ function AssignmentCard({
         assignment={assignment}
         onHide={() => setShowSubmit(false)}
         onSubmitted={onSubmitted}
+      />
+
+      <ViewSubmissionModal
+        show={showSubmission}
+        assignment={assignment}
+        onHide={() => setShowSubmission(false)}
       />
 
       {isTeacher && (

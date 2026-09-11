@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
-import { JournalCheck } from 'react-bootstrap-icons'
+import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getUsers } from '../../api/user'
 import { getMineModules } from '../../api/module'
+import { getMySubmissions } from '../../api/submission'
 import type { UserDto } from '../../api/user'
 import type { Assignment } from '../../types/assignment'
 import type { CourseModule } from '../../types/module'
+import type { Submission } from '../../types/submission'
+import { normalizeStatus } from '../../utils/submissionStatus'
 import AssignmentCard from '../../components/assignments/AssignmentCard'
 import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
 
@@ -18,9 +21,14 @@ export const AssignmentsView: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
   const [teacherModules, setTeacherModules] = useState<CourseModule[]>([])
+  const [submissionsById, setSubmissionsById] = useState<
+    Map<number, Submission>
+  >(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showHandedIn, setShowHandedIn] = useState(false)
+  const [showApproved, setShowApproved] = useState(false)
 
   const loadAssignments = async () => {
     try {
@@ -28,6 +36,27 @@ export const AssignmentsView: React.FC = () => {
       setAssignments(Array.isArray(data) ? data : [])
     } catch (err) {
       setError((err as Error).message)
+    }
+
+    if (isTeacher) {
+      try {
+        const [users, modules] = await Promise.all([
+          getUsers().catch(() => []),
+          getMineModules().catch(() => []),
+        ])
+        setUsersById(new Map(users.map((user) => [user.id, user])))
+        setTeacherModules(modules)
+      } catch {
+        // Optional metadata fetch
+      }
+    } else {
+      try {
+        const subs = await getMySubmissions()
+        const list = Array.isArray(subs) ? subs : []
+        setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+      } catch {
+        // Optional metadata fetch
+      }
     }
   }
 
@@ -49,7 +78,15 @@ export const AssignmentsView: React.FC = () => {
             setUsersById(new Map(users.map((user) => [user.id, user])))
             setTeacherModules(modules)
           } catch {
-            // Nice to have items, do not block main view
+            // Optional metadata fetch
+          }
+        } else {
+          try {
+            const subs = await getMySubmissions()
+            const list = Array.isArray(subs) ? subs : []
+            setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+          } catch {
+            // Optional metadata fetch
           }
         }
       } catch (err) {
@@ -77,6 +114,42 @@ export const AssignmentsView: React.FC = () => {
       </Container>
     )
   }
+
+  const activeAssignments = isTeacher
+    ? assignments
+    : assignments.filter(
+        (a) =>
+          normalizeStatus(a.latestSubmissionStatus) !== 'handedIn' &&
+          normalizeStatus(a.latestSubmissionStatus) !== 'approved',
+      )
+  const handedInAssignments = isTeacher
+    ? []
+    : assignments.filter(
+        (a) => normalizeStatus(a.latestSubmissionStatus) === 'handedIn',
+      )
+  const approvedAssignments = isTeacher
+    ? []
+    : assignments.filter(
+        (a) => normalizeStatus(a.latestSubmissionStatus) === 'approved',
+      )
+
+  const renderAssignments = (list: Assignment[], className = 'g-4') => (
+    <Row xs={1} md={2} lg={3} className={className}>
+      {list.map((assignment) => (
+        <Col key={assignment.id}>
+          <AssignmentCard
+            assignment={assignment}
+            usersById={isTeacher ? usersById : undefined}
+            modules={teacherModules}
+            submissionsById={isTeacher ? undefined : submissionsById}
+            onSubmitted={loadAssignments}
+            onUpdated={loadAssignments}
+            onDeleted={loadAssignments}
+          />
+        </Col>
+      ))}
+    </Row>
+  )
 
   return (
     <Container className="py-4">
@@ -106,20 +179,55 @@ export const AssignmentsView: React.FC = () => {
       {assignments.length === 0 ? (
         <Alert variant="info">No assignments found.</Alert>
       ) : (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {assignments.map((assignment) => (
-            <Col key={assignment.id}>
-              <AssignmentCard
-                assignment={assignment}
-                usersById={isTeacher ? usersById : undefined}
-                modules={teacherModules}
-                onSubmitted={loadAssignments}
-                onUpdated={loadAssignments}
-                onDeleted={loadAssignments}
-              />
-            </Col>
-          ))}
-        </Row>
+        <>
+          {activeAssignments.length > 0 ? (
+            renderAssignments(activeAssignments)
+          ) : (
+            <p className="text-muted mb-0">No open assignments.</p>
+          )}
+
+          {handedInAssignments.length > 0 && (
+            <div className="mt-4">
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                onClick={() => setShowHandedIn((prev) => !prev)}
+                aria-expanded={showHandedIn}
+              >
+                {showHandedIn ? <ChevronDown /> : <ChevronRight />}
+                Handed in ({handedInAssignments.length})
+              </Button>
+
+              {showHandedIn && (
+                <div className="mt-2">
+                  {renderAssignments(handedInAssignments)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {approvedAssignments.length > 0 && (
+            <div className="mt-4">
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                onClick={() => setShowApproved((prev) => !prev)}
+                aria-expanded={showApproved}
+              >
+                {showApproved ? <ChevronDown /> : <ChevronRight />}
+                Approved ({approvedAssignments.length})
+              </Button>
+
+              {showApproved && (
+                <div className="mt-2">
+                  {renderAssignments(approvedAssignments)}
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {isTeacher && (
