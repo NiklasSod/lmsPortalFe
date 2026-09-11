@@ -8,6 +8,7 @@ import {
   JournalCheck,
   ListCheck,
   MortarboardFill,
+  HouseGear,
   Speedometer,
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
@@ -157,8 +158,16 @@ function AppNavbar() {
         </Nav>
 
         <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
+          <Nav.Link
+            as={Link}
+            to={`/${role}/profile`}
+            onClick={() => setExpanded(false)}
+            className="d-flex align-items-center gap-2 px-2 py-2"
+          >
+            <HouseGear /> Profile
+          </Nav.Link>
           {fullName && (
-            <div className="mb-2">
+            <div className="mb-2 mt-2">
               <span className="text-truncate ms-2">{fullName}</span>
             </div>
           )}
