@@ -183,7 +183,7 @@ function DashboardView() {
       </h1>
 
       <Row className="g-4 align-items-start">
-        <Col lg={role === 'student' ? 8 : 12}>
+        <Col lg={8}>
           {atRiskDeadlines.map((deadline) => (
             <Alert
               key={deadline.id}

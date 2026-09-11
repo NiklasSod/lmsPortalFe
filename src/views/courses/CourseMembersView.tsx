@@ -11,7 +11,6 @@ import {
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
-import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
 
 function CourseMembersView() {
@@ -94,7 +93,7 @@ function CourseMembersView() {
       </Breadcrumb>
 
       <Row>
-        <Col md={8}>
+        <Col lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2 className="h6 fw-semibold mb-0">Members</h2>
             {!isStudent && (
@@ -131,10 +130,6 @@ function CourseMembersView() {
               students.map(renderMember)
             )}
           </ListGroup>
-        </Col>
-
-        <Col md={4}>
-          <CourseSections courseId={course.id.toString()} />
         </Col>
       </Row>
     </Container>
