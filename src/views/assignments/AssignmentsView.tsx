@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
 import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getUsers } from '../../api/user'
@@ -14,6 +15,8 @@ import AssignmentCard from '../../components/assignments/AssignmentCard'
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
   const isTeacher = role !== 'student'
+  const [searchParams] = useSearchParams()
+  const courseIdParam = searchParams.get('courseId')
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
@@ -95,21 +98,25 @@ export const AssignmentsView: React.FC = () => {
     )
   }
 
+  const filteredAssignments = courseIdParam
+    ? assignments.filter((a) => String(a.courseId) === String(courseIdParam))
+    : assignments
+
   const activeAssignments = isTeacher
-    ? assignments
-    : assignments.filter(
+    ? filteredAssignments
+    : filteredAssignments.filter(
         (a) =>
           normalizeStatus(a.latestSubmissionStatus) !== 'handedIn' &&
           normalizeStatus(a.latestSubmissionStatus) !== 'approved',
       )
   const handedInAssignments = isTeacher
     ? []
-    : assignments.filter(
+    : filteredAssignments.filter(
         (a) => normalizeStatus(a.latestSubmissionStatus) === 'handedIn',
       )
   const approvedAssignments = isTeacher
     ? []
-    : assignments.filter(
+    : filteredAssignments.filter(
         (a) => normalizeStatus(a.latestSubmissionStatus) === 'approved',
       )
 

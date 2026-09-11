@@ -14,14 +14,15 @@ interface SectionLink {
 function CourseSections({ courseId }: CourseSectionsProps) {
   const { role } = useAuth()
   const isStudent = role === 'student'
-  const base = isStudent ? '/student/courses' : '/teacher/courses'
+  const base = isStudent ? '/student' : '/teacher'
+  const coursesPath = '/courses'
   const location = useLocation()
 
   const sections: SectionLink[] = [
-    { label: 'Overview', to: `${base}/${courseId}` },
-    { label: 'Modules', to: `${base}/${courseId}/modules` },
-    { label: 'Assignments', to: `${base}/${courseId}/assignments` },
-    { label: 'Members', to: `${base}/${courseId}/members` },
+    { label: 'Overview', to: `${base}${coursesPath}/${courseId}` },
+    { label: 'Modules', to: `${base}${coursesPath}/${courseId}/modules` },
+    { label: 'Assignments', to: `${base}/assignments?courseId=${courseId}` },
+    { label: 'Members', to: `${base}${coursesPath}/${courseId}/members` },
   ]
 
   return (
