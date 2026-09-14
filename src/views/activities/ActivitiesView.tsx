@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import {
   Container,
   Card,
@@ -8,10 +9,19 @@ import {
   Alert,
   Badge,
   Form,
+  Button,
+  Modal,
 } from 'react-bootstrap'
 import { ListCheck, BoxArrowUpRight } from 'react-bootstrap-icons'
 import { getMineActivities, getAllActivities } from '../../api/activity'
-import { getActivityResources, formatResourceTitle } from '../../api/resource'
+import {
+  getActivityResources,
+  createActivityResource,
+  updateActivityResource,
+  deleteActivityResource,
+  formatResourceTitle,
+} from '../../api/resource'
+import { useAuth } from '../../auth/AuthContext'
 import type { Activity } from '../../types/activity'
 import type { ModuleResource } from '../../types/resource'
 
@@ -99,6 +109,7 @@ function sortActivities(activities: Activity[]) {
 }
 
 export const ActivitiesView: React.FC = () => {
+  const { userId } = useAuth()
   const [activities, setActivities] = useState<Activity[]>([])
   const [activityResourcesMap, setActivityResourcesMap] = useState<
     Record<number, ModuleResource[]>
@@ -113,6 +124,107 @@ export const ActivitiesView: React.FC = () => {
     thisWeek: 'All',
     allActivities: 'All',
   })
+
+  const [resModalState, setResModalState] = useState<{
+    show: boolean
+    mode: 'add' | 'edit'
+    activityId?: number
+    resource?: ModuleResource
+  }>({ show: false, mode: 'add' })
+
+  const [resFormData, setResFormData] = useState({
+    name: '',
+    description: '',
+    url: '',
+  })
+
+  const [savingRes, setSavingRes] = useState(false)
+  const [resFormError, setResFormError] = useState<string | null>(null)
+  const [deletingResId, setDeletingResId] = useState<number | null>(null)
+
+  const loadSingleActivityResources = async (actId: number) => {
+    try {
+      const resList = await getActivityResources(actId)
+      setActivityResourcesMap((prev) => ({
+        ...prev,
+        [actId]: resList,
+      }))
+    } catch {
+      // ignore
+    }
+  }
+
+  const openAddResource = (activityId: number) => {
+    setResFormData({ name: '', description: '', url: '' })
+    setResFormError(null)
+    setResModalState({ show: true, mode: 'add', activityId })
+  }
+
+  const openEditResource = (res: ModuleResource, activityId: number) => {
+    setResFormData({
+      name: res.name || res.title || res.resourceName || '',
+      description: res.description || '',
+      url: res.url || '',
+    })
+    setResFormError(null)
+    setResModalState({ show: true, mode: 'edit', activityId, resource: res })
+  }
+
+  const handleResourceSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setResFormError(null)
+
+    const actId = resModalState.activityId
+    if (!actId) return
+
+    try {
+      setSavingRes(true)
+      if (resModalState.mode === 'add') {
+        await createActivityResource(
+          actId,
+          {
+            name: resFormData.name.trim(),
+            description: resFormData.description.trim(),
+            url: resFormData.url.trim(),
+          },
+          userId,
+        )
+      } else if (resModalState.mode === 'edit' && resModalState.resource) {
+        await updateActivityResource(
+          resModalState.resource.id,
+          actId,
+          {
+            name: resFormData.name.trim(),
+            description: resFormData.description.trim(),
+            url: resFormData.url.trim(),
+          },
+        )
+      }
+
+      setResModalState({ show: false, mode: 'add' })
+      loadSingleActivityResources(actId)
+    } catch (err) {
+      setResFormError(
+        err instanceof Error ? err.message : 'Could not save resource.',
+      )
+    } finally {
+      setSavingRes(false)
+    }
+  }
+
+  const handleResourceDelete = async (id: number, actId: number) => {
+    try {
+      setDeletingResId(id)
+      await deleteActivityResource(id, actId)
+      loadSingleActivityResources(actId)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not delete resource.',
+      )
+    } finally {
+      setDeletingResId(null)
+    }
+  }
 
   useEffect(() => {
     async function fetchActivities() {
@@ -237,42 +349,81 @@ export const ActivitiesView: React.FC = () => {
                     </Card.Text>
                   )}
 
-                  {resList.length > 0 && (
-                    <div className="mt-2 pt-2 border-top">
-                      <div className="fw-semibold small text-body mb-1">
-                        Resources:
-                      </div>
-                      <div className="d-flex flex-column gap-1">
+                  <div className="mt-2 pt-2 border-top">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <span className="fw-semibold small text-body">
+                        Resources ({resList.length})
+                      </span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 text-primary small text-decoration-none fw-medium"
+                        onClick={() => openAddResource(activity.id)}
+                      >
+                        + Add
+                      </Button>
+                    </div>
+
+                    {resList.length > 0 && (
+                      <div className="d-flex flex-column gap-1 mt-1">
                         {resList.map((res) => {
                           const title = formatResourceTitle(res)
 
                           return (
-                            <div key={res.id} className="small mb-1">
-                              {res.url ? (
-                                <a
-                                  href={res.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="fw-semibold text-body text-decoration-none d-inline-flex align-items-center gap-1"
+                            <div
+                              key={res.id}
+                              className="py-1 border-bottom border-light-subtle d-flex justify-content-between align-items-start gap-1"
+                            >
+                              <div className="pe-1 min-w-0 flex-grow-1">
+                                {res.url ? (
+                                  <a
+                                    href={res.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="fw-semibold small text-body text-decoration-none d-inline-flex align-items-center gap-1"
+                                  >
+                                    {title} <BoxArrowUpRight size={10} />
+                                  </a>
+                                ) : (
+                                  <span className="fw-semibold small text-body">
+                                    {title}
+                                  </span>
+                                )}
+                                {res.description && (
+                                  <div className="text-body-secondary small">
+                                    {res.description}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="d-flex align-items-center gap-1 flex-shrink-0">
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="p-0 text-body-secondary small text-decoration-none"
+                                  style={{ fontSize: '0.75rem' }}
+                                  onClick={() => openEditResource(res, activity.id)}
                                 >
-                                  {title} <BoxArrowUpRight size={10} />
-                                </a>
-                              ) : (
-                                <span className="fw-semibold text-body">
-                                  {title}
-                                </span>
-                              )}
-                              {res.description && (
-                                <div className="text-body-secondary small">
-                                  {res.description}
-                                </div>
-                              )}
+                                  Edit
+                                </Button>
+                                <span className="text-body-secondary small" style={{ fontSize: '0.75rem' }}>·</span>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="p-0 text-danger small text-decoration-none"
+                                  style={{ fontSize: '0.75rem' }}
+                                  disabled={deletingResId === res.id}
+                                  onClick={() => handleResourceDelete(res.id, activity.id)}
+                                >
+                                  {deletingResId === res.id ? '…' : 'Delete'}
+                                </Button>
+                              </div>
                             </div>
                           )
                         })}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <Card.Text className="text-body-secondary small mb-0 mt-auto pt-2">
                     {formatActivityDate(activity)}
@@ -385,43 +536,96 @@ export const ActivitiesView: React.FC = () => {
               </Form.Select>
             </Card.Header>
             <Card.Body>
-              <Row xs={1} md={2} lg={3} className="g-3">
-                {sortActivities(
+              {renderActivityList(
+                sortActivities(
                   filterActivitiesByType(
                     activities,
                     selectedTypeBySection.allActivities,
                   ),
-                ).map((activity) => (
-                  <Col key={activity.id}>
-                    <Card className="h-100 border shadow-sm">
-                      <Card.Body className="d-flex flex-column">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <Card.Title className="h5 mb-0">
-                            {activity.name}
-                          </Card.Title>
-                          {activity.type && (
-                            <Badge bg="secondary" className="ms-2">
-                              {activity.type}
-                            </Badge>
-                          )}
-                        </div>
-                        {activity.description && (
-                          <Card.Text className="text-muted small mb-3">
-                            {activity.description}
-                          </Card.Text>
-                        )}
-                        <Card.Text className="text-muted small mb-0 mt-auto">
-                          {formatActivityDate(activity)}
-                        </Card.Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
+                ),
+                'No activities found.',
+              )}
             </Card.Body>
           </Card>
         </>
       )}
+
+      {/* Resource Add/Edit Modal */}
+      <Modal
+        show={resModalState.show}
+        onHide={() => setResModalState({ show: false, mode: 'add' })}
+        centered
+      >
+        <Form onSubmit={handleResourceSubmit}>
+          <Modal.Header closeButton>
+            <Modal.Title className="h5">
+              {resModalState.mode === 'add'
+                ? 'Add Resource'
+                : 'Edit Resource'}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {resFormError && <Alert variant="danger">{resFormError}</Alert>}
+            <Form.Group className="mb-3" controlId="actResName">
+              <Form.Label>Resource Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="e.g. Activity guide, Lecture slides, Exercise sheet"
+                value={resFormData.name}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, name: e.target.value })
+                }
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="actResDesc">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                placeholder="Brief description of the resource"
+                value={resFormData.description}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, description: e.target.value })
+                }
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="actResUrl">
+              <Form.Label>URL / Link (optional)</Form.Label>
+              <Form.Control
+                type="url"
+                placeholder="https://..."
+                value={resFormData.url}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, url: e.target.value })
+                }
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setResModalState({ show: false, mode: 'add' })}
+              disabled={savingRes}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              type="submit"
+              disabled={savingRes}
+            >
+              {savingRes
+                ? 'Saving…'
+                : resModalState.mode === 'add'
+                  ? 'Add Resource'
+                  : 'Save Changes'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </Container>
   )
 }

@@ -14,6 +14,7 @@ import {
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
 import { getCourseById } from '../api/course'
+import { getCourseResources } from '../api/resource'
 
 function AppNavbar() {
   const navigate = useNavigate()
@@ -23,6 +24,7 @@ function AppNavbar() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [courseName, setCourseName] = useState('')
+  const [resourceCount, setResourceCount] = useState<number>(0)
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
@@ -59,6 +61,7 @@ function AppNavbar() {
   // Fetch course name dynamically using getCourseById
   useEffect(() => {
     if (!activeCourseId) {
+      setResourceCount(0)
       return
     }
 
@@ -75,10 +78,21 @@ function AppNavbar() {
         }
       })
 
+    getCourseResources(Number(activeCourseId))
+      .then((res) => {
+        if (isMounted) setResourceCount(res.length)
+      })
+      .catch(() => {
+        if (isMounted) setResourceCount(0)
+      })
+
     return () => {
       isMounted = false
     }
   }, [activeCourseId])
+
+  const resourceLabel =
+    resourceCount > 1 ? `Resources (${resourceCount})` : 'Resources'
 
   useEffect(() => {
     function handleScroll() {
@@ -207,6 +221,17 @@ function AppNavbar() {
                       }`}
                     >
                       Modules
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
+                      to={`${base}/courses/${activeCourseId}/resources`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/resources`)
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      {resourceLabel}
                     </Nav.Link>
                     <Nav.Link
                       as={Link}

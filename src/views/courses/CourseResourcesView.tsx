@@ -24,7 +24,6 @@ import {
 } from '../../api/resource'
 import type { CourseDetail } from '../../types/course'
 import type { ModuleResource } from '../../types/resource'
-import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
 
 export function CourseResourcesView() {
@@ -192,7 +191,7 @@ export function CourseResourcesView() {
       </Breadcrumb>
 
       <Row>
-        <Col md={8}>
+        <Col md={12}>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h1 className="h4 fw-bold mb-0">Course Resources</h1>
             <Button
@@ -290,10 +289,6 @@ export function CourseResourcesView() {
               )}
             </Card.Body>
           </Card>
-        </Col>
-
-        <Col md={4}>
-          <CourseSections courseId={course.id.toString()} />
         </Col>
       </Row>
 

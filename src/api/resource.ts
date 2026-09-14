@@ -318,3 +318,108 @@ export async function deleteCourseResource(
     JSON.stringify(updatedList),
   )
 }
+
+export async function createActivityResource(
+  activityId: number,
+  request: UpdateResourceRequest,
+  currentUserId?: string | null,
+): Promise<ModuleResource> {
+  try {
+    const res = await apiFetch(`/api/activities/${activityId}/resources`, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    })
+    if (res.ok) {
+      return await res.json()
+    }
+  } catch {
+    // Fallback
+  }
+
+  const localStr = localStorage.getItem(`resources_activity_${activityId}`)
+  const existing: ModuleResource[] = localStr ? JSON.parse(localStr) : []
+  const newRes: ModuleResource = {
+    id: Date.now(),
+    activityId,
+    name: request.name,
+    description: request.description,
+    url: request.url,
+    createdById: currentUserId || 'current-student-id',
+    createdAt: new Date().toISOString(),
+  }
+  localStorage.setItem(
+    `resources_activity_${activityId}`,
+    JSON.stringify([...existing, newRes]),
+  )
+  return newRes
+}
+
+export async function updateActivityResource(
+  id: number,
+  activityId: number,
+  request: UpdateResourceRequest,
+): Promise<ModuleResource> {
+  try {
+    const res = await apiFetch(`/api/resources/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    })
+    if (res.ok) {
+      return await res.json()
+    }
+    throw new Error(`API error ${res.status}`)
+  } catch {
+    // Fallback
+  }
+
+  const localStr = localStorage.getItem(`resources_activity_${activityId}`)
+  const existing: ModuleResource[] = localStr ? JSON.parse(localStr) : []
+  const foundIdx = existing.findIndex((r) => r.id === id)
+
+  let updatedRes: ModuleResource
+  if (foundIdx >= 0) {
+    existing[foundIdx] = { ...existing[foundIdx], ...request }
+    updatedRes = existing[foundIdx]
+  } else {
+    updatedRes = {
+      id,
+      activityId,
+      name: request.name || 'Resource',
+      description: request.description,
+      url: request.url,
+      createdById: 'current-student-id',
+      createdAt: new Date().toISOString(),
+    }
+    existing.push(updatedRes)
+  }
+
+  localStorage.setItem(
+    `resources_activity_${activityId}`,
+    JSON.stringify(existing),
+  )
+  return updatedRes
+}
+
+export async function deleteActivityResource(
+  id: number,
+  activityId: number,
+): Promise<void> {
+  try {
+    const res = await apiFetch(`/api/resources/${id}`, {
+      method: 'DELETE',
+    })
+    if (res.ok) return
+    throw new Error(`API error ${res.status}`)
+  } catch {
+    // Fallback
+  }
+
+  const localStr = localStorage.getItem(`resources_activity_${activityId}`)
+  const existing: ModuleResource[] = localStr ? JSON.parse(localStr) : []
+  const updatedList = existing.filter((r) => r.id !== id)
+  localStorage.setItem(
+    `resources_activity_${activityId}`,
+    JSON.stringify(updatedList),
+  )
+}
