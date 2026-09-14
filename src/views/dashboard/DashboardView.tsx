@@ -102,6 +102,61 @@ function buildFeedbackItems(
     .sort((a, b) => b.handinDate.getTime() - a.handinDate.getTime())
 }
 
+interface PaginationControlsProps {
+  page: number
+  pageCount: number
+  onPageChange: (page: number) => void
+}
+
+function PaginationControls({
+  page,
+  pageCount,
+  onPageChange,
+}: PaginationControlsProps) {
+  if (pageCount <= 1) return null
+
+  return (
+    <div className="d-flex justify-content-end align-items-center gap-2 mt-2">
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-secondary text-body border-secondary"
+        onClick={() => onPageChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        aria-label="Previous page"
+      >
+        <ArrowLeft size={14} />
+      </button>
+
+      {Array.from({ length: pageCount }, (_, index) => index + 1).map(
+        (pageNumber) => (
+          <button
+            key={pageNumber}
+            type="button"
+            className={`btn btn-sm ${
+              pageNumber === page
+                ? 'btn-secondary text-white'
+                : 'btn-outline-secondary text-body border-secondary'
+            }`}
+            onClick={() => onPageChange(pageNumber)}
+          >
+            {pageNumber}
+          </button>
+        ),
+      )}
+
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-secondary text-body border-secondary"
+        onClick={() => onPageChange(Math.min(pageCount, page + 1))}
+        disabled={page === pageCount}
+        aria-label="Next page"
+      >
+        <ArrowRight size={14} />
+      </button>
+    </div>
+  )
+}
+
 function DashboardView() {
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,6 +175,9 @@ function DashboardView() {
   const [feedbackLoading, setFeedbackLoading] = useState(true)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const [feedbackPage, setFeedbackPage] = useState(1)
+  const [coursesPage, setCoursesPage] = useState(1)
+  const [modulesPage, setModulesPage] = useState(1)
+  const [deadlinesPage, setDeadlinesPage] = useState(1)
 
   const { role } = useAuth()
 
@@ -176,6 +234,36 @@ function DashboardView() {
     feedbackPage * feedbackPageSize,
   )
 
+  const coursesPageSize = 3
+  const coursesPageCount = Math.max(
+    1,
+    Math.ceil(courses.length / coursesPageSize),
+  )
+  const currentCourses = courses.slice(
+    (coursesPage - 1) * coursesPageSize,
+    coursesPage * coursesPageSize,
+  )
+
+  const modulesPageSize = 3
+  const modulesPageCount = Math.max(
+    1,
+    Math.ceil(modules.length / modulesPageSize),
+  )
+  const currentModules = modules.slice(
+    (modulesPage - 1) * modulesPageSize,
+    modulesPage * modulesPageSize,
+  )
+
+  const deadlinesPageSize = 5
+  const deadlinesPageCount = Math.max(
+    1,
+    Math.ceil(visibleDeadlines.length / deadlinesPageSize),
+  )
+  const currentDeadlines = visibleDeadlines.slice(
+    (deadlinesPage - 1) * deadlinesPageSize,
+    deadlinesPage * deadlinesPageSize,
+  )
+
   return (
     <Container className="py-4">
       <h1 className="h3 mb-4">
@@ -225,26 +313,33 @@ function DashboardView() {
                 </p>
               )}
               {!loading && !error && courses.length > 0 && (
-                <Row xs={1} md={2} lg={3} className="g-3">
-                  {courses.map((course) => (
-                    <Col key={course.id}>
-                      <Card className="h-100 border shadow-sm">
-                        <Card.Body>
-                          <Card.Title className="h6 mb-2">
-                            {course.name}
-                          </Card.Title>
-                          <Card.Text className="text-muted small mb-2">
-                            {course.description}
-                          </Card.Text>
-                          <Card.Text className="text-muted small mb-0">
-                            {new Date(course.startDate).toLocaleDateString()} -{' '}
-                            {new Date(course.endDate).toLocaleDateString()}
-                          </Card.Text>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
+                <>
+                  <Row xs={1} md={2} lg={3} className="g-3">
+                    {currentCourses.map((course) => (
+                      <Col key={course.id}>
+                        <Card className="h-100 border shadow-sm">
+                          <Card.Body>
+                            <Card.Title className="h6 mb-2">
+                              {course.name}
+                            </Card.Title>
+                            <Card.Text className="text-muted small mb-2">
+                              {course.description}
+                            </Card.Text>
+                            <Card.Text className="text-muted small mb-0">
+                              {new Date(course.startDate).toLocaleDateString()}{' '}
+                              - {new Date(course.endDate).toLocaleDateString()}
+                            </Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <PaginationControls
+                    page={coursesPage}
+                    pageCount={coursesPageCount}
+                    onPageChange={setCoursesPage}
+                  />
+                </>
               )}
             </Card.Body>
           </Card>
@@ -260,26 +355,33 @@ function DashboardView() {
                 <p className="text-muted mb-0">You have no current modules.</p>
               )}
               {!modulesLoading && !modulesError && modules.length > 0 && (
-                <Row xs={1} md={2} lg={3} className="g-3">
-                  {modules.map((module) => (
-                    <Col key={module.id}>
-                      <Card className="h-100 border shadow-sm">
-                        <Card.Body>
-                          <Card.Title className="h6 mb-2">
-                            {module.name}
-                          </Card.Title>
-                          <Card.Text className="text-muted small mb-2">
-                            {module.description}
-                          </Card.Text>
-                          <Card.Text className="text-muted small mb-0">
-                            {new Date(module.startDate).toLocaleDateString()} -{' '}
-                            {new Date(module.endDate).toLocaleDateString()}
-                          </Card.Text>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
+                <>
+                  <Row xs={1} md={2} lg={3} className="g-3">
+                    {currentModules.map((module) => (
+                      <Col key={module.id}>
+                        <Card className="h-100 border shadow-sm">
+                          <Card.Body>
+                            <Card.Title className="h6 mb-2">
+                              {module.name}
+                            </Card.Title>
+                            <Card.Text className="text-muted small mb-2">
+                              {module.description}
+                            </Card.Text>
+                            <Card.Text className="text-muted small mb-0">
+                              {new Date(module.startDate).toLocaleDateString()}{' '}
+                              - {new Date(module.endDate).toLocaleDateString()}
+                            </Card.Text>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <PaginationControls
+                    page={modulesPage}
+                    pageCount={modulesPageCount}
+                    onPageChange={setModulesPage}
+                  />
+                </>
               )}
             </Card.Body>
           </Card>
@@ -340,56 +442,13 @@ function DashboardView() {
             </Card>
           )}
 
-          {role === 'student' &&
-            !feedbackLoading &&
-            !feedbackError &&
-            feedbackItems.length > 0 && (
-              <div className="d-flex justify-content-end align-items-center gap-2 mt-2">
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary text-body border-secondary"
-                  onClick={() =>
-                    setFeedbackPage((page) => Math.max(1, page - 1))
-                  }
-                  disabled={feedbackPage === 1}
-                  aria-label="Previous page"
-                >
-                  <ArrowLeft size={14} />
-                </button>
-
-                {Array.from(
-                  { length: feedbackPageCount },
-                  (_, index) => index + 1,
-                ).map((pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    className={`btn btn-sm ${
-                      pageNumber === feedbackPage
-                        ? 'btn-secondary text-white'
-                        : 'btn-outline-secondary text-body border-secondary'
-                    }`}
-                    onClick={() => setFeedbackPage(pageNumber)}
-                  >
-                    {pageNumber}
-                  </button>
-                ))}
-
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary text-body border-secondary"
-                  onClick={() =>
-                    setFeedbackPage((page) =>
-                      Math.min(feedbackPageCount, page + 1),
-                    )
-                  }
-                  disabled={feedbackPage === feedbackPageCount}
-                  aria-label="Next page"
-                >
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            )}
+          {role === 'student' && !feedbackLoading && !feedbackError && (
+            <PaginationControls
+              page={feedbackPage}
+              pageCount={feedbackPageCount}
+              onPageChange={setFeedbackPage}
+            />
+          )}
         </Col>
 
         {role === 'student' && (
@@ -411,41 +470,50 @@ function DashboardView() {
                 </Card.Body>
               )}
               {!deadlinesLoading && !deadlinesError && (
-                <ListGroup variant="flush">
-                  {visibleDeadlines.length === 0 && (
-                    <ListGroup.Item className="text-muted">
-                      No upcoming assignments.
-                    </ListGroup.Item>
-                  )}
-                  {visibleDeadlines.map((deadline) => (
-                    <ListGroup.Item key={deadline.id} className="py-3">
-                      <div className="fw-semibold">
-                        {deadline.assignmentTitle}
-                      </div>
-                      <div className="d-flex align-items-center gap-2 mt-2 text-muted">
-                        <Clock aria-hidden="true" />
-                        <span>Due {formatDueDate(deadline)}</span>
-                      </div>
-                      <div className="mt-1">
-                        <Badge
-                          bg={
-                            isNotTurnedIn(deadline)
-                              ? 'secondary'
+                <>
+                  <ListGroup variant="flush">
+                    {visibleDeadlines.length === 0 && (
+                      <ListGroup.Item className="text-muted">
+                        No upcoming assignments.
+                      </ListGroup.Item>
+                    )}
+                    {currentDeadlines.map((deadline) => (
+                      <ListGroup.Item key={deadline.id} className="py-3">
+                        <div className="fw-semibold">
+                          {deadline.assignmentTitle}
+                        </div>
+                        <div className="d-flex align-items-center gap-2 mt-2 text-muted">
+                          <Clock aria-hidden="true" />
+                          <span>Due {formatDueDate(deadline)}</span>
+                        </div>
+                        <div className="mt-1">
+                          <Badge
+                            bg={
+                              isNotTurnedIn(deadline)
+                                ? 'secondary'
+                                : deadline.status === 'Revision'
+                                  ? 'danger'
+                                  : 'success'
+                            }
+                          >
+                            {isNotTurnedIn(deadline)
+                              ? 'Not turned in'
                               : deadline.status === 'Revision'
-                                ? 'danger'
-                                : 'success'
-                          }
-                        >
-                          {isNotTurnedIn(deadline)
-                            ? 'Not turned in'
-                            : deadline.status === 'Revision'
-                              ? 'Rejected'
-                              : 'Turned in'}
-                        </Badge>
-                      </div>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
+                                ? 'Rejected'
+                                : 'Turned in'}
+                          </Badge>
+                        </div>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                  <div className="px-3 pb-3">
+                    <PaginationControls
+                      page={deadlinesPage}
+                      pageCount={deadlinesPageCount}
+                      onPageChange={setDeadlinesPage}
+                    />
+                  </div>
+                </>
               )}
             </Card>
           </Col>
