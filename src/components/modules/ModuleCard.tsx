@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { deleteModule, updateModule } from '../../api/module'
 import type { CourseModule } from '../../types/module'
 import ModuleActivitiesList from './ModuleActivitiesList'
+import ResourcesSection from '../resources/ResourcesSection'
 
 interface ModuleCardProps {
   module: CourseModule
@@ -125,17 +126,28 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             {new Date(moduleData.endDate).toLocaleDateString()}
           </Card.Text>
           <ModuleActivitiesList moduleId={moduleData.id} />
+          <ResourcesSection
+            moduleId={moduleData.id}
+            title="Module resources"
+            bordered
+          />
           {isTeacher && (
-            <Button
-              variant="outline-danger"
-              size="sm"
-              style={{ position: 'absolute', bottom: 6, right: 6 }}
-              onClick={() =>
-                setDeleteState((prev) => ({ ...prev, show: true, error: null }))
-              }
-            >
-              Delete
-            </Button>
+            <Card.Text className="text-muted small pt-3 d-flex justify-content-between align-items-center">
+              Delete module
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() =>
+                  setDeleteState((prev) => ({
+                    ...prev,
+                    show: true,
+                    error: null,
+                  }))
+                }
+              >
+                Delete
+              </Button>
+            </Card.Text>
           )}
         </Card.Body>
       </Card>
