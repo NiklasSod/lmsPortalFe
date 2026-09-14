@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Button, ListGroup, Spinner } from 'react-bootstrap'
 import { BoxArrowUpRight } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
@@ -42,28 +42,39 @@ function ResourcesSection({
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const loadResources = useCallback(async () => {
-    try {
-      setError(null)
-      let data: Resource[] = []
-      if (courseId !== undefined) {
-        data = await getCourseResources(courseId)
-      } else if (moduleId !== undefined) {
-        data = await getModuleResources(moduleId)
-      } else if (activityId !== undefined) {
-        data = await getActivityResources(activityId)
+  useEffect(() => {
+    let ignore = false
+
+    async function fetchResources() {
+      try {
+        let data: Resource[] = []
+        if (courseId !== undefined) {
+          data = await getCourseResources(courseId)
+        } else if (moduleId !== undefined) {
+          data = await getModuleResources(moduleId)
+        } else if (activityId !== undefined) {
+          data = await getActivityResources(activityId)
+        }
+
+        if (ignore) return
+        setError(null)
+        setResources(Array.isArray(data) ? data : [])
+      } catch (err) {
+        if (ignore) return
+        setError(
+          err instanceof Error ? err.message : 'Failed to load resources.',
+        )
+      } finally {
+        if (!ignore) setLoading(false)
       }
-      setResources(Array.isArray(data) ? data : [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load resources.')
-    } finally {
-      setLoading(false)
+    }
+
+    fetchResources()
+
+    return () => {
+      ignore = true
     }
   }, [courseId, moduleId, activityId])
-
-  useEffect(() => {
-    loadResources()
-  }, [loadResources])
 
   const handleSaved = (resource: Resource, mode: 'add' | 'edit') => {
     if (mode === 'add') {

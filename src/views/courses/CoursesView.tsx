@@ -46,19 +46,28 @@ function CoursesView() {
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchCourses() {
       try {
-        setLoading(true)
         const [all, mine] = await Promise.all([getCourses(), getMyCourses()])
+        if (ignore) return
         setAllCourses(all)
         setMyCourses(mine)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : 'Unknown error')
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchCourses()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   if (loading) {

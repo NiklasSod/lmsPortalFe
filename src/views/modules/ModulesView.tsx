@@ -12,12 +12,14 @@ export const ModulesView: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchModules() {
       try {
-        setLoading(true)
         const dataCurrent = await getCurrentModules()
         const dataMine = await getMineModules()
 
+        if (ignore) return
         const currentIds = new Set(dataCurrent.map((module) => module.id))
         const uniqueMineModules = dataMine.filter(
           (module) => !currentIds.has(module.id),
@@ -26,12 +28,17 @@ export const ModulesView: React.FC = () => {
         setCurrentModules(dataCurrent)
         setMineModules(uniqueMineModules)
       } catch (err) {
-        setError((err as Error).message)
+        if (!ignore) setError((err as Error).message)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchModules()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const handleDelete = (deleted: CourseModule) => {

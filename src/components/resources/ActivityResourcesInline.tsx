@@ -41,21 +41,31 @@ function ActivityResourcesInline({ activityId }: ActivityResourcesInlineProps) {
 
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  const load = async () => {
-    try {
-      setError(null)
-      const data = await getActivityResources(activityId)
-      setResources(Array.isArray(data) ? data : [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load resources.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let ignore = false
+
+    async function fetchResources() {
+      try {
+        const data = await getActivityResources(activityId)
+
+        if (ignore) return
+        setError(null)
+        setResources(Array.isArray(data) ? data : [])
+      } catch (err) {
+        if (ignore) return
+        setError(
+          err instanceof Error ? err.message : 'Failed to load resources.',
+        )
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    }
+
+    fetchResources()
+
+    return () => {
+      ignore = true
+    }
   }, [activityId])
 
   const startAdd = () => {

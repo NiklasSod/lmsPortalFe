@@ -37,20 +37,23 @@ export const CourseModulesView: React.FC = () => {
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchCourse() {
       if (!courseId) return
       try {
-        setLoading(true)
+        const data = await getCourseById(courseId)
+        if (ignore) return
         setError(null)
         setNotEnrolled(false)
-
-        const data = await getCourseById(courseId)
         setCourse(data)
 
         try {
           const courseModules = await getModulesByCourse(Number(courseId))
+          if (ignore) return
           setModules(courseModules)
         } catch (err) {
+          if (ignore) return
           if (err instanceof ApiError && err.status === 403) {
             setNotEnrolled(true)
           } else {
@@ -62,16 +65,22 @@ export const CourseModulesView: React.FC = () => {
           }
         }
       } catch (err) {
+        if (ignore) return
         setError(
           err instanceof Error
             ? err.message
             : 'Failed to load course overview.',
         )
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchCourse()
+
+    return () => {
+      ignore = true
+    }
   }, [courseId])
 
   const handleEnroll = async () => {

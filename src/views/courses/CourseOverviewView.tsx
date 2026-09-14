@@ -30,13 +30,14 @@ export const CourseOverviewView: React.FC = () => {
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchCourse() {
       if (!courseId) return
       try {
-        setLoading(true)
-        setError(null)
-
         const data = await getCourseById(courseId)
+        if (ignore) return
+        setError(null)
         setCourse(data)
 
         const myEmail = email
@@ -53,16 +54,23 @@ export const CourseOverviewView: React.FC = () => {
           )
         }
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load course overview.',
-        )
+        if (!ignore) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load course overview.',
+          )
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchCourse()
+
+    return () => {
+      ignore = true
+    }
   }, [courseId, email, userId])
 
   const handleEnroll = async () => {

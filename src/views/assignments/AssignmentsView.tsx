@@ -84,12 +84,13 @@ export const AssignmentsView: React.FC = () => {
   }
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchAssignments() {
       try {
-        setLoading(true)
-        setError(null)
-
         const data = await getMyAssignments()
+        if (ignore) return
+        setError(null)
         setAssignments(Array.isArray(data) ? data : [])
 
         if (hasCourseFilter && courseId !== null) {
@@ -99,6 +100,7 @@ export const AssignmentsView: React.FC = () => {
               getModulesByCourse(numericCourseId).catch(() => []),
               getCourseById(courseId).catch(() => null),
             ])
+            if (ignore) return
             setCourseModuleIds(
               new Set((Array.isArray(modules) ? modules : []).map((m) => m.id)),
             )
@@ -108,10 +110,12 @@ export const AssignmentsView: React.FC = () => {
               setCourseName(`Course ${courseId}`)
             }
           } catch {
+            if (ignore) return
             setCourseModuleIds(new Set())
             setCourseName(`Course ${courseId}`)
           }
         } else {
+          if (ignore) return
           setCourseModuleIds(null)
           setCourseName('')
         }
@@ -122,6 +126,7 @@ export const AssignmentsView: React.FC = () => {
               getUsers().catch(() => []),
               getMineModules().catch(() => []),
             ])
+            if (ignore) return
             setUsersById(new Map(users.map((user) => [user.id, user])))
             setTeacherModules(modules)
           } catch {
@@ -130,6 +135,7 @@ export const AssignmentsView: React.FC = () => {
         } else {
           try {
             const subs = await getMySubmissions()
+            if (ignore) return
             const list = Array.isArray(subs) ? subs : []
             setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
           } catch {
@@ -137,13 +143,17 @@ export const AssignmentsView: React.FC = () => {
           }
         }
       } catch (err) {
-        setError((err as Error).message)
+        if (!ignore) setError((err as Error).message)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
 
     fetchAssignments()
+
+    return () => {
+      ignore = true
+    }
   }, [isTeacher, courseId, hasCourseFilter])
 
   if (loading) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert, Button, Form, Modal, Spinner } from 'react-bootstrap'
 import { createResource, updateResource } from '../../api/resource'
 import type { Resource } from '../../types/resource'
@@ -36,12 +36,11 @@ function ResourceFormModal({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!show) return
+  const handleShow = () => {
     setError(null)
     setDisplayName(resource?.displayName ?? '')
     setUrl(resource?.url ?? '')
-  }, [show, resource])
+  }
 
   const handleHide = () => {
     setError(null)
@@ -87,7 +86,7 @@ function ResourceFormModal({
   }
 
   return (
-    <Modal show={show} onHide={handleHide} centered>
+    <Modal show={show} onHide={handleHide} onShow={handleShow} centered>
       <Modal.Header closeButton>
         <Modal.Title>
           {mode === 'add' ? 'Add Resource' : 'Edit Resource'}

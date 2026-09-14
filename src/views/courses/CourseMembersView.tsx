@@ -17,6 +17,7 @@ function CourseMembersView() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
+  const [error, setError] = useState<string | null>(null)
 
   const navigate = useNavigate()
   const { role } = useAuth()
@@ -34,6 +35,9 @@ function CourseMembersView() {
 
     getCourseById(courseId)
       .then(setCourse)
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : 'Failed to load course.'),
+      )
       .finally(() => setLoading(false))
   }, [courseId])
 
@@ -41,6 +45,15 @@ function CourseMembersView() {
     return (
       <Container className="py-4 text-center">
         <Spinner animation="border" />
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">{error}</Alert>
+        <Link to="/">Back to course list</Link>
       </Container>
     )
   }
