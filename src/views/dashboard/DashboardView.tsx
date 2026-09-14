@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
+import { Speedometer } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -151,9 +152,12 @@ function DashboardView() {
 
   return (
     <Container className="py-4">
-      <h1 className="h2 mb-4">
-        {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
-      </h1>
+      <div className="d-flex align-items-center gap-2 mb-4">
+        <Speedometer size={28} className="text-body" />
+        <h1 className="h2 mb-0">
+          {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
+        </h1>
+      </div>
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>

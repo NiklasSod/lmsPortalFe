@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, Container, Spinner, Alert } from 'react-bootstrap'
+import { JournalBookmark } from 'react-bootstrap-icons'
 import { getCurrentModules, getMineModules } from '../../api/module'
 import type { CourseModule } from '../../types/module'
 import ModuleGrid from '../../components/modules/ModuleGrid'
@@ -58,6 +59,11 @@ export const ModulesView: React.FC = () => {
 
   return (
     <Container className="py-4">
+      <div className="d-flex align-items-center gap-2 mb-4">
+        <JournalBookmark size={28} className="text-body" />
+        <h1 className="h2 mb-0">Modules</h1>
+      </div>
+
       <Card className="border-0 shadow-sm">
         <Card.Header as="h2" className="h5 mb-0">
           {currentModules.length > 0 ? 'Current Modules' : 'No current Modules'}

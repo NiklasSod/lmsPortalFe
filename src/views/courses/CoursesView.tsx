@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, Container, Spinner, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { PlusLg } from 'react-bootstrap-icons'
+import { MortarboardFill, PlusLg } from 'react-bootstrap-icons'
 import { getCourses, getMyCourses } from '../../api/course'
 import { deleteCourse } from '../../api/course'
 import { useAuth } from '../../auth/AuthContext'
@@ -85,7 +85,10 @@ function CoursesView() {
   return (
     <Container className="py-4 position-relative">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h2 mb-0">Courses</h1>
+        <div className="d-flex align-items-center gap-2">
+          <MortarboardFill size={28} className="text-body" />
+          <h1 className="h2 mb-0">Courses</h1>
+        </div>
         {!isStudent && (
           <Link
             to="/teacher/courses/create"

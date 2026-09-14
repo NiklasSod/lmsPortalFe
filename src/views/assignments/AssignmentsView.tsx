@@ -9,7 +9,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import { ChevronDown, ChevronRight } from 'react-bootstrap-icons'
+import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
@@ -206,7 +206,7 @@ export const AssignmentsView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      {hasCourseFilter ? (
+      {hasCourseFilter && (
         <Breadcrumb>
           <Breadcrumb.Item
             linkAs={Link}
@@ -226,7 +226,25 @@ export const AssignmentsView: React.FC = () => {
             Assignments
           </Breadcrumb.Item>
         </Breadcrumb>
-      ) : (
+      )}
+
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <JournalCheck size={28} className="text-body" />
+          <h1 className="h2 mb-0">Assignments</h1>
+        </div>
+        {isTeacher && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add assignment
+          </Button>
+        )}
+      </div>
+
+      {!hasCourseFilter && (
         <p className="text-muted mb-4">
           {isTeacher
             ? 'Review the assignments in your modules and grade student submissions.'
@@ -235,18 +253,6 @@ export const AssignmentsView: React.FC = () => {
       )}
 
       <Card className="border-0 shadow-sm">
-        <Card.Header className="d-flex align-items-center justify-content-between">
-          <h2 className="h5 mb-0">Assignments</h2>
-          {isTeacher && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowAddModal(true)}
-            >
-              Add assignment
-            </Button>
-          )}
-        </Card.Header>
         <Card.Body>
           {assignments.length === 0 ? (
             <Alert variant="info" className="mb-0">
