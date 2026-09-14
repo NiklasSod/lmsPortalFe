@@ -231,15 +231,20 @@ function ActivityResourcesInline({ activityId }: ActivityResourcesInlineProps) {
               key={resource.id}
               className="px-0 py-1 bg-transparent border-0 d-flex justify-content-between align-items-start"
             >
-              <div className="me-2">
+              <div className="me-2 p-1">
                 <a
                   href={resource.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-decoration-none"
+                  className="text-decoration-none d-inline-flex align-items-center gap-1"
                   style={{ color: 'var(--link-color)' }}
                 >
-                  {resource.displayName} <BoxArrowUpRight size={10} />
+                  <span className="text-break">{resource.displayName}</span>
+                  <BoxArrowUpRight
+                    size={10}
+                    className="flex-shrink-0"
+                    style={{ width: 10, height: 10, flexShrink: 0 }}
+                  />
                 </a>
               </div>
               {isOwner && (

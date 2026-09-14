@@ -140,10 +140,11 @@ function ResourcesSection({
                     href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="fw-semibold small text-decoration-none"
+                    className="fw-semibold small text-decoration-none d-inline-flex align-items-center gap-1"
                     style={{ color: 'var(--link-color)' }}
                   >
-                    {resource.displayName} <BoxArrowUpRight size={12} />
+                    <span className="text-break">{resource.displayName}</span>
+                    <BoxArrowUpRight size={12} className="flex-shrink-0" />
                   </a>
                   <div className="text-muted small mt-1">
                     Added {new Date(resource.uploadDate).toLocaleDateString()}
