@@ -73,33 +73,40 @@ function isLateSubmission(
   return !isNaN(handin) && handin > deadline
 }
 
-interface SubmissionRowProps {
-  sub: Submission
+interface StudentGroup {
+  studentId: string
+  submissions: Submission[]
+  latest: Submission
+}
+
+interface StudentSubmissionRowProps {
+  group: StudentGroup
   usersById?: Map<string, UserDto>
-  late?: boolean
+  late: boolean
   onReview: (sub: Submission) => void
 }
 
-function SubmissionRow({
-  sub,
+function StudentSubmissionRow({
+  group,
   usersById,
-  late = false,
+  late,
   onReview,
-}: SubmissionRowProps) {
-  const readOnly =
-    normalizeStatus(sub.status) === 'approved' ||
-    normalizeStatus(sub.status) === 'revision'
+}: StudentSubmissionRowProps) {
+  const { latest, submissions } = group
+  const history = submissions.slice(0, -1)
+  const [showHistory, setShowHistory] = useState(false)
+  const readOnly = normalizeStatus(latest.status) === 'approved'
 
   return (
     <ListGroup.Item className="px-0 py-2 bg-transparent border-bottom">
       <div className="d-flex justify-content-between align-items-start gap-2">
         <div className="flex-grow-1">
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-2 flex-wrap">
             <span className="fw-semibold small">
-              {studentName(sub, usersById)}
+              {studentName(latest, usersById)}
             </span>
-            <Badge bg={statusBadgeBg(sub.status)}>
-              {statusLabel(sub.status)}
+            <Badge bg={statusBadgeBg(latest.status)}>
+              {statusLabel(latest.status)}
             </Badge>
             {late && (
               <Badge bg="warning" text="dark">
@@ -107,21 +114,60 @@ function SubmissionRow({
               </Badge>
             )}
           </div>
-          <div className="text-muted small mt-1">{sub.content}</div>
+          <div className="text-muted small mt-1">{latest.content}</div>
           <div className="text-muted small mt-1">
-            {formatHandinDate(sub.handinDate)}
+            {formatHandinDate(latest.handinDate)}
           </div>
-          {sub.feedback.trim() && (
+          {latest.feedback.trim() && (
             <div className="small mt-1">
               <span className="text-muted">Feedback: </span>
-              {sub.feedback}
+              {latest.feedback}
+            </div>
+          )}
+
+          {history.length > 0 && (
+            <div className="mt-1">
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                onClick={() => setShowHistory((prev) => !prev)}
+                aria-expanded={showHistory}
+              >
+                {showHistory ? <ChevronDown /> : <ChevronRight />}
+                History ({history.length})
+              </Button>
+
+              {showHistory && (
+                <div className="border-start ps-2 ms-1 mt-1">
+                  {history.map((sub) => (
+                    <div key={sub.id} className="mb-2">
+                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <Badge bg={statusBadgeBg(sub.status)}>
+                          {statusLabel(sub.status)}
+                        </Badge>
+                        <span className="text-muted small">
+                          {formatHandinDate(sub.handinDate)}
+                        </span>
+                      </div>
+                      <div className="text-muted small mt-1">{sub.content}</div>
+                      {sub.feedback.trim() && (
+                        <div className="small mt-1">
+                          <span className="text-muted">Feedback: </span>
+                          {sub.feedback}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
         <Button
           variant="outline-primary"
           size="sm"
-          onClick={() => onReview(sub)}
+          onClick={() => onReview(latest)}
         >
           {readOnly ? 'Show' : 'Review'}
         </Button>
@@ -186,51 +232,63 @@ function AssignmentSubmissionsList({
     )
   }
 
-  const lateIds = new Set<number>()
+  const groups: StudentGroup[] = []
+  const byStudent = new Map<string, Submission[]>()
   for (const sub of submissions) {
-    if (isLateSubmission(sub, submissions, dueDate)) {
-      lateIds.add(sub.id)
-    }
+    const list = byStudent.get(sub.studentId) ?? []
+    list.push(sub)
+    byStudent.set(sub.studentId, list)
+  }
+  for (const list of byStudent.values()) {
+    list.sort((a, b) => a.id - b.id)
+    groups.push({
+      studentId: list[0].studentId,
+      submissions: list,
+      latest: list[list.length - 1],
+    })
   }
 
-  const active = submissions
-    .filter((sub) => {
-      const kind = normalizeStatus(sub.status)
-      return kind !== 'approved' && kind !== 'revision'
-    })
+  const needsReview = groups
+    .filter((group) => normalizeStatus(group.latest.status) !== 'approved')
     .sort((a, b) => {
-      const aLate = Number(lateIds.has(a.id))
-      const bLate = Number(lateIds.has(b.id))
+      const aLate = Number(isLateSubmission(a.latest, submissions, dueDate))
+      const bLate = Number(isLateSubmission(b.latest, submissions, dueDate))
       return bLate - aLate
     })
-  const graded = submissions.filter((sub) => {
-    const kind = normalizeStatus(sub.status)
-    return kind === 'approved' || kind === 'revision'
-  })
-  const visibleActive = active.slice(0, 2)
-  const hiddenActive = active.slice(2)
+  const graded = groups.filter(
+    (group) => normalizeStatus(group.latest.status) === 'approved',
+  )
+  const visibleActive = needsReview.slice(0, 2)
+  const hiddenActive = needsReview.slice(2)
+
+  const reviewingHistory =
+    reviewing !== null
+      ? (groups
+          .find((group) => group.studentId === reviewing.studentId)
+          ?.submissions.filter((sub) => sub.id !== reviewing.id) ?? [])
+      : []
 
   return (
     <div className="mt-3 pt-2 border-top">
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h6 className="fw-bold small text-secondary mb-0">
-          Needs review ({active.length})
+          Needs review ({needsReview.length})
         </h6>
       </div>
 
       {submissions.length === 0 ? (
         <p className="text-muted small mb-0">No submissions yet.</p>
-      ) : active.length === 0 ? (
+      ) : needsReview.length === 0 ? (
         <p className="text-muted small mb-0">No submissions to review.</p>
       ) : (
         <>
           <ListGroup variant="flush">
-            {visibleActive.map((sub) => (
-              <SubmissionRow
-                key={sub.id}
-                sub={sub}
+            {visibleActive.map((group) => (
+              <StudentSubmissionRow
+                key={group.studentId}
+                group={group}
                 usersById={usersById}
-                late={lateIds.has(sub.id)}
+                late={isLateSubmission(group.latest, submissions, dueDate)}
                 onReview={setReviewing}
               />
             ))}
@@ -253,12 +311,16 @@ function AssignmentSubmissionsList({
 
               {showAllActive && (
                 <ListGroup variant="flush" className="mt-1">
-                  {hiddenActive.map((sub) => (
-                    <SubmissionRow
-                      key={sub.id}
-                      sub={sub}
+                  {hiddenActive.map((group) => (
+                    <StudentSubmissionRow
+                      key={group.studentId}
+                      group={group}
                       usersById={usersById}
-                      late={lateIds.has(sub.id)}
+                      late={isLateSubmission(
+                        group.latest,
+                        submissions,
+                        dueDate,
+                      )}
                       onReview={setReviewing}
                     />
                   ))}
@@ -284,12 +346,12 @@ function AssignmentSubmissionsList({
 
           {showGraded && (
             <ListGroup variant="flush" className="mt-1">
-              {graded.map((sub) => (
-                <SubmissionRow
-                  key={sub.id}
-                  sub={sub}
+              {graded.map((group) => (
+                <StudentSubmissionRow
+                  key={group.studentId}
+                  group={group}
                   usersById={usersById}
-                  late={lateIds.has(sub.id)}
+                  late={isLateSubmission(group.latest, submissions, dueDate)}
                   onReview={setReviewing}
                 />
               ))}
@@ -303,10 +365,9 @@ function AssignmentSubmissionsList({
         show={reviewing !== null}
         submission={reviewing}
         usersById={usersById}
+        history={reviewingHistory}
         readOnly={
-          reviewing !== null &&
-          (normalizeStatus(reviewing.status) === 'approved' ||
-            normalizeStatus(reviewing.status) === 'revision')
+          reviewing !== null && normalizeStatus(reviewing.status) === 'approved'
         }
         onHide={() => setReviewing(null)}
         onReviewed={loadSubmissions}
