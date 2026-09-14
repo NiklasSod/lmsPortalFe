@@ -48,6 +48,7 @@ function App() {
           path="/teacher/*"
           element={isStudent ? <Navigate to="/" replace /> : <TeacherRoutes />}
         />
+        <Route path="/admin/*" element={role === 'admin' ? <TeacherRoutes /> : <Navigate to="/" replace />} />
         <Route path="*" element={<p className="p-4">Page not found.</p>} />
       </Route>
     </Routes>
