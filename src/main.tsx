@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthProvider'
+import { EditModeProvider } from './editMode/EditModeProvider'
 import { applyCurrentTheme, watchSystemTheme } from './utils/themeHandler.ts'
 
 applyCurrentTheme()
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <EditModeProvider>
+          <App />
+        </EditModeProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
