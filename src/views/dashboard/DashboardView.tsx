@@ -20,6 +20,7 @@ import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
 import PaginationControls from '../../components/PaginationControls'
+import ClampedText from '../../components/ClampedText'
 
 type Deadline = {
   id: number
@@ -263,9 +264,10 @@ function DashboardView() {
                             <Card.Title className="h6 mb-2">
                               {course.name}
                             </Card.Title>
-                            <Card.Text className="text-muted small mb-2">
-                              {course.description}
-                            </Card.Text>
+                            <ClampedText
+                              text={course.description}
+                              className="text-muted small mb-2"
+                            />
                             <Card.Text className="text-muted small mb-0">
                               {new Date(course.startDate).toLocaleDateString()}{' '}
                               - {new Date(course.endDate).toLocaleDateString()}
@@ -305,9 +307,10 @@ function DashboardView() {
                             <Card.Title className="h6 mb-2">
                               {module.name}
                             </Card.Title>
-                            <Card.Text className="text-muted small mb-2">
-                              {module.description}
-                            </Card.Text>
+                            <ClampedText
+                              text={module.description}
+                              className="text-muted small mb-2"
+                            />
                             <Card.Text className="text-muted small mb-0">
                               {new Date(module.startDate).toLocaleDateString()}{' '}
                               - {new Date(module.endDate).toLocaleDateString()}
