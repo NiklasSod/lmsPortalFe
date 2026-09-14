@@ -13,6 +13,7 @@ import {
 import { getCourseById, enrollInCourse } from '../../api/course'
 import { useAuth } from '../../auth/AuthContext'
 import type { CourseDetail } from '../../types/course'
+import ResourcesSection from '../../components/resources/ResourcesSection'
 
 export const CourseOverviewView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()
@@ -157,6 +158,17 @@ export const CourseOverviewView: React.FC = () => {
               <Card.Text>{course.description}</Card.Text>
             </Card.Body>
           </Card>
+
+          {enrolled && (
+            <Card className="shadow-sm mb-4">
+              <Card.Body>
+                <ResourcesSection
+                  courseId={course.id}
+                  title="Course resources"
+                />
+              </Card.Body>
+            </Card>
+          )}
         </Col>
       </Row>
     </Container>

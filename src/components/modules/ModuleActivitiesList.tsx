@@ -17,6 +17,8 @@ import {
   deleteActivity,
 } from '../../api/activity'
 import type { Activity } from '../../types/activity'
+import ResourcesSection from '../resources/ResourcesSection'
+import ActivityResourcesInline from '../resources/ActivityResourcesInline'
 
 interface ModuleActivitiesListProps {
   moduleId: number
@@ -267,6 +269,13 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
           </ListGroup.Item>
         </ListGroup>
       )}
+      {nextActivity && (
+        <ResourcesSection
+          activityId={nextActivity.id}
+          title="Activity resources"
+          bordered
+        />
+      )}
 
       <Modal
         show={showViewModal}
@@ -282,43 +291,46 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
             {activities.map((act) => (
               <ListGroup.Item
                 key={act.id}
-                className="px-0 py-2 bg-transparent d-flex justify-content-between align-items-start border-bottom"
+                className="px-0 py-2 bg-transparent border-bottom"
               >
-                <div>
-                  <div className="fw-semibold">{act.name}</div>
-                  {act.description && (
-                    <div className="text-muted small my-1">
-                      {act.description}
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div className="fw-semibold">{act.name}</div>
+                    {act.description && (
+                      <div className="text-muted small my-1">
+                        {act.description}
+                      </div>
+                    )}
+                    <div className="text-muted small">
+                      {formatActivityDate(act)}
                     </div>
-                  )}
-                  <div className="text-muted small">
-                    {formatActivityDate(act)}
+                  </div>
+                  <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                    {act.type && <Badge bg="secondary">{act.type}</Badge>}
+                    {isTeacher && (
+                      <>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="py-0 px-2 small"
+                          onClick={() => openEdit(act)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="py-0 px-2 small"
+                          disabled={deletingId === act.id}
+                          onClick={() => handleDelete(act.id)}
+                        >
+                          {deletingId === act.id ? '…' : 'Delete'}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="d-flex align-items-center gap-2">
-                  {act.type && <Badge bg="secondary">{act.type}</Badge>}
-                  {isTeacher && (
-                    <>
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        className="py-0 px-2 small"
-                        onClick={() => openEdit(act)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        className="py-0 px-2 small"
-                        disabled={deletingId === act.id}
-                        onClick={() => handleDelete(act.id)}
-                      >
-                        {deletingId === act.id ? '…' : 'Delete'}
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <ActivityResourcesInline activityId={act.id} />
               </ListGroup.Item>
             ))}
           </ListGroup>
