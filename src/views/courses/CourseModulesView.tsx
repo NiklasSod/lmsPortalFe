@@ -16,7 +16,6 @@ import { useAuth } from '../../auth/AuthContext'
 import { ApiError } from '../../utils/apiError'
 import type { Course } from '../../types/course'
 import type { CourseModule } from '../../types/module'
-import CourseSections from '../../components/courses/CourseSections'
 import ModuleFormModal from '../../components/modules/ModuleFormModal'
 import ModuleActivitiesList from '../../components/modules/ModuleActivitiesList'
 
@@ -132,7 +131,7 @@ export const CourseModulesView: React.FC = () => {
       </Breadcrumb>
 
       <Row>
-        <Col md={8}>
+        <Col lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2 className="h6 fw-semibold mb-0">Modules</h2>
             {!isStudent && (
@@ -183,10 +182,6 @@ export const CourseModulesView: React.FC = () => {
               )}
             </ListGroup>
           )}
-        </Col>
-
-        <Col md={4}>
-          <CourseSections courseId={String(course.id)} />
         </Col>
       </Row>
 

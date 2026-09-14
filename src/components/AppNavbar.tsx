@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
 import {
   Book,
@@ -13,13 +13,16 @@ import {
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
+import { getCourseById } from '../api/course'
 
 function AppNavbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { role, fullName, logout } = useAuth()
   const [expanded, setExpanded] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const [courseName, setCourseName] = useState('')
   const isStudent = role === 'student'
 
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
@@ -30,6 +33,52 @@ function AppNavbar() {
   const assignmentsPath = isStudent
     ? '/student/assignments'
     : '/teacher/assignments'
+
+  const base = isStudent ? '/student' : '/teacher'
+
+  const searchParams = new URLSearchParams(location.search)
+  const queryCourseId = searchParams.get('courseId')
+
+  const pathSegments = location.pathname.split('/')
+  const coursesIndex = pathSegments.indexOf('courses')
+  const nextSegment =
+    coursesIndex !== -1 && pathSegments.length > coursesIndex + 1
+      ? pathSegments[coursesIndex + 1]
+      : null
+
+  const isUsersRoute = nextSegment === 'users'
+  const pathCourseId =
+    !isUsersRoute && nextSegment !== 'create' ? nextSegment : null
+
+  const activeCourseId = pathCourseId || queryCourseId
+
+  // Keep the courses submenu open if we are in a course route OR viewing course-specific assignments
+  const isCoursesSection =
+    location.pathname.includes('/courses') || Boolean(queryCourseId)
+
+  // Fetch course name dynamically using getCourseById
+  useEffect(() => {
+    if (!activeCourseId) {
+      return
+    }
+
+    let isMounted = true
+    getCourseById(activeCourseId)
+      .then((data) => {
+        if (isMounted && data && data.name) {
+          setCourseName(data.name)
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCourseName(`Course ${activeCourseId}`)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [activeCourseId])
 
   useEffect(() => {
     function handleScroll() {
@@ -123,10 +172,84 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to={coursesPath}
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            className={`d-flex align-items-center gap-2 px-2 py-2 ${
+              isCoursesSection ? 'fw-bold' : ''
+            }`}
           >
             <MortarboardFill /> Courses
           </Nav.Link>
+
+          {isCoursesSection && (
+            <div className="ms-3 ps-2 border-start border-secondary d-flex flex-column my-1">
+              {/* If inside a specific course */}
+              {activeCourseId ? (
+                <>
+                  <Nav.Link
+                    as={Link}
+                    to={`${base}/courses/${activeCourseId}`}
+                    className={`py-1 small fw-semibold text-truncate ${
+                      location.pathname === `${base}/courses/${activeCourseId}` && !location.search
+                        ? 'fw-bold text-decoration-underline text-white'
+                        : 'text-muted'
+                    }`}
+                  >
+                    {courseName || `Course ${activeCourseId}`}
+                  </Nav.Link>
+
+                  <div className="ms-3 ps-2 border-start border-secondary d-flex flex-column my-1">
+                    <Nav.Link
+                      as={Link}
+                      to={`${base}/courses/${activeCourseId}/modules`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/modules`)
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      Modules
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
+                      to={`${base}/assignments?courseId=${activeCourseId}`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(`${base}/assignments`) &&
+                        searchParams.get('courseId') === activeCourseId
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      Assignments
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
+                      to={`${base}/courses/${activeCourseId}/members`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/members`)
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      Members
+                    </Nav.Link>
+                  </div>
+                </>
+              ) : null}
+
+              {/* Edit Students is always visible in the submenu for teachers/admins */}
+              {!isStudent && (
+                <Nav.Link
+                  as={Link}
+                  to={`${base}/courses/users`}
+                  className={`py-1 small ${
+                    isUsersRoute ? 'fw-bold text-decoration-underline' : 'text-muted'
+                  }`}
+                >
+                  Edit Students
+                </Nav.Link>
+              )}
+            </div>
+          )}
+
           <Nav.Link
             as={Link}
             to={modulesPath}

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
+import { Alert, Breadcrumb, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
 import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
 import { getModulesByCourse } from '../../api/module'
 import { getUsers } from '../../api/user'
 import { getMineModules } from '../../api/module'
 import { getMySubmissions } from '../../api/submission'
+import { getCourseById } from '../../api/course'
 import type { UserDto } from '../../api/user'
 import type { Assignment } from '../../types/assignment'
 import type { CourseModule } from '../../types/module'
@@ -19,10 +20,11 @@ import { AssignmentFormModal } from '../../components/assignments/AssignmentForm
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
   const isTeacher = role !== 'student'
+  const isStudent = role === 'student'
   const [searchParams] = useSearchParams()
   const courseIdParam = searchParams.get('courseId')
-  const courseId = courseIdParam ? Number(courseIdParam) : null
-  const hasCourseFilter = courseId !== null && Number.isInteger(courseId)
+  const courseId = courseIdParam || null
+  const hasCourseFilter = courseId !== null && courseId.trim() !== ''
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [courseModuleIds, setCourseModuleIds] = useState<Set<number> | null>(
@@ -33,11 +35,14 @@ export const AssignmentsView: React.FC = () => {
   const [submissionsById, setSubmissionsById] = useState<
     Map<number, Submission>
   >(new Map())
+  const [courseName, setCourseName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showHandedIn, setShowHandedIn] = useState(false)
   const [showApproved, setShowApproved] = useState(false)
+
+  const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   const loadAssignments = async () => {
     try {
@@ -78,20 +83,30 @@ export const AssignmentsView: React.FC = () => {
         const data = await getMyAssignments()
         setAssignments(Array.isArray(data) ? data : [])
 
-        if (courseId !== null && Number.isInteger(courseId)) {
+        if (hasCourseFilter && courseId !== null) {
           try {
-            const modules = await getModulesByCourse(courseId)
+            const numericCourseId = Number(courseId)
+            const [modules, courseData] = await Promise.all([
+              getModulesByCourse(numericCourseId).catch(() => []),
+              getCourseById(courseId).catch(() => null),
+            ])
             setCourseModuleIds(
               new Set(
                 (Array.isArray(modules) ? modules : []).map((m) => m.id),
               ),
             )
+            if (courseData && courseData.name) {
+              setCourseName(courseData.name)
+            } else {
+              setCourseName(`Course ${courseId}`)
+            }
           } catch {
-            // If the course can't be loaded, show no assignments for it.
             setCourseModuleIds(new Set())
+            setCourseName(`Course ${courseId}`)
           }
         } else {
           setCourseModuleIds(null)
+          setCourseName('')
         }
 
         if (isTeacher) {
@@ -122,7 +137,7 @@ export const AssignmentsView: React.FC = () => {
     }
 
     fetchAssignments()
-  }, [isTeacher, courseId])
+  }, [isTeacher, courseId, hasCourseFilter])
 
   if (loading) {
     return (
@@ -140,8 +155,9 @@ export const AssignmentsView: React.FC = () => {
     )
   }
 
+  const numericCourseIdFilter = courseId ? Number(courseId) : null
   const filteredAssignments =
-    hasCourseFilter && courseModuleIds
+    hasCourseFilter && courseModuleIds && numericCourseIdFilter !== null
       ? assignments.filter((a) => courseModuleIds.has(a.moduleId))
       : assignments
 
@@ -183,28 +199,71 @@ export const AssignmentsView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <div className="d-flex align-items-center gap-2">
-          <JournalCheck size={28} className="text-primary" />
-          <h1 className="h2 mb-0">Assignments</h1>
-        </div>
+      {hasCourseFilter ? (
+        <>
+          <Breadcrumb>
+            <Breadcrumb.Item
+              linkAs={Link}
+              linkProps={{ to: base }}
+              style={{ color: 'var(--link-color)' }}
+            >
+              Courses
+            </Breadcrumb.Item>
+            <Breadcrumb.Item
+              linkAs={Link}
+              linkProps={{ to: `${base}/${courseId}` }}
+              style={{ color: 'var(--link-color)' }}
+            >
+              {courseName || `Course ${courseId}`}
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active style={{ color: 'var(--text-primary)' }}>
+              Assignments
+            </Breadcrumb.Item>
+          </Breadcrumb>
 
-        {isTeacher && (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowAddModal(true)}
-          >
-            Add assignment
-          </Button>
-        )}
-      </div>
+          <Row>
+            <Col lg={12}>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h2 className="h6 fw-semibold mb-0">Assignments</h2>
+                {isTeacher && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setShowAddModal(true)}
+                  >
+                    Add assignment
+                  </Button>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </>
+      ) : (
+        <>
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <div className="d-flex align-items-center gap-2">
+              <JournalCheck size={28} className="text-primary" />
+              <h1 className="h2 mb-0">Assignments</h1>
+            </div>
 
-      <p className="text-muted mb-4">
-        {isTeacher
-          ? 'Review the assignments in your modules and grade student submissions.'
-          : 'Your assignments and the status of your submissions.'}
-      </p>
+            {isTeacher && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowAddModal(true)}
+              >
+                Add assignment
+              </Button>
+            )}
+          </div>
+
+          <p className="text-muted mb-4">
+            {isTeacher
+              ? 'Review the assignments in your modules and grade student submissions.'
+              : 'Your assignments and the status of your submissions.'}
+          </p>
+        </>
+      )}
 
       {assignments.length === 0 ? (
         <Alert variant="info">No assignments found.</Alert>
