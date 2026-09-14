@@ -43,6 +43,7 @@ const ClampedText = ({ text, lines = 3, className }: ClampedTextProps) => {
         <button
           type="button"
           className="btn btn-link btn-sm p-0 text-decoration-none"
+          style={{ position: 'relative', zIndex: 1 }}
           onClick={() => setExpanded((prev) => !prev)}
         >
           {expanded ? 'Read less' : 'Read more'}

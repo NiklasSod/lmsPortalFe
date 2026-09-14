@@ -104,7 +104,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
 
   return (
     <>
-      <Card className="h-100 shadow-sm">
+      <Card className="h-100 border shadow-sm">
         <Card.Body className="position-relative">
           {isTeacher && (
             <Button
@@ -117,7 +117,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             </Button>
           )}
           <Card.Title className="h5 pe-5">{moduleData.name}</Card.Title>
-          <Card.Text className="text-muted small">
+          <Card.Text className="text-muted small pe-5">
             {moduleData.description}
           </Card.Text>
           <Card.Text className="text-muted small mb-0 pe-5">

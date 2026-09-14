@@ -12,6 +12,7 @@ import {
 import { ListCheck } from 'react-bootstrap-icons'
 import { getMineActivities, getAllActivities } from '../../api/activity'
 import type { Activity } from '../../types/activity'
+import PaginationControls from '../../components/PaginationControls'
 
 function formatActivityDate(act: Activity) {
   const startDateObj = act.startDate ? new Date(act.startDate) : null
@@ -108,6 +109,7 @@ export const ActivitiesView: React.FC = () => {
     thisWeek: 'All',
     allActivities: 'All',
   })
+  const [allActivitiesPage, setAllActivitiesPage] = useState(1)
 
   useEffect(() => {
     async function fetchActivities() {
@@ -165,6 +167,20 @@ export const ActivitiesView: React.FC = () => {
 
   const filterActivitiesByType = (items: Activity[], type: string) =>
     type === 'All' ? items : items.filter((activity) => activity.type === type)
+
+  const allActivities = sortActivities(
+    filterActivitiesByType(activities, selectedTypeBySection.allActivities),
+  )
+
+  const ALL_ACTIVITIES_PAGE_SIZE = 6
+  const allActivitiesPageCount = Math.max(
+    1,
+    Math.ceil(allActivities.length / ALL_ACTIVITIES_PAGE_SIZE),
+  )
+  const visibleAllActivities = allActivities.slice(
+    (allActivitiesPage - 1) * ALL_ACTIVITIES_PAGE_SIZE,
+    allActivitiesPage * ALL_ACTIVITIES_PAGE_SIZE,
+  )
 
   if (loading) {
     return (
@@ -310,12 +326,13 @@ export const ActivitiesView: React.FC = () => {
                 size="sm"
                 className="w-auto me-3"
                 value={selectedTypeBySection.allActivities}
-                onChange={(event) =>
+                onChange={(event) => {
                   setSelectedTypeBySection((prev) => ({
                     ...prev,
                     allActivities: event.target.value,
                   }))
-                }
+                  setAllActivitiesPage(1)
+                }}
                 aria-label="Filter all activities"
               >
                 {activityTypeOptions.map((type) => (
@@ -327,12 +344,7 @@ export const ActivitiesView: React.FC = () => {
             </Card.Header>
             <Card.Body>
               <Row xs={1} md={2} lg={3} className="g-3">
-                {sortActivities(
-                  filterActivitiesByType(
-                    activities,
-                    selectedTypeBySection.allActivities,
-                  ),
-                ).map((activity) => (
+                {visibleAllActivities.map((activity) => (
                   <Col key={activity.id}>
                     <Card className="h-100 border shadow-sm">
                       <Card.Body className="d-flex flex-column">
@@ -359,6 +371,11 @@ export const ActivitiesView: React.FC = () => {
                   </Col>
                 ))}
               </Row>
+              <PaginationControls
+                page={allActivitiesPage}
+                pageCount={allActivitiesPageCount}
+                onPageChange={setAllActivitiesPage}
+              />
             </Card.Body>
           </Card>
         </>

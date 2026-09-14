@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Col, Container, Row, Spinner, Alert } from 'react-bootstrap'
+import { Card, Container, Spinner, Alert } from 'react-bootstrap'
 import { getCurrentModules, getMineModules } from '../../api/module'
 import type { CourseModule } from '../../types/module'
-import ModuleCard from '../../components/modules/ModuleCard'
+import ModuleGrid from '../../components/modules/ModuleGrid'
 
 export const ModulesView: React.FC = () => {
   const [currentModules, setCurrentModules] = useState<CourseModule[]>([])
@@ -58,31 +58,30 @@ export const ModulesView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      {currentModules.length > 0 ? (
-        <h2 className="h2 mb-4">Current Modules</h2>
-      ) : (
-        <h2>No current Modules</h2>
-      )}
-      {currentModules.length === 0 ? (
-        <Alert variant="info">You have no active modules right now.</Alert>
-      ) : (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {currentModules.map((currentModule) => (
-            <Col key={currentModule.id}>
-              <ModuleCard module={currentModule} onDelete={handleDelete} />
-            </Col>
-          ))}
-        </Row>
-      )}
-      {mineModules.length > 0 && <h2 className="h2 my-4">My other Modules</h2>}
+      <Card className="border-0 shadow-sm">
+        <Card.Header as="h2" className="h5 mb-0">
+          {currentModules.length > 0 ? 'Current Modules' : 'No current Modules'}
+        </Card.Header>
+        <Card.Body>
+          {currentModules.length === 0 ? (
+            <Alert variant="info" className="mb-0">
+              You have no active modules right now.
+            </Alert>
+          ) : (
+            <ModuleGrid modules={currentModules} onDelete={handleDelete} />
+          )}
+        </Card.Body>
+      </Card>
+
       {mineModules.length > 0 && (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {mineModules.map((mineModule) => (
-            <Col key={mineModule.id}>
-              <ModuleCard module={mineModule} onDelete={handleDelete} />
-            </Col>
-          ))}
-        </Row>
+        <Card className="border-0 shadow-sm mt-4">
+          <Card.Header as="h2" className="h5 mb-0">
+            My other Modules
+          </Card.Header>
+          <Card.Body>
+            <ModuleGrid modules={mineModules} onDelete={handleDelete} />
+          </Card.Body>
+        </Card>
       )}
     </Container>
   )

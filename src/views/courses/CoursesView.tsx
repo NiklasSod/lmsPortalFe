@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Container, Spinner, Alert } from 'react-bootstrap'
+import { Card, Container, Spinner, Alert } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { PlusLg } from 'react-bootstrap-icons'
 import { getCourses, getMyCourses } from '../../api/course'
@@ -102,29 +102,43 @@ function CoursesView() {
         )}
       </div>
 
-      <h2 className="h3">My courses</h2>
-      {myCourses.length === 0 ? (
-        <p className="text-muted">You are not enrolled in any courses.</p>
-      ) : (
-        <CourseGrid
-          courses={myCourses}
-          base={base}
-          onDeleteRequest={setCourseToDelete}
-          isMyCourses={true}
-        />
-      )}
+      <Card className="border-0 shadow-sm">
+        <Card.Header as="h2" className="h5 mb-0">
+          My courses
+        </Card.Header>
+        <Card.Body>
+          {myCourses.length === 0 ? (
+            <p className="text-muted mb-0">
+              You are not enrolled in any courses.
+            </p>
+          ) : (
+            <CourseGrid
+              courses={myCourses}
+              base={base}
+              onDeleteRequest={setCourseToDelete}
+              isMyCourses={true}
+            />
+          )}
+        </Card.Body>
+      </Card>
 
-      <h2 className="h3 mt-5">Other courses</h2>
-      {otherCourses.length === 0 ? (
-        <p className="text-muted">No other courses available.</p>
-      ) : (
-        <CourseGrid
-          courses={otherCourses}
-          base={base}
-          onDeleteRequest={setCourseToDelete}
-          isMyCourses={false}
-        />
-      )}
+      <Card className="border-0 shadow-sm mt-4">
+        <Card.Header as="h2" className="h5 mb-0">
+          Other courses
+        </Card.Header>
+        <Card.Body>
+          {otherCourses.length === 0 ? (
+            <p className="text-muted mb-0">No other courses available.</p>
+          ) : (
+            <CourseGrid
+              courses={otherCourses}
+              base={base}
+              onDeleteRequest={setCourseToDelete}
+              isMyCourses={false}
+            />
+          )}
+        </Card.Body>
+      </Card>
 
       <DeleteCourseModal
         isDeleting={isDeleting}
