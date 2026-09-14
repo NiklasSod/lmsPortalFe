@@ -3,19 +3,44 @@ import {
   Alert,
   Badge,
   Button,
+  Col,
   Container,
   Form,
   Modal,
+  Row,
   Spinner,
   Table,
 } from 'react-bootstrap'
-import { Pencil } from 'react-bootstrap-icons'
+import { ChevronRight, Pencil } from 'react-bootstrap-icons'
 import { getCourseById, getMyCourses } from '../../api/course'
 import { updateUser } from '../../api/user'
 import type { CourseEnrollment, CourseSummary } from '../../types/course'
 
 interface UserWithCourses extends CourseEnrollment {
   courses: string[]
+}
+
+interface UserCardProps {
+  user: UserWithCourses
+  onEdit: (user: UserWithCourses) => void
+}
+
+function UserCard({ user, onEdit }: UserCardProps) {
+  return (
+    <Col xs={12} sm={6} md={4}>
+      <Button
+        variant="outline-secondary"
+        className="w-100 d-flex justify-content-between align-items-center"
+        onClick={() => onEdit(user)}
+        aria-label={`Edit ${user.firstName} ${user.lastName}`}
+      >
+        <span className="fw-semibold text-truncate">
+          {user.firstName} {user.lastName}
+        </span>
+        <ChevronRight aria-hidden="true" />
+      </Button>
+    </Col>
+  )
 }
 
 function UsersView() {
@@ -158,44 +183,56 @@ function UsersView() {
             : 'No users match your search.'}
         </Alert>
       ) : (
-        <Table responsive hover bordered>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Courses</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
+        <>
+          <div className="d-none d-lg-block">
+            <Table responsive hover bordered>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Courses</th>
+                  <th aria-label="Actions" />
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.userId}>
+                    <td className="fw-semibold">
+                      {user.firstName} {user.lastName}
+                    </td>
+                    <td>{user.email}</td>
+                    <td>
+                      <Badge
+                        bg={user.role === 'Teacher' ? 'primary' : 'secondary'}
+                      >
+                        {user.role}
+                      </Badge>
+                    </td>
+                    <td>{user.courses.join(', ')}</td>
+                    <td className="text-end">
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        title={`Edit ${user.firstName} ${user.lastName}`}
+                        aria-label={`Edit ${user.firstName} ${user.lastName}`}
+                        onClick={() => openEditUser(user)}
+                      >
+                        <Pencil />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+
+          <Row className="g-2 d-lg-none">
             {filteredUsers.map((user) => (
-              <tr key={user.userId}>
-                <td className="fw-semibold">
-                  {user.firstName} {user.lastName}
-                </td>
-                <td>{user.email}</td>
-                <td>
-                  <Badge bg={user.role === 'Teacher' ? 'primary' : 'secondary'}>
-                    {user.role}
-                  </Badge>
-                </td>
-                <td>{user.courses.join(', ')}</td>
-                <td className="text-end">
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    title={`Edit ${user.firstName} ${user.lastName}`}
-                    aria-label={`Edit ${user.firstName} ${user.lastName}`}
-                    onClick={() => openEditUser(user)}
-                  >
-                    <Pencil />
-                  </Button>
-                </td>
-              </tr>
+              <UserCard key={user.userId} user={user} onEdit={openEditUser} />
             ))}
-          </tbody>
-        </Table>
+          </Row>
+        </>
       )}
 
       <Modal show={editingUser !== null} onHide={closeEditUser} centered>
