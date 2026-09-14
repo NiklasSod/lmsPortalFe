@@ -13,12 +13,14 @@ import {
 } from 'react-bootstrap-icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
+import { useEditMode } from '../editMode/EditModeContext'
 import { getCourseById } from '../api/course'
 
 function AppNavbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { role, fullName, logout } = useAuth()
+  const { editMode } = useEditMode()
   const [expanded, setExpanded] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -188,7 +190,8 @@ function AppNavbar() {
                     as={Link}
                     to={`${base}/courses/${activeCourseId}`}
                     className={`py-1 small fw-semibold text-truncate ${
-                      location.pathname === `${base}/courses/${activeCourseId}` && !location.search
+                      location.pathname ===
+                        `${base}/courses/${activeCourseId}` && !location.search
                         ? 'fw-bold text-decoration-underline text-white'
                         : 'text-muted'
                     }`}
@@ -201,7 +204,9 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/modules`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/modules`)
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/modules`,
+                        )
                           ? 'fw-bold text-decoration-underline'
                           : 'text-muted'
                       }`}
@@ -224,7 +229,9 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/members`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/members`)
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/members`,
+                        )
                           ? 'fw-bold text-decoration-underline'
                           : 'text-muted'
                       }`}
@@ -235,13 +242,15 @@ function AppNavbar() {
                 </>
               ) : null}
 
-              {/* Edit Students is always visible in the submenu for teachers/admins */}
-              {!isStudent && (
+              {/* Edit Students is only shown in the submenu when edit mode is on */}
+              {!isStudent && editMode && (
                 <Nav.Link
                   as={Link}
                   to={`${base}/courses/users`}
                   className={`py-1 small ${
-                    isUsersRoute ? 'fw-bold text-decoration-underline' : 'text-muted'
+                    isUsersRoute
+                      ? 'fw-bold text-decoration-underline'
+                      : 'text-muted'
                   }`}
                 >
                   Edit Students

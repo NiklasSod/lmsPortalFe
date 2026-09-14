@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import { deleteModule, updateModule } from '../../api/module'
 import type { CourseModule } from '../../types/module'
 import ModuleActivitiesList from './ModuleActivitiesList'
@@ -15,7 +16,9 @@ interface ModuleCardProps {
 
 function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const [moduleData, setModuleData] = useState<CourseModule>(module)
 
@@ -107,7 +110,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
     <>
       <Card className="h-100 border shadow-sm">
         <Card.Body className="position-relative">
-          {isTeacher && (
+          {canEdit && (
             <Button
               variant="outline-primary"
               size="sm"
@@ -131,7 +134,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             title="Module resources"
             bordered
           />
-          {isTeacher && (
+          {canEdit && (
             <Card.Text className="text-muted small pt-3 d-flex justify-content-between align-items-center">
               Delete module
               <Button

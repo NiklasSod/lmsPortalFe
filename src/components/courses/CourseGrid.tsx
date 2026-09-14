@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Card, Col, Row, Button } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import type { CourseSummary } from '../../types/course'
+import { useEditMode } from '../../editMode/EditModeContext'
 import PaginationControls from '../PaginationControls'
 
 interface CourseGridProps {
@@ -20,6 +21,8 @@ const CourseGrid = ({
   isMyCourses,
 }: CourseGridProps) => {
   const isTeacher = base.startsWith('/teacher')
+  const { editMode } = useEditMode()
+  const canEdit = isTeacher && editMode
   const [page, setPage] = useState(1)
   const pageCount = Math.max(1, Math.ceil(courses.length / PAGE_SIZE))
   const visibleCourses = courses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -45,7 +48,7 @@ const CourseGrid = ({
                 </Card.Text>
               </Card.Body>
 
-              {isTeacher && isMyCourses && (
+              {canEdit && isMyCourses && (
                 <>
                   <Link
                     to={`${base}/${course.id}/edit`}

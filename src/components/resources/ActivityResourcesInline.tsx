@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, Form, ListGroup, Spinner } from 'react-bootstrap'
 import { BoxArrowUpRight } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import {
   createResource,
   deleteResource,
@@ -23,7 +24,9 @@ function normalizeUrl(raw: string): string {
 
 function ActivityResourcesInline({ activityId }: ActivityResourcesInlineProps) {
   const { role, userId } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
@@ -191,7 +194,7 @@ function ActivityResourcesInline({ activityId }: ActivityResourcesInlineProps) {
 
       <ListGroup variant="flush">
         {resources.map((resource) => {
-          const isOwner = isTeacher && resource.creatorId === userId
+          const isOwner = canEdit && resource.creatorId === userId
 
           if (editingId === resource.id) {
             return (

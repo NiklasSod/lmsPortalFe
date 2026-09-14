@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, ListGroup, Spinner } from 'react-bootstrap'
 import { BoxArrowUpRight } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import {
   getActivityResources,
   getCourseResources,
@@ -28,7 +29,9 @@ function ResourcesSection({
   bordered = false,
 }: ResourcesSectionProps) {
   const { role, userId } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
@@ -140,7 +143,7 @@ function ResourcesSection({
       ) : (
         <ListGroup variant="flush">
           {resources.map((resource) => {
-            const isOwner = isTeacher && resource.creatorId === userId
+            const isOwner = canEdit && resource.creatorId === userId
             return (
               <ListGroup.Item
                 key={resource.id}

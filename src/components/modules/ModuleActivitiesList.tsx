@@ -10,6 +10,7 @@ import {
   Form,
 } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import {
   getModuleActivities,
   createActivity,
@@ -39,13 +40,15 @@ function formatActivityDate(act: Activity) {
   const start = s && !isNaN(s.getTime()) ? s.toLocaleDateString() : ''
   const end = e && !isNaN(e.getTime()) ? e.toLocaleDateString() : ''
 
-  if (start && end && start !== end) return `Occurs: ${start} – ${end}`
+  if (start && end && start !== end) return `Occurs: ${start} - ${end}`
   return start || end ? `Occurs: ${start || end}` : 'Occurs: -'
 }
 
 export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -307,7 +310,7 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
                   </div>
                   <div className="d-flex align-items-center gap-2 flex-shrink-0">
                     {act.type && <Badge bg="secondary">{act.type}</Badge>}
-                    {isTeacher && (
+                    {canEdit && (
                       <>
                         <Button
                           variant="outline-secondary"

@@ -12,6 +12,7 @@ import {
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 
 function CourseMembersView() {
   const { courseId } = useParams<{ courseId: string }>()
@@ -21,6 +22,7 @@ function CourseMembersView() {
 
   const navigate = useNavigate()
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
@@ -109,7 +111,7 @@ function CourseMembersView() {
         <Col lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2 className="h6 fw-semibold mb-0">Members</h2>
-            {!isStudent && (
+            {!isStudent && editMode && (
               <Link
                 to="/teacher/courses/users"
                 className="btn btn-primary btn-sm"

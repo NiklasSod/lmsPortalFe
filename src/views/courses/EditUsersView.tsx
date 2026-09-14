@@ -12,6 +12,7 @@ import {
   Table,
 } from 'react-bootstrap'
 import { ChevronRight, Pencil } from 'react-bootstrap-icons'
+import { useEditMode } from '../../editMode/EditModeContext'
 import { getCourseById, getMyCourses } from '../../api/course'
 import { updateUser } from '../../api/user'
 import type { CourseEnrollment, CourseSummary } from '../../types/course'
@@ -44,6 +45,7 @@ function UserCard({ user, onEdit }: UserCardProps) {
 }
 
 function UsersView() {
+  const { editMode } = useEditMode()
   const [users, setUsers] = useState<UserWithCourses[]>([])
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -192,7 +194,7 @@ function UsersView() {
                   <th>Email</th>
                   <th>Role</th>
                   <th>Courses</th>
-                  <th aria-label="Actions" />
+                  {editMode && <th aria-label="Actions" />}
                 </tr>
               </thead>
               <tbody>
@@ -210,28 +212,45 @@ function UsersView() {
                       </Badge>
                     </td>
                     <td>{user.courses.join(', ')}</td>
-                    <td className="text-end">
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        title={`Edit ${user.firstName} ${user.lastName}`}
-                        aria-label={`Edit ${user.firstName} ${user.lastName}`}
-                        onClick={() => openEditUser(user)}
-                      >
-                        <Pencil />
-                      </Button>
-                    </td>
+                    {editMode && (
+                      <td className="text-end">
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          title={`Edit ${user.firstName} ${user.lastName}`}
+                          aria-label={`Edit ${user.firstName} ${user.lastName}`}
+                          onClick={() => openEditUser(user)}
+                        >
+                          <Pencil />
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </Table>
           </div>
 
-          <Row className="g-2 d-lg-none">
-            {filteredUsers.map((user) => (
-              <UserCard key={user.userId} user={user} onEdit={openEditUser} />
-            ))}
-          </Row>
+          {editMode ? (
+            <Row className="g-2 d-lg-none">
+              {filteredUsers.map((user) => (
+                <UserCard key={user.userId} user={user} onEdit={openEditUser} />
+              ))}
+            </Row>
+          ) : (
+            <Row className="g-2 d-lg-none">
+              {filteredUsers.map((user) => (
+                <Col xs={12} sm={6} md={4} key={user.userId}>
+                  <div className="border rounded p-2 small">
+                    <div className="fw-semibold text-truncate">
+                      {user.firstName} {user.lastName}
+                    </div>
+                    <div className="text-muted text-truncate">{user.email}</div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          )}
         </>
       )}
 
