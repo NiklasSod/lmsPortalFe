@@ -28,7 +28,7 @@ function formatActivityDate(act: Activity) {
       : ''
 
   if (start && end && start !== end) {
-    return `Occurs: ${start} – ${end}`
+    return `Occurs: ${start} - ${end}`
   }
 
   return start || end ? `Occurs: ${start || end}` : 'Occurs: -'
@@ -151,6 +151,13 @@ export const ActivitiesView: React.FC = () => {
     }
   }, [activities])
 
+  const effectiveWeek =
+    selectedWeek === 'this' &&
+    weeklySchedule.thisWeek.length === 0 &&
+    weeklySchedule.nextWeek.length > 0
+      ? 'next'
+      : selectedWeek
+
   const activityTypeOptions = useMemo(
     () => [
       'All',
@@ -264,7 +271,7 @@ export const ActivitiesView: React.FC = () => {
                 <button
                   type="button"
                   className={`btn btn-link text-decoration-none fw-semibold px-3 py-2 ${
-                    selectedWeek === 'this' ? 'text-body' : 'text-muted'
+                    effectiveWeek === 'this' ? 'text-body' : 'text-muted'
                   }`}
                   onClick={() => setSelectedWeek('this')}
                 >
@@ -277,7 +284,7 @@ export const ActivitiesView: React.FC = () => {
                 <button
                   type="button"
                   className={`btn btn-link text-decoration-none fw-semibold px-3 py-2 ${
-                    selectedWeek === 'next' ? 'text-body' : 'text-muted'
+                    effectiveWeek === 'next' ? 'text-body' : 'text-muted'
                   }`}
                   onClick={() => setSelectedWeek('next')}
                 >
@@ -307,12 +314,12 @@ export const ActivitiesView: React.FC = () => {
             <Card.Body>
               {renderActivityList(
                 filterActivitiesByType(
-                  selectedWeek === 'this'
+                  effectiveWeek === 'this'
                     ? weeklySchedule.thisWeek
                     : weeklySchedule.nextWeek,
                   selectedTypeBySection.thisWeek,
                 ),
-                selectedWeek === 'this'
+                effectiveWeek === 'this'
                   ? 'No activities scheduled for this week.'
                   : 'No activities scheduled for next week.',
               )}
