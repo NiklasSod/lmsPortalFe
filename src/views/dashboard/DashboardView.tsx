@@ -208,7 +208,7 @@ function DashboardView() {
 
   return (
     <Container className="py-4">
-      <h1 className="h3 mb-4">
+      <h1 className="h2 mb-4">
         {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
       </h1>
 
@@ -348,50 +348,51 @@ function DashboardView() {
                 </Card.Body>
               )}
               {!feedbackLoading && !feedbackError && (
-                <ListGroup variant="flush">
-                  {feedbackItems.length === 0 && (
-                    <ListGroup.Item className="text-muted bg-transparent">
-                      No submissions have received feedback yet.
-                    </ListGroup.Item>
-                  )}
-                  {currentFeedbackItems.map((feedbackItem, index) => (
-                    <ListGroup.Item
-                      key={feedbackItem.id}
-                      className={`bg-transparent${
-                        index === currentFeedbackItems.length - 1
-                          ? ' border-bottom'
-                          : ''
-                      }`}
-                    >
-                      <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
-                        <div className="fw-semibold">
-                          {feedbackItem.assignmentTitle}
+                <>
+                  <ListGroup variant="flush">
+                    {feedbackItems.length === 0 && (
+                      <ListGroup.Item className="text-muted bg-transparent">
+                        No submissions have received feedback yet.
+                      </ListGroup.Item>
+                    )}
+                    {currentFeedbackItems.map((feedbackItem, index) => (
+                      <ListGroup.Item
+                        key={feedbackItem.id}
+                        className={`bg-transparent${
+                          index === currentFeedbackItems.length - 1
+                            ? ' border-bottom'
+                            : ''
+                        }`}
+                      >
+                        <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
+                          <div className="fw-semibold">
+                            {feedbackItem.assignmentTitle}
+                          </div>
+                          <small className="text-muted">
+                            Submitted:{' '}
+                            {new Intl.DateTimeFormat('en-GB', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            }).format(feedbackItem.handinDate)}
+                          </small>
                         </div>
-                        <small className="text-muted">
-                          Submitted:{' '}
-                          {new Intl.DateTimeFormat('en-GB', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          }).format(feedbackItem.handinDate)}
-                        </small>
-                      </div>
-                      <blockquote className="border-start border-3 ps-3 mb-0 text-muted small">
-                        "{feedbackItem.feedback}"
-                      </blockquote>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
+                        <blockquote className="border-start border-3 ps-3 mb-0 text-muted small">
+                          "{feedbackItem.feedback}"
+                        </blockquote>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                  <div className="px-3 pb-3">
+                    <PaginationControls
+                      page={feedbackPage}
+                      pageCount={feedbackPageCount}
+                      onPageChange={setFeedbackPage}
+                    />
+                  </div>
+                </>
               )}
             </Card>
-          )}
-
-          {role === 'student' && !feedbackLoading && !feedbackError && (
-            <PaginationControls
-              page={feedbackPage}
-              pageCount={feedbackPageCount}
-              onPageChange={setFeedbackPage}
-            />
           )}
         </Col>
 
