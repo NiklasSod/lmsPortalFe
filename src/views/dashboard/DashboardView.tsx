@@ -9,12 +9,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import {
-  ArrowLeft,
-  ArrowRight,
-  Clock,
-  ExclamationTriangle,
-} from 'react-bootstrap-icons'
+import { Clock, ExclamationTriangle } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -24,6 +19,7 @@ import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
+import PaginationControls from '../../components/PaginationControls'
 
 type Deadline = {
   id: number
@@ -100,61 +96,6 @@ function buildFeedbackItems(
         : new Date(0),
     }))
     .sort((a, b) => b.handinDate.getTime() - a.handinDate.getTime())
-}
-
-interface PaginationControlsProps {
-  page: number
-  pageCount: number
-  onPageChange: (page: number) => void
-}
-
-function PaginationControls({
-  page,
-  pageCount,
-  onPageChange,
-}: PaginationControlsProps) {
-  if (pageCount <= 1) return null
-
-  return (
-    <div className="d-flex justify-content-end align-items-center gap-2 mt-2">
-      <button
-        type="button"
-        className="btn btn-sm btn-outline-secondary text-body border-secondary"
-        onClick={() => onPageChange(Math.max(1, page - 1))}
-        disabled={page === 1}
-        aria-label="Previous page"
-      >
-        <ArrowLeft size={14} />
-      </button>
-
-      {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-        (pageNumber) => (
-          <button
-            key={pageNumber}
-            type="button"
-            className={`btn btn-sm ${
-              pageNumber === page
-                ? 'btn-secondary text-white'
-                : 'btn-outline-secondary text-body border-secondary'
-            }`}
-            onClick={() => onPageChange(pageNumber)}
-          >
-            {pageNumber}
-          </button>
-        ),
-      )}
-
-      <button
-        type="button"
-        className="btn btn-sm btn-outline-secondary text-body border-secondary"
-        onClick={() => onPageChange(Math.min(pageCount, page + 1))}
-        disabled={page === pageCount}
-        aria-label="Next page"
-      >
-        <ArrowRight size={14} />
-      </button>
-    </div>
-  )
 }
 
 function DashboardView() {
@@ -433,7 +374,7 @@ function DashboardView() {
                         </small>
                       </div>
                       <blockquote className="border-start border-3 ps-3 mb-0 text-muted small">
-                        “{feedbackItem.feedback}”
+                        "{feedbackItem.feedback}"
                       </blockquote>
                     </ListGroup.Item>
                   ))}
