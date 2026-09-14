@@ -1,19 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Alert,
-  Badge,
-  Card,
-  Col,
-  Container,
-  ListGroup,
-  Row,
-  Spinner,
-} from 'react-bootstrap'
-import {
-  CheckCircleFill,
-  Clock,
-  ExclamationTriangle,
-} from 'react-bootstrap-icons'
+import { Col, Container, Row } from 'react-bootstrap'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -24,26 +10,12 @@ import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
 import { normalizeStatus } from '../../utils/submissionStatus'
-import type { SubmissionStatusKind } from '../../utils/submissionStatus'
-import PaginationControls from '../../components/PaginationControls'
-import ClampedText from '../../components/ClampedText'
-
-type Deadline = {
-  id: number
-  moduleId: number
-  assignmentTitle: string
-  dueAt: Date
-  status: string | null
-}
-
-type FeedbackItem = {
-  id: number
-  assignmentTitle: string
-  feedback: string
-  handinDate: Date
-  status: SubmissionStatusKind
-  hasResubmission: boolean
-}
+import type { Deadline, FeedbackItem } from '../../types/dashboard'
+import AssignmentDeadlinesCard from '../../components/dashboard/AssignmentDeadlinesCard'
+import AtRiskAlerts from '../../components/dashboard/AtRiskAlerts'
+import CoursesCard from '../../components/dashboard/CoursesCard'
+import LatestFeedbackCard from '../../components/dashboard/LatestFeedbackCard'
+import ModulesCard from '../../components/dashboard/ModulesCard'
 
 function mapToDeadline(assignment: Assignment): Deadline {
   return {
@@ -74,13 +46,6 @@ function isDueSoon(deadline: Deadline) {
 
 function isAtRisk(deadline: Deadline) {
   return isNotTurnedIn(deadline) && isDueSoon(deadline)
-}
-
-function formatDueDate(deadline: Deadline) {
-  return deadline.dueAt.toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
 }
 
 function buildFeedbackItems(
@@ -138,10 +103,6 @@ function DashboardView() {
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
   const [feedbackLoading, setFeedbackLoading] = useState(true)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
-  const [feedbackPage, setFeedbackPage] = useState(1)
-  const [coursesPage, setCoursesPage] = useState(1)
-  const [modulesPage, setModulesPage] = useState(1)
-  const [deadlinesPage, setDeadlinesPage] = useState(1)
 
   const { role } = useAuth()
 
@@ -188,46 +149,6 @@ function DashboardView() {
     (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
   )
 
-  const feedbackPageSize = 4
-  const feedbackPageCount = Math.max(
-    1,
-    Math.ceil(feedbackItems.length / feedbackPageSize),
-  )
-  const currentFeedbackItems = feedbackItems.slice(
-    (feedbackPage - 1) * feedbackPageSize,
-    feedbackPage * feedbackPageSize,
-  )
-
-  const coursesPageSize = 3
-  const coursesPageCount = Math.max(
-    1,
-    Math.ceil(courses.length / coursesPageSize),
-  )
-  const currentCourses = courses.slice(
-    (coursesPage - 1) * coursesPageSize,
-    coursesPage * coursesPageSize,
-  )
-
-  const modulesPageSize = 3
-  const modulesPageCount = Math.max(
-    1,
-    Math.ceil(modules.length / modulesPageSize),
-  )
-  const currentModules = modules.slice(
-    (modulesPage - 1) * modulesPageSize,
-    modulesPage * modulesPageSize,
-  )
-
-  const deadlinesPageSize = 5
-  const deadlinesPageCount = Math.max(
-    1,
-    Math.ceil(visibleDeadlines.length / deadlinesPageSize),
-  )
-  const currentDeadlines = visibleDeadlines.slice(
-    (deadlinesPage - 1) * deadlinesPageSize,
-    deadlinesPage * deadlinesPageSize,
-  )
-
   return (
     <Container className="py-4">
       <h1 className="h2 mb-4">
@@ -236,268 +157,35 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
-          {atRiskDeadlines.map((deadline) => (
-            <Alert
-              key={deadline.id}
-              variant="warning"
-              dismissible
-              onClose={() => setDismissedIds((prev) => [...prev, deadline.id])}
-            >
-              <div className="d-flex gap-3">
-                <ExclamationTriangle
-                  className="flex-shrink-0 mt-1"
-                  aria-hidden="true"
-                />
-                <div>
-                  <Alert.Heading className="h5">
-                    Assignment due soon
-                  </Alert.Heading>
-                  <p className="mb-2">
-                    <strong>{deadline.assignmentTitle}</strong>
-                  </p>
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock aria-hidden="true" />
-                    <span>Due {formatDueDate(deadline)}</span>
-                  </div>
-                </div>
-              </div>
-            </Alert>
-          ))}
+          <AtRiskAlerts
+            deadlines={atRiskDeadlines}
+            onDismiss={(id) => setDismissedIds((prev) => [...prev, id])}
+          />
 
-          <Card className="border-0 shadow-sm">
-            <Card.Header as="h2" className="h5 mb-0">
-              My courses
-            </Card.Header>
-            <Card.Body>
-              {loading && <Spinner animation="border" size="sm" />}
-              {error && <Alert variant="danger">{error}</Alert>}
-              {!loading && !error && courses.length === 0 && (
-                <p className="text-muted mb-0">
-                  You are not enrolled in any courses yet.
-                </p>
-              )}
-              {!loading && !error && courses.length > 0 && (
-                <>
-                  <Row xs={1} md={2} lg={3} className="g-3">
-                    {currentCourses.map((course) => (
-                      <Col key={course.id}>
-                        <Card className="h-100 border shadow-sm">
-                          <Card.Body>
-                            <Card.Title className="h6 mb-2">
-                              {course.name}
-                            </Card.Title>
-                            <ClampedText
-                              text={course.description}
-                              className="text-muted small mb-2"
-                            />
-                            <Card.Text className="text-muted small mb-0">
-                              {new Date(course.startDate).toLocaleDateString()}{' '}
-                              - {new Date(course.endDate).toLocaleDateString()}
-                            </Card.Text>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                  <PaginationControls
-                    page={coursesPage}
-                    pageCount={coursesPageCount}
-                    onPageChange={setCoursesPage}
-                  />
-                </>
-              )}
-            </Card.Body>
-          </Card>
+          <CoursesCard courses={courses} loading={loading} error={error} />
 
-          <Card className="border-0 shadow-sm mt-4">
-            <Card.Header as="h2" className="h5 mb-0">
-              Current modules
-            </Card.Header>
-            <Card.Body>
-              {modulesLoading && <Spinner animation="border" size="sm" />}
-              {modulesError && <Alert variant="danger">{modulesError}</Alert>}
-              {!modulesLoading && !modulesError && modules.length === 0 && (
-                <p className="text-muted mb-0">You have no current modules.</p>
-              )}
-              {!modulesLoading && !modulesError && modules.length > 0 && (
-                <>
-                  <Row xs={1} md={2} lg={3} className="g-3">
-                    {currentModules.map((module) => (
-                      <Col key={module.id}>
-                        <Card className="h-100 border shadow-sm">
-                          <Card.Body>
-                            <Card.Title className="h6 mb-2">
-                              {module.name}
-                            </Card.Title>
-                            <ClampedText
-                              text={module.description}
-                              className="text-muted small mb-2"
-                            />
-                            <Card.Text className="text-muted small mb-0">
-                              {new Date(module.startDate).toLocaleDateString()}{' '}
-                              - {new Date(module.endDate).toLocaleDateString()}
-                            </Card.Text>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                  <PaginationControls
-                    page={modulesPage}
-                    pageCount={modulesPageCount}
-                    onPageChange={setModulesPage}
-                  />
-                </>
-              )}
-            </Card.Body>
-          </Card>
+          <ModulesCard
+            modules={modules}
+            loading={modulesLoading}
+            error={modulesError}
+          />
 
           {role === 'student' && (
-            <Card className="border-0 shadow-sm mt-4">
-              <Card.Header as="h2" className="h5 mb-0">
-                Latest Feedback
-              </Card.Header>
-              {feedbackLoading && (
-                <Card.Body>
-                  <Spinner animation="border" size="sm" />
-                </Card.Body>
-              )}
-              {feedbackError && (
-                <Card.Body>
-                  <Alert variant="danger" className="mb-0">
-                    {feedbackError}
-                  </Alert>
-                </Card.Body>
-              )}
-              {!feedbackLoading && !feedbackError && (
-                <>
-                  <ListGroup variant="flush">
-                    {feedbackItems.length === 0 && (
-                      <ListGroup.Item className="text-muted bg-transparent">
-                        No submissions have received feedback yet.
-                      </ListGroup.Item>
-                    )}
-                    {currentFeedbackItems.map((feedbackItem, index) => (
-                      <ListGroup.Item
-                        key={feedbackItem.id}
-                        className={`bg-transparent${
-                          index === currentFeedbackItems.length - 1
-                            ? ' border-bottom'
-                            : ''
-                        }`}
-                      >
-                        <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
-                          <div className="d-flex align-items-center gap-2">
-                            <span className="fw-semibold">
-                              {feedbackItem.assignmentTitle}
-                            </span>
-                            {feedbackItem.status === 'approved' && (
-                              <CheckCircleFill
-                                className="text-success"
-                                aria-label="Approved"
-                              />
-                            )}
-                            {feedbackItem.status === 'revision' &&
-                              feedbackItem.hasResubmission && (
-                                <CheckCircleFill
-                                  className="text-secondary"
-                                  aria-label="Resubmitted"
-                                />
-                              )}
-                          </div>
-                          <small className="text-muted">
-                            Submitted:{' '}
-                            {new Intl.DateTimeFormat('en-GB', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                            }).format(feedbackItem.handinDate)}
-                          </small>
-                        </div>
-                        <blockquote className="border-start border-3 ps-3 mb-0 text-muted small">
-                          "{feedbackItem.feedback}"
-                        </blockquote>
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                  <div className="px-3 pb-3">
-                    <PaginationControls
-                      page={feedbackPage}
-                      pageCount={feedbackPageCount}
-                      onPageChange={setFeedbackPage}
-                    />
-                  </div>
-                </>
-              )}
-            </Card>
+            <LatestFeedbackCard
+              items={feedbackItems}
+              loading={feedbackLoading}
+              error={feedbackError}
+            />
           )}
         </Col>
 
         {role === 'student' && (
           <Col lg={4}>
-            <Card className="shadow-sm">
-              <Card.Header as="h2" className="h5 mb-0">
-                Assignment deadlines
-              </Card.Header>
-              {deadlinesLoading && (
-                <Card.Body>
-                  <Spinner animation="border" size="sm" />
-                </Card.Body>
-              )}
-              {deadlinesError && (
-                <Card.Body>
-                  <Alert variant="danger" className="mb-0">
-                    {deadlinesError}
-                  </Alert>
-                </Card.Body>
-              )}
-              {!deadlinesLoading && !deadlinesError && (
-                <>
-                  <ListGroup variant="flush">
-                    {visibleDeadlines.length === 0 && (
-                      <ListGroup.Item className="text-muted">
-                        No upcoming assignments.
-                      </ListGroup.Item>
-                    )}
-                    {currentDeadlines.map((deadline) => (
-                      <ListGroup.Item key={deadline.id} className="py-3">
-                        <div className="fw-semibold">
-                          {deadline.assignmentTitle}
-                        </div>
-                        <div className="d-flex align-items-center gap-2 mt-2 text-muted">
-                          <Clock aria-hidden="true" />
-                          <span>Due {formatDueDate(deadline)}</span>
-                        </div>
-                        <div className="mt-1">
-                          <Badge
-                            bg={
-                              isNotTurnedIn(deadline)
-                                ? 'secondary'
-                                : deadline.status === 'Revision'
-                                  ? 'danger'
-                                  : 'success'
-                            }
-                          >
-                            {isNotTurnedIn(deadline)
-                              ? 'Not turned in'
-                              : deadline.status === 'Revision'
-                                ? 'Rejected'
-                                : 'Turned in'}
-                          </Badge>
-                        </div>
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                  <div className="px-3 pb-3">
-                    <PaginationControls
-                      page={deadlinesPage}
-                      pageCount={deadlinesPageCount}
-                      onPageChange={setDeadlinesPage}
-                    />
-                  </div>
-                </>
-              )}
-            </Card>
+            <AssignmentDeadlinesCard
+              deadlines={visibleDeadlines}
+              loading={deadlinesLoading}
+              error={deadlinesError}
+            />
           </Col>
         )}
       </Row>
