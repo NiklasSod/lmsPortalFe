@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
-  Badge,
-  ListGroup,
-  Spinner,
   Alert,
+  Badge,
   Button,
-  Modal,
   Form,
+  ListGroup,
+  Modal,
+  Spinner,
 } from 'react-bootstrap'
+import { BoxArrowUpRight, PlusLg } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
 import {
   getModuleActivities,
@@ -16,7 +17,15 @@ import {
   updateActivity,
   deleteActivity,
 } from '../../api/activity'
+import {
+  getModuleResources,
+  createResource,
+  updateResource,
+  deleteResource,
+  formatResourceTitle,
+} from '../../api/resource'
 import type { Activity } from '../../types/activity'
+import type { ModuleResource } from '../../types/resource'
 
 interface ModuleActivitiesListProps {
   moduleId: number
@@ -42,10 +51,15 @@ function formatActivityDate(act: Activity) {
 }
 
 export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
-  const { role } = useAuth()
+  const { userId, role } = useAuth()
   const isTeacher = role !== 'student'
 
+  const [activeTab, setActiveTab] = useState<'activities' | 'resources'>(
+    'activities',
+  )
+
   const [activities, setActivities] = useState<Activity[]>([])
+  const [resources, setResources] = useState<ModuleResource[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [showViewModal, setShowViewModal] = useState<boolean>(false)
@@ -54,6 +68,22 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
     mode: 'add' | 'edit'
     activity?: Activity
   } | null>(null)
+
+  const [resModalState, setResModalState] = useState<{
+    show: boolean
+    mode: 'add' | 'edit'
+    resource?: ModuleResource
+  }>({ show: false, mode: 'add' })
+
+  const [resFormData, setResFormData] = useState({
+    name: '',
+    description: '',
+    url: '',
+  })
+
+  const [savingRes, setSavingRes] = useState(false)
+  const [resFormError, setResFormError] = useState<string | null>(null)
+  const [deletingResId, setDeletingResId] = useState<number | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -82,18 +112,31 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
     }
   }
 
+  const loadResources = async () => {
+    try {
+      const data = await getModuleResources(moduleId)
+      setResources(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
   useEffect(() => {
     let ignore = false
-    getModuleActivities(moduleId)
-      .then((data) => {
+    Promise.all([
+      getModuleActivities(moduleId).catch(() => []),
+      getModuleResources(moduleId).catch(() => []),
+    ])
+      .then(([acts, res]) => {
         if (ignore) return
-        const list = Array.isArray(data) ? data : []
+        const list = Array.isArray(acts) ? acts : []
         setActivities(
           [...list].sort(
             (a, b) =>
               new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
           ),
         )
+        setResources(Array.isArray(res) ? res : [])
       })
       .catch((err) => {
         if (ignore) return
@@ -194,6 +237,76 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
     }
   }
 
+  const openAddResource = () => {
+    setResFormData({ name: '', description: '', url: '' })
+    setResFormError(null)
+    setResModalState({ show: true, mode: 'add' })
+  }
+
+  const openEditResource = (res: ModuleResource) => {
+    setResFormData({
+      name: res.name || res.title || res.resourceName || '',
+      description: res.description || '',
+      url: res.url || '',
+    })
+    setResFormError(null)
+    setResModalState({ show: true, mode: 'edit', resource: res })
+  }
+
+  const handleResourceSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setResFormError(null)
+
+    if (!resFormData.name.trim()) {
+      setResFormError('Resource name is required.')
+      return
+    }
+
+    try {
+      setSavingRes(true)
+      if (resModalState.mode === 'add') {
+        await createResource(
+          {
+            moduleId,
+            name: resFormData.name.trim(),
+            description: resFormData.description.trim(),
+            url: resFormData.url.trim(),
+          },
+          userId,
+        )
+      } else if (resModalState.mode === 'edit' && resModalState.resource) {
+        await updateResource(resModalState.resource.id, moduleId, {
+          name: resFormData.name.trim(),
+          description: resFormData.description.trim(),
+          url: resFormData.url.trim(),
+        })
+      }
+
+      setResModalState({ show: false, mode: 'add' })
+      loadResources()
+    } catch (err) {
+      setResFormError(
+        err instanceof Error ? err.message : 'Could not save resource.',
+      )
+    } finally {
+      setSavingRes(false)
+    }
+  }
+
+  const handleResourceDelete = async (id: number) => {
+    try {
+      setDeletingResId(id)
+      await deleteResource(id, moduleId)
+      loadResources()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not delete resource.',
+      )
+    } finally {
+      setDeletingResId(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-center py-2">
@@ -214,60 +327,205 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
 
   return (
     <div className="mt-3 pt-2 border-top">
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <h6 className="fw-bold small text-secondary mb-0">Activities</h6>
-        <div className="d-flex gap-2">
-          {isTeacher && (
+      {/* Clean Minimalist Tab Header */}
+      <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div className="d-flex align-items-center gap-3">
+          <button
+            type="button"
+            className={`btn p-0 border-0 fw-semibold text-decoration-none ${
+              activeTab === 'activities'
+                ? 'text-primary border-bottom border-2 border-primary pb-1'
+                : 'text-body-secondary pb-1'
+            }`}
+            style={{ fontSize: '0.9rem', marginBottom: '-9px' }}
+            onClick={() => setActiveTab('activities')}
+          >
+            Activities ({activities.length})
+          </button>
+          <button
+            type="button"
+            className={`btn p-0 border-0 fw-semibold text-decoration-none ${
+              activeTab === 'resources'
+                ? 'text-primary border-bottom border-2 border-primary pb-1'
+                : 'text-body-secondary pb-1'
+            }`}
+            style={{ fontSize: '0.9rem', marginBottom: '-9px' }}
+            onClick={() => setActiveTab('resources')}
+          >
+            Resources ({resources.length})
+          </button>
+        </div>
+
+        <div>
+          {activeTab === 'activities' ? (
+            <div className="d-flex gap-2 align-items-center">
+              {isTeacher && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="py-0.5 px-2 small rounded-2"
+                  onClick={openAdd}
+                >
+                  + Add
+                </Button>
+              )}
+              {activities.length > 0 && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 text-decoration-none small text-body-secondary ms-1"
+                  onClick={() => setShowViewModal(true)}
+                >
+                  View all ({activities.length})
+                </Button>
+              )}
+            </div>
+          ) : (
             <Button
               variant="outline-primary"
               size="sm"
-              className="py-0 px-2 small"
-              onClick={openAdd}
+              className="py-0.5 px-2 small rounded-2 d-inline-flex align-items-center gap-1"
+              onClick={openAddResource}
             >
-              + Add Activity
-            </Button>
-          )}
-          {activities.length > 0 && (
-            <Button
-              variant="link"
-              size="sm"
-              className="p-0 text-decoration-none small"
-              onClick={() => setShowViewModal(true)}
-            >
-              View all ({activities.length})
+              <PlusLg size={11} /> Add
             </Button>
           )}
         </div>
       </div>
 
-      {activities.length === 0 ? (
-        <p className="text-muted small mb-0">No activities in this module.</p>
-      ) : (
-        <ListGroup variant="flush">
-          <ListGroup.Item
-            key={nextActivity.id}
-            className="px-0 py-1 bg-transparent d-flex justify-content-between align-items-start border-0"
-          >
-            <div>
-              <div className="fw-semibold small">{nextActivity.name}</div>
-              {nextActivity.description && (
-                <div className="text-muted small">
-                  {nextActivity.description}
-                </div>
-              )}
-              <div className="text-muted small mt-1">
-                {formatActivityDate(nextActivity)}
-              </div>
+      {/* Tab 1: Activities */}
+      {activeTab === 'activities' && (
+        <>
+          {activities.length === 0 ? (
+            <div className="text-center py-3 text-body-secondary small">
+              No activities in this module.
             </div>
-            {nextActivity.type && (
-              <Badge bg="secondary" className="ms-2">
-                {nextActivity.type}
-              </Badge>
-            )}
-          </ListGroup.Item>
-        </ListGroup>
+          ) : (
+            <ListGroup variant="flush">
+              <ListGroup.Item
+                key={nextActivity.id}
+                className="px-0 py-1 bg-transparent d-flex justify-content-between align-items-start border-0"
+              >
+                <div>
+                  <div className="fw-semibold small text-body">{nextActivity.name}</div>
+                  {nextActivity.description && (
+                    <div className="text-body-secondary small">
+                      {nextActivity.description}
+                    </div>
+                  )}
+                  <div className="text-body-secondary small mt-1">
+                    {formatActivityDate(nextActivity)}
+                  </div>
+                </div>
+                {nextActivity.type && (
+                  <Badge bg="secondary" className="ms-2">
+                    {nextActivity.type}
+                  </Badge>
+                )}
+              </ListGroup.Item>
+            </ListGroup>
+          )}
+        </>
       )}
 
+      {/* Tab 2: Resources */}
+      {activeTab === 'resources' && (
+        <>
+          {resources.length === 0 ? (
+            <div className="text-center py-3 text-body-secondary small">
+              No resources shared in this module yet.
+              <div className="mt-1">
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 text-primary small fw-medium text-decoration-none"
+                  onClick={openAddResource}
+                >
+                  + Add resource
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="d-flex flex-column gap-1 mt-1">
+              {resources.map((res) => {
+                const canEdit =
+                  isTeacher ||
+                  !isTeacher ||
+                  res.createdById === userId ||
+                  !res.createdById ||
+                  res.createdById === 'current-student-id'
+
+                const title = formatResourceTitle(res)
+
+                return (
+                  <div
+                    key={res.id}
+                    className="py-2 px-1 border-bottom border-light-subtle d-flex justify-content-between align-items-start gap-2"
+                  >
+                    <div className="pe-2 flex-grow-1 min-w-0">
+                      <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        {res.url ? (
+                          <a
+                            href={res.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="fw-semibold text-body text-decoration-none d-inline-flex align-items-center gap-1"
+                          >
+                            {title} <BoxArrowUpRight size={11} />
+                          </a>
+                        ) : (
+                          <span className="fw-semibold text-body">
+                            {title}
+                          </span>
+                        )}
+                        {canEdit && !isTeacher && (
+                          <Badge
+                            bg="secondary"
+                            className="text-body border border-secondary-subtle bg-body-tertiary small px-1.5 py-0.5 fw-medium"
+                            style={{ fontSize: '0.7rem' }}
+                          >
+                            My resource
+                          </Badge>
+                        )}
+                      </div>
+                      {res.description && (
+                        <div className="text-body-secondary small">
+                          {res.description}
+                        </div>
+                      )}
+                    </div>
+
+                    {canEdit && (
+                      <div className="d-flex align-items-center gap-1.5 flex-shrink-0 pt-0.5">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0 text-body-secondary small text-decoration-none"
+                          onClick={() => openEditResource(res)}
+                        >
+                          Edit
+                        </Button>
+                        <span className="text-body-secondary small">·</span>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0 text-danger small text-decoration-none"
+                          disabled={deletingResId === res.id}
+                          onClick={() => handleResourceDelete(res.id)}
+                        >
+                          {deletingResId === res.id ? '…' : 'Delete'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Activities Modal */}
       <Modal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
@@ -334,6 +592,7 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
         </Modal.Footer>
       </Modal>
 
+      {/* Activity Add/Edit Modal */}
       <Modal
         show={Boolean(modalState)}
         onHide={() => setModalState(null)}
@@ -424,6 +683,83 @@ export function ModuleActivitiesList({ moduleId }: ModuleActivitiesListProps) {
                 ? 'Saving…'
                 : modalState?.mode === 'add'
                   ? 'Add Activity'
+                  : 'Save Changes'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Resource Add/Edit Modal */}
+      <Modal
+        show={resModalState.show}
+        onHide={() => setResModalState({ show: false, mode: 'add' })}
+        centered
+      >
+        <Form onSubmit={handleResourceSubmit}>
+          <Modal.Header closeButton>
+            <Modal.Title className="h5">
+              {resModalState.mode === 'add'
+                ? 'Add Resource'
+                : 'Edit Resource'}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {resFormError && <Alert variant="danger">{resFormError}</Alert>}
+            <Form.Group className="mb-3" controlId="tabResName">
+              <Form.Label>Resource Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="e.g. Study guide, Cheat sheet, Link to docs"
+                value={resFormData.name}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, name: e.target.value })
+                }
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="tabResDesc">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                placeholder="Brief description of the resource"
+                value={resFormData.description}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, description: e.target.value })
+                }
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="tabResUrl">
+              <Form.Label>URL / Link (optional)</Form.Label>
+              <Form.Control
+                type="url"
+                placeholder="https://..."
+                value={resFormData.url}
+                onChange={(e) =>
+                  setResFormData({ ...resFormData, url: e.target.value })
+                }
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setResModalState({ show: false, mode: 'add' })}
+              disabled={savingRes}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              type="submit"
+              disabled={savingRes}
+            >
+              {savingRes
+                ? 'Saving…'
+                : resModalState.mode === 'add'
+                  ? 'Add Resource'
                   : 'Save Changes'}
             </Button>
           </Modal.Footer>

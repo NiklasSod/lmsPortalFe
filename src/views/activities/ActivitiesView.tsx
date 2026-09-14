@@ -9,9 +9,11 @@ import {
   Badge,
   Form,
 } from 'react-bootstrap'
-import { ListCheck } from 'react-bootstrap-icons'
+import { ListCheck, BoxArrowUpRight } from 'react-bootstrap-icons'
 import { getMineActivities, getAllActivities } from '../../api/activity'
+import { getActivityResources, formatResourceTitle } from '../../api/resource'
 import type { Activity } from '../../types/activity'
+import type { ModuleResource } from '../../types/resource'
 
 function formatActivityDate(act: Activity) {
   const startDateObj = act.startDate ? new Date(act.startDate) : null
@@ -98,6 +100,9 @@ function sortActivities(activities: Activity[]) {
 
 export const ActivitiesView: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([])
+  const [activityResourcesMap, setActivityResourcesMap] = useState<
+    Record<number, ModuleResource[]>
+  >({})
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedWeek, setSelectedWeek] = useState<'this' | 'next'>('this')
@@ -119,6 +124,18 @@ export const ActivitiesView: React.FC = () => {
         }
 
         setActivities(data)
+
+        // Fetch activity resources in parallel
+        const map: Record<number, ModuleResource[]> = {}
+        await Promise.all(
+          data.map(async (act) => {
+            const res = await getActivityResources(act.id).catch(() => [])
+            if (res.length > 0) {
+              map[act.id] = res
+            }
+          }),
+        )
+        setActivityResourcesMap(map)
       } catch (err) {
         setError((err as Error).message)
       } finally {
@@ -199,30 +216,72 @@ export const ActivitiesView: React.FC = () => {
 
     return (
       <Row xs={1} md={2} lg={3} className="g-3">
-        {items.map((activity) => (
-          <Col key={activity.id}>
-            <Card className="h-100 border shadow-sm">
-              <Card.Body className="d-flex flex-column">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <Card.Title className="h5 mb-0">{activity.name}</Card.Title>
-                  {activity.type && (
-                    <Badge bg="secondary" className="ms-2">
-                      {activity.type}
-                    </Badge>
+        {items.map((activity) => {
+          const resList = activityResourcesMap[activity.id] || []
+
+          return (
+            <Col key={activity.id}>
+              <Card className="h-100 border shadow-sm">
+                <Card.Body className="d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <Card.Title className="h5 mb-0">{activity.name}</Card.Title>
+                    {activity.type && (
+                      <Badge bg="secondary" className="ms-2">
+                        {activity.type}
+                      </Badge>
+                    )}
+                  </div>
+                  {activity.description && (
+                    <Card.Text className="text-body-secondary small mb-2">
+                      {activity.description}
+                    </Card.Text>
                   )}
-                </div>
-                {activity.description && (
-                  <Card.Text className="text-muted small mb-3">
-                    {activity.description}
+
+                  {resList.length > 0 && (
+                    <div className="mt-2 pt-2 border-top">
+                      <div className="fw-semibold small text-body mb-1">
+                        Resources:
+                      </div>
+                      <div className="d-flex flex-column gap-1">
+                        {resList.map((res) => {
+                          const title = formatResourceTitle(res)
+
+                          return (
+                            <div key={res.id} className="small mb-1">
+                              {res.url ? (
+                                <a
+                                  href={res.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="fw-semibold text-body text-decoration-none d-inline-flex align-items-center gap-1"
+                                >
+                                  {title} <BoxArrowUpRight size={10} />
+                                </a>
+                              ) : (
+                                <span className="fw-semibold text-body">
+                                  {title}
+                                </span>
+                              )}
+                              {res.description && (
+                                <div className="text-body-secondary small">
+                                  {res.description}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <Card.Text className="text-body-secondary small mb-0 mt-auto pt-2">
+                    {formatActivityDate(activity)}
                   </Card.Text>
-                )}
-                <Card.Text className="text-muted small mb-0 mt-auto">
-                  {formatActivityDate(activity)}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+                </Card.Body>
+              </Card>
+            </Col>
+          )
+        })}
       </Row>
     )
   }
