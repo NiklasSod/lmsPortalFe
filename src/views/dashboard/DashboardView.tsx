@@ -9,7 +9,11 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import { Clock, ExclamationTriangle } from 'react-bootstrap-icons'
+import {
+  CheckCircleFill,
+  Clock,
+  ExclamationTriangle,
+} from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -19,6 +23,8 @@ import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
+import { normalizeStatus } from '../../utils/submissionStatus'
+import type { SubmissionStatusKind } from '../../utils/submissionStatus'
 import PaginationControls from '../../components/PaginationControls'
 import ClampedText from '../../components/ClampedText'
 
@@ -35,6 +41,8 @@ type FeedbackItem = {
   assignmentTitle: string
   feedback: string
   handinDate: Date
+  status: SubmissionStatusKind
+  hasResubmission: boolean
 }
 
 function mapToDeadline(assignment: Assignment): Deadline {
@@ -83,6 +91,15 @@ function buildFeedbackItems(
     deadlines.map((deadline) => [deadline.id, deadline.assignmentTitle]),
   )
 
+  const latestIdByAssignment = new Map<number, number>()
+  for (const submission of submissions) {
+    if (submission.assignmentId == null) continue
+    const current = latestIdByAssignment.get(submission.assignmentId)
+    if (current === undefined || submission.id > current) {
+      latestIdByAssignment.set(submission.assignmentId, submission.id)
+    }
+  }
+
   return submissions
     .filter(hasFeedback)
     .map((submission) => ({
@@ -95,6 +112,11 @@ function buildFeedbackItems(
       handinDate: submission.handinDate
         ? new Date(submission.handinDate)
         : new Date(0),
+      status: normalizeStatus(submission.status),
+      hasResubmission:
+        submission.assignmentId != null &&
+        submission.id <
+          (latestIdByAssignment.get(submission.assignmentId) ?? submission.id),
     }))
     .sort((a, b) => b.handinDate.getTime() - a.handinDate.getTime())
 }
@@ -365,8 +387,23 @@ function DashboardView() {
                         }`}
                       >
                         <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
-                          <div className="fw-semibold">
-                            {feedbackItem.assignmentTitle}
+                          <div className="d-flex align-items-center gap-2">
+                            <span className="fw-semibold">
+                              {feedbackItem.assignmentTitle}
+                            </span>
+                            {feedbackItem.status === 'approved' && (
+                              <CheckCircleFill
+                                className="text-success"
+                                aria-label="Approved"
+                              />
+                            )}
+                            {feedbackItem.status === 'revision' &&
+                              feedbackItem.hasResubmission && (
+                                <CheckCircleFill
+                                  className="text-secondary"
+                                  aria-label="Resubmitted"
+                                />
+                              )}
                           </div>
                           <small className="text-muted">
                             Submitted:{' '}
