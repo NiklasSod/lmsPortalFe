@@ -162,10 +162,10 @@ export const CourseModulesView: React.FC = () => {
               </Button>
             </Alert>
           ) : (
-            <ListGroup>
+            <ListGroup className=" d-flex gap-3">
               {modules.length > 0 ? (
                 modules.map((module) => (
-                  <ListGroup.Item key={module.id} className="py-3">
+                  <ListGroup.Item key={module.id} className="py-3 border">
                     <div className="fw-semibold">{module.name}</div>
                     <div className="text-muted small">{module.description}</div>
                     <div className="text-muted small mt-1">
