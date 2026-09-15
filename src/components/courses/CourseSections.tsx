@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Nav } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
+import { getCourseResources } from '../../api/resource'
 
 interface CourseSectionsProps {
   courseId: string
@@ -18,10 +20,22 @@ function CourseSections({ courseId }: CourseSectionsProps) {
   const coursesPath = '/courses'
   const location = useLocation()
 
+  const [resourceCount, setResourceCount] = useState<number>(0)
+
+  useEffect(() => {
+    if (!courseId) return
+    getCourseResources(Number(courseId))
+      .then((res) => setResourceCount(res.length))
+      .catch(() => setResourceCount(0))
+  }, [courseId])
+
+  const resourceLabel =
+    resourceCount > 1 ? `Resources (${resourceCount})` : 'Resources'
+
   const sections: SectionLink[] = [
     { label: 'Overview', to: `${base}${coursesPath}/${courseId}` },
     { label: 'Modules', to: `${base}${coursesPath}/${courseId}/modules` },
-    { label: 'Resources', to: `${base}${coursesPath}/${courseId}/resources` },
+    { label: resourceLabel, to: `${base}${coursesPath}/${courseId}/resources` },
     { label: 'Assignments', to: `${base}/assignments?courseId=${courseId}` },
     { label: 'Members', to: `${base}${coursesPath}/${courseId}/members` },
   ]
