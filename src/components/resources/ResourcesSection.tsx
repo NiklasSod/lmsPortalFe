@@ -7,6 +7,7 @@ import {
   getActivityResources,
   getCourseResources,
   getModuleResources,
+  getModuleStudentResources,
   deleteResource,
 } from '../../api/resource'
 import type { Resource } from '../../types/resource'
@@ -32,8 +33,10 @@ function ResourcesSection({
   const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
   const canEdit = isTeacher && editMode
+  const canAdd = isTeacher || moduleId !== undefined
 
   const [resources, setResources] = useState<Resource[]>([])
+  const [studentResources, setStudentResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,10 +54,16 @@ function ResourcesSection({
     async function fetchResources() {
       try {
         let data: Resource[] = []
+        let studentData: Resource[] = []
         if (courseId !== undefined) {
           data = await getCourseResources(courseId)
         } else if (moduleId !== undefined) {
           data = await getModuleResources(moduleId)
+          try {
+            studentData = await getModuleStudentResources(moduleId)
+          } catch {
+            studentData = []
+          }
         } else if (activityId !== undefined) {
           data = await getActivityResources(activityId)
         }
@@ -62,6 +71,7 @@ function ResourcesSection({
         if (ignore) return
         setError(null)
         setResources(Array.isArray(data) ? data : [])
+        setStudentResources(Array.isArray(studentData) ? studentData : [])
       } catch (err) {
         if (ignore) return
         setError(
@@ -81,7 +91,11 @@ function ResourcesSection({
 
   const handleSaved = (resource: Resource, mode: 'add' | 'edit') => {
     if (mode === 'add') {
-      setResources((prev) => [...prev, resource])
+      if (resource.isStudentSubmitted) {
+        setStudentResources((prev) => [...prev, resource])
+      } else {
+        setResources((prev) => [...prev, resource])
+      }
     } else {
       setResources((prev) =>
         prev.map((r) => (r.id === resource.id ? resource : r)),
@@ -126,7 +140,7 @@ function ResourcesSection({
     <div className={bordered ? 'mt-3 pt-2 border-top' : ''}>
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h6 className="fw-bold small text-secondary mb-0">{title}</h6>
-        {isTeacher && (
+        {canAdd && (
           <Button
             variant="outline-primary"
             size="sm"
@@ -191,6 +205,38 @@ function ResourcesSection({
             )
           })}
         </ListGroup>
+      )}
+
+      {studentResources.length > 0 && (
+        <>
+          <h6 className="fw-bold small text-secondary mt-3 mb-2">
+            Student resources
+          </h6>
+          <ListGroup variant="flush">
+            {studentResources.map((resource) => (
+              <ListGroup.Item
+                key={resource.id}
+                className="px-0 py-2 bg-transparent border-bottom d-flex justify-content-between align-items-start"
+              >
+                <div className="me-2">
+                  <a
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="fw-semibold small text-decoration-none d-inline-flex align-items-center gap-1"
+                    style={{ color: 'var(--link-color)' }}
+                  >
+                    <span className="text-break">{resource.displayName}</span>
+                    <BoxArrowUpRight size={12} className="flex-shrink-0" />
+                  </a>
+                  <div className="text-muted small mt-1">
+                    Added {new Date(resource.uploadDate).toLocaleDateString()}
+                  </div>
+                </div>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </>
       )}
 
       <ResourceFormModal

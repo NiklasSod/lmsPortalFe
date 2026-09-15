@@ -27,6 +27,13 @@ export async function getModuleResources(
   return readJson(res, `Failed to fetch module resources: ${res.status}`)
 }
 
+export async function getModuleStudentResources(
+  moduleId: number,
+): Promise<Resource[]> {
+  const res = await apiFetch(`/api/modules/${moduleId}/student-resources`)
+  return readJson(res, `Failed to fetch student resources: ${res.status}`)
+}
+
 export async function getActivityResources(
   activityId: number,
 ): Promise<Resource[]> {
