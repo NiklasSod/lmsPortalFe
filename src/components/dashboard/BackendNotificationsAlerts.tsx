@@ -22,39 +22,53 @@ const BackendNotificationsAlerts = ({
 
   const base = role === 'student' ? '/student' : '/teacher'
 
+  const getAlertVariant = (item: UserNotification) => {
+    const title = (item.title || '').toLowerCase()
+    if (item.type === 'approved' || title.includes('approved')) {
+      return 'success'
+    }
+    if (item.type === 'revision' || title.includes('revision')) {
+      return 'info'
+    }
+    return 'primary'
+  }
+
   return (
     <>
-      {notifications.map((item) => (
-        <Alert
-          key={`notification-${item.id}`}
-          variant="primary"
-          dismissible
-          onClose={() => onDismiss(item.id)}
-        >
-          <div className="d-flex align-items-start gap-3">
-            <DomainIcon
-              type={item.type}
-              className="flex-shrink-0"
-            />
-            <div className="w-100">
-              <div className="d-flex align-items-center mb-1">
-                <Alert.Heading className="h6 mb-0">
-                  {item.title || 'Notification'}
-                </Alert.Heading>
-              </div>
-              <p className="mb-1 small">{item.body}</p>
-              <div>
-                <Link
-                  to={`${base}/assignments`}
-                  className="alert-link small fw-semibold text-decoration-none"
-                >
-                  View assignments &rarr;
-                </Link>
+      {notifications.map((item) => {
+        const variant = getAlertVariant(item)
+        return (
+          <Alert
+            key={`notification-${item.id}`}
+            variant={variant}
+            dismissible
+            onClose={() => onDismiss(item.id)}
+          >
+            <div className="d-flex align-items-start gap-3">
+              <DomainIcon
+                type={item.type}
+                className="flex-shrink-0"
+              />
+              <div className="w-100">
+                <div className="d-flex align-items-center mb-1">
+                  <Alert.Heading className="h6 mb-0">
+                    {item.title || 'Notification'}
+                  </Alert.Heading>
+                </div>
+                <p className="mb-1 small">{item.body}</p>
+                <div>
+                  <Link
+                    to={`${base}/assignments`}
+                    className="alert-link small fw-semibold text-decoration-none"
+                  >
+                    View assignments &rarr;
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-        </Alert>
-      ))}
+          </Alert>
+        )
+      })}
     </>
   )
 }
