@@ -33,11 +33,11 @@ const BackendNotificationsAlerts = ({
         >
           <div className="d-flex align-items-center gap-3 mb-2">
             <DomainIcon type={item.type} />
-            <Alert.Heading className="h5 mb-0">
+            <Alert.Heading className="h6 mb-0">
               {item.title || 'Notification'}
             </Alert.Heading>
           </div>
-          <p className="mb-2 ms-4 ps-2">{item.body}</p>
+          <p className="mb-1 ms-4 ps-1 small">{item.body}</p>
           <div className="ms-4 ps-2">
             <Link
               to={`${base}/assignments`}
