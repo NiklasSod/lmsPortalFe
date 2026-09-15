@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react'
 import {
-  Alert,
   Col,
   Container,
   Row,
 } from 'react-bootstrap'
 import { Speedometer } from 'react-bootstrap-icons'
-import { Link } from 'react-router-dom'
-import { DomainIcon } from '../../components/DomainIcon'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -18,25 +15,11 @@ import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
-
-type UserNotification = {
-  id: number
-  type: string
-  title: string
-  body: string
-  courseId: number | null
-  moduleId: number | null
-  activityId: number | null
-  resourceId: number | null
-  submissionId: number | null
-  createdAt: string
-  isSeen: boolean
-  seenAt: string | null
-}
 import { normalizeStatus } from '../../utils/submissionStatus'
 import type { Deadline, FeedbackItem } from '../../types/dashboard'
 import AssignmentDeadlinesCard from '../../components/dashboard/AssignmentDeadlinesCard'
 import AtRiskAlerts from '../../components/dashboard/AtRiskAlerts'
+import BackendNotificationsAlerts, { type UserNotification } from '../../components/dashboard/BackendNotificationsAlerts'
 import CoursesCard from '../../components/dashboard/CoursesCard'
 import LatestFeedbackCard from '../../components/dashboard/LatestFeedbackCard'
 import ModulesCard from '../../components/dashboard/ModulesCard'
@@ -133,7 +116,6 @@ function DashboardView() {
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
 
   const { role } = useAuth()
-  const base = role === 'student' ? '/student' : '/teacher'
 
   useEffect(() => {
     getMyCourses()
@@ -217,37 +199,14 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
-
-          {/* Backend driven notifications */}
-          {role === 'student' &&
-            !notifLoading &&
-            notifications.map((item) => (
-              <Alert
-                key={`notification-${item.id}`}
-                variant="primary"
-                dismissible
-                onClose={() => handleDismissNotification(item.id)}
-              >
-                <div className="d-flex align-items-center gap-3 mb-2">
-                  <DomainIcon type={item.type} />
-                  <Alert.Heading className="h5 mb-0">
-                    {item.title || 'Notification'}
-                  </Alert.Heading>
-                </div>
-                <p className="mb-2 ms-4 ps-2">
-                  {item.body}
-                </p>
-                <div className="ms-4 ps-2">
-                  <Link
-                    to={`${base}/assignments`}
-                    className="alert-link small fw-semibold text-decoration-none"
-                  >
-                    View assignments &rarr;
-                  </Link>
-                </div>
-              </Alert>
-            ))}
-
+        
+          <BackendNotificationsAlerts
+            notifications={notifications}
+            loading={notifLoading}
+            role={role}
+            onDismiss={handleDismissNotification}
+          />
+          
           <AtRiskAlerts
             deadlines={atRiskDeadlines}
             onDismiss={(id) => setDismissedIds((prev) => [...prev, id])}
