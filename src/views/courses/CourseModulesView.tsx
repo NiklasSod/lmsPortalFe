@@ -143,7 +143,7 @@ export const CourseModulesView: React.FC = () => {
       <Row>
         <Col lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h2 className="h6 fw-semibold mb-0">Modules</h2>
+            <h2 className="h5 fw-semibold mb-0">Modules</h2>
             {!isStudent && (
               <Button
                 variant="primary"

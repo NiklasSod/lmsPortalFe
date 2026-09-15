@@ -240,10 +240,14 @@ export const AssignmentsView: React.FC = () => {
       )}
 
       <div className="d-flex align-items-center justify-content-between mb-3">
-        <div className="d-flex align-items-center gap-2">
-          <DomainIcon type="assignment" size={28} className="text-primary" />
-          <h1 className="h2 mb-0">Assignments</h1>
-        </div>
+        {hasCourseFilter ? (
+          <h2 className="h5 fw-semibold mb-0">Assignments</h2>
+        ) : (
+          <div className="d-flex align-items-center gap-2">
+            <DomainIcon type="assignment" size={28} className="text-primary" />
+            <h1 className="h2 mb-0">Assignments</h1>
+          </div>
+        )}
         {isTeacher && (
           <Button
             variant="primary"

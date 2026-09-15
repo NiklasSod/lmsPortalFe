@@ -78,7 +78,9 @@ export const CourseResourcesView: React.FC = () => {
         </Breadcrumb.Item>
       </Breadcrumb>
 
-      <h1 className="h4 fw-bold mb-3">Course Resources</h1>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h2 className="h5 fw-semibold mb-0">Course Resources</h2>
+      </div>
 
       <ResourcesSection courseId={course.id} title="Resources" />
     </Container>
