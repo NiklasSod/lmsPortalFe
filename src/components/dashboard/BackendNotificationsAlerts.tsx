@@ -31,20 +31,27 @@ const BackendNotificationsAlerts = ({
           dismissible
           onClose={() => onDismiss(item.id)}
         >
-          <div className="d-flex align-items-center gap-3 mb-2">
-            <DomainIcon type={item.type} />
-            <Alert.Heading className="h6 mb-0">
-              {item.title || 'Notification'}
-            </Alert.Heading>
-          </div>
-          <p className="mb-1 ms-4 ps-1 small">{item.body}</p>
-          <div className="ms-4 ps-2">
-            <Link
-              to={`${base}/assignments`}
-              className="alert-link small fw-semibold text-decoration-none"
-            >
-              View assignments &rarr;
-            </Link>
+          <div className="d-flex align-items-start gap-3">
+            <DomainIcon
+              type={item.type}
+              className="flex-shrink-0"
+            />
+            <div className="w-100">
+              <div className="d-flex align-items-center mb-1">
+                <Alert.Heading className="h6 mb-0">
+                  {item.title || 'Notification'}
+                </Alert.Heading>
+              </div>
+              <p className="mb-1 small">{item.body}</p>
+              <div>
+                <Link
+                  to={`${base}/assignments`}
+                  className="alert-link small fw-semibold text-decoration-none"
+                >
+                  View assignments &rarr;
+                </Link>
+              </div>
+            </div>
           </div>
         </Alert>
       ))}

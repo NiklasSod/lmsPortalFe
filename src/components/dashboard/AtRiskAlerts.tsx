@@ -24,17 +24,21 @@ const AtRiskAlerts = ({ deadlines, onDismiss }: AtRiskAlertsProps) => {
           dismissible
           onClose={() => onDismiss(deadline.id)}
         >
-          <div className="d-flex gap-3">
+          <div className="d-flex align-items-start gap-3">
             <ExclamationTriangle
-              className="flex-shrink-0 mt-1"
+              className="flex-shrink-0"
               aria-hidden="true"
+              width={20}
+              height={20}
             />
-            <div>
-              <Alert.Heading className="h5">Assignment due soon</Alert.Heading>
-              <p className="mb-2">
+            <div className="w-100">
+              <div className="d-flex align-items-center mb-1">
+                <Alert.Heading className="h6 mb-0">Assignment due soon</Alert.Heading>
+              </div>
+              <p className="mb-1 small">
                 <strong>{deadline.assignmentTitle}</strong>
               </p>
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-2 small">
                 <Clock aria-hidden="true" />
                 <span>Due {formatDueDate(deadline)}</span>
               </div>
