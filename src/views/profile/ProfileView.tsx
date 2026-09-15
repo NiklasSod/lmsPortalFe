@@ -17,6 +17,7 @@ import { deleteAccount, getUser } from '../../api/user'
 import type { UserDto } from '../../api/user'
 import { getProfile } from '../../api/userProfile'
 import type { ProfileRequest } from '../../types/userProfile'
+import { ApiError } from '../../utils/apiError'
 import ProfileHeader from '../../components/profile/ProfileHeader'
 import ProfileAbout from '../../components/profile/ProfileAbout'
 import ProfileSkills from '../../components/profile/ProfileSkills'
@@ -24,11 +25,13 @@ import ProfileDetails from '../../components/profile/ProfileDetails'
 import ConfirmModal from '../../components/ConfirmModal'
 import EditAccountForm from '../../components/profile/EditAccountForm'
 import ChangePasswordForm from '../../components/profile/ChangePasswordForm'
+import CreateProfileForm from '../../components/profile/CreateProfileForm'
 
 const ProfileView = () => {
   const [user, setUser] = useState<UserDto>()
   const [userProfile, setUserProfile] = useState<ProfileRequest>()
-  const [loading, setLoading] = useState(true)
+  const [profileMissing, setProfileMissing] = useState(false)
+  const [loadedOwnerId, setLoadedOwnerId] = useState<string>()
   const [error, setError] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -47,29 +50,50 @@ const ProfileView = () => {
   const myProfile = !currUserId || currUserId === userId
   const canDeleteSelf = myProfile && role?.toLowerCase() !== 'admin'
 
+  const ownerId = currUserId ?? userId
+  const loading = !ownerId || loadedOwnerId !== ownerId
+
   useEffect(() => {
-    const ownerId = currUserId ?? userId
     if (!ownerId) return
     let cancelled = false
 
-    Promise.all([getProfile(ownerId), getUser(ownerId)])
-      .then(([profile, userInfo]) => {
+    Promise.allSettled([getUser(ownerId), getProfile(ownerId)]).then(
+      ([userResult, profileResult]) => {
         if (cancelled) return
-        setUserProfile(profile)
-        setUser(userInfo)
+
         setError(null)
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+
+        if (userResult.status === 'fulfilled') {
+          setUser(userResult.value)
+        } else {
+          const err = userResult.reason
+          setError(
+            err instanceof Error ? err.message : 'Could not load your account.',
+          )
+        }
+
+        if (profileResult.status === 'fulfilled') {
+          setUserProfile(profileResult.value)
+          setProfileMissing(false)
+        } else {
+          const err = profileResult.reason
+          if (err instanceof ApiError && err.status === 404) {
+            setProfileMissing(true)
+          } else {
+            setError(
+              err instanceof Error ? err.message : 'Could not load profile.',
+            )
+          }
+        }
+
+        setLoadedOwnerId(ownerId)
+      },
+    )
 
     return () => {
       cancelled = true
     }
-  }, [currUserId, userId])
+  }, [ownerId])
 
   const roleLabel = user?.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
@@ -78,6 +102,11 @@ const ProfileView = () => {
   const skills = userProfile?.skills?.filter((skill) => skill.trim()) ?? []
   const whatsAppNumber = userProfile?.whatsAppNumber?.trim()
   const gitHubLink = userProfile?.gitHubLink?.trim()
+
+  const handleProfileCreated = (profile: ProfileRequest) => {
+    setUserProfile(profile)
+    setProfileMissing(false)
+  }
 
   const handleDeleteAccount = async () => {
     try {
@@ -116,33 +145,41 @@ const ProfileView = () => {
             myProfile={myProfile}
           />
 
-          <Row className="g-5">
-            <Col lg={7}>
-              <div className="mb-5">
-                <ProfileAbout aboutMe={aboutMe} />
+          {profileMissing && myProfile ? (
+            <CreateProfileForm onCreated={handleProfileCreated} />
+          ) : profileMissing ? (
+            <Alert variant="info">
+              This user hasn&apos;t set up their profile yet.
+            </Alert>
+          ) : (
+            <Row className="g-5">
+              <Col lg={7}>
+                <div className="mb-5">
+                  <ProfileAbout aboutMe={aboutMe} />
 
-                {isTeacher && myProfile && (
-                  <Form.Check
-                    type="switch"
-                    id="edit-mode-switch"
-                    label="Edit mode"
-                    checked={editMode}
-                    onChange={(e) => setEditMode(e.target.checked)}
-                    className="my-3"
-                  />
-                )}
-              </div>
-              <ProfileSkills skills={skills} />
-            </Col>
+                  {isTeacher && myProfile && (
+                    <Form.Check
+                      type="switch"
+                      id="edit-mode-switch"
+                      label="Edit mode"
+                      checked={editMode}
+                      onChange={(e) => setEditMode(e.target.checked)}
+                      className="my-3"
+                    />
+                  )}
+                </div>
+                <ProfileSkills skills={skills} />
+              </Col>
 
-            <Col lg={5}>
-              <ProfileDetails
-                dateOfBirth={userProfile?.dateOfBirth}
-                whatsAppNumber={whatsAppNumber}
-                gitHubLink={gitHubLink}
-              />
-            </Col>
-          </Row>
+              <Col lg={5}>
+                <ProfileDetails
+                  dateOfBirth={userProfile?.dateOfBirth}
+                  whatsAppNumber={whatsAppNumber}
+                  gitHubLink={gitHubLink}
+                />
+              </Col>
+            </Row>
+          )}
 
           {canDeleteSelf && (
             <>
