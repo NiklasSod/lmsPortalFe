@@ -234,7 +234,7 @@ function AppNavbar() {
                         location.pathname.startsWith(
                           `${base}/courses/${activeCourseId}/resources`,
                         )
-                          ? 'fw-bold text-decoration-underline'
+                          ? 'fw-bold'
                           : 'text-muted'
                       }`}
                     >
@@ -320,7 +320,7 @@ function AppNavbar() {
           >
             <DomainIcon type="profile" className={isProfileActive ? 'text-primary' : ''} /> Profile
           </Nav.Link>
-          
+
           <Nav.Link
             as="button"
             onClick={handleLogout}
