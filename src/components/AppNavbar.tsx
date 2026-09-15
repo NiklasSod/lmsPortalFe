@@ -202,7 +202,8 @@ function AppNavbar() {
                     as={Link}
                     to={`${base}/courses/${activeCourseId}`}
                     className={`py-1 small fw-semibold text-truncate ${
-                      location.pathname === `${base}/courses/${activeCourseId}` && !location.search
+                      location.pathname ===
+                        `${base}/courses/${activeCourseId}` && !location.search
                         ? 'fw-bold text-decoration-underline text-white'
                         : 'text-muted'
                     }`}
@@ -215,7 +216,9 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/modules`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/modules`)
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/modules`,
+                        )
                           ? 'fw-bold text-decoration-underline'
                           : 'text-muted'
                       }`}
@@ -226,7 +229,9 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/resources`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/resources`)
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/resources`,
+                        )
                           ? 'fw-bold text-decoration-underline'
                           : 'text-muted'
                       }`}
@@ -249,7 +254,9 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/members`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/members`)
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/members`,
+                        )
                           ? 'fw-bold text-decoration-underline'
                           : 'text-muted'
                       }`}
@@ -266,7 +273,9 @@ function AppNavbar() {
                   as={Link}
                   to={`${base}/courses/users`}
                   className={`py-1 small ${
-                    isUsersRoute ? 'fw-bold text-decoration-underline' : 'text-muted'
+                    isUsersRoute
+                      ? 'fw-bold text-decoration-underline'
+                      : 'text-muted'
                   }`}
                 >
                   Edit Students

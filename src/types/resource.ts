@@ -1,5 +1,6 @@
 export interface ModuleResource {
   id: number
+  activityId?: number
   moduleId?: number
   courseId?: number
   name?: string
