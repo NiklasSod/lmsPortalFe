@@ -309,16 +309,7 @@ function AppNavbar() {
           >
             <DomainIcon type="assignment" className={isAssignmentsActive ? 'text-primary' : ''} /> Assignments
           </Nav.Link>
-          <Nav.Link
-            as="button"
-            onClick={handleLogout}
-            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 mt-2 nav-link-stable"
-          >
-            <DomainIcon type="logout" /> Logout
-          </Nav.Link>
-        </Nav>
 
-        <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
           <Nav.Link
             as={Link}
             to={profilePath}
@@ -327,8 +318,19 @@ function AppNavbar() {
               isProfileActive ? 'fw-bold' : ''
             }`}
           >
-            <DomainIcon type="profile" size={16} className={isProfileActive ? 'text-primary' : ''} /> Profile
+            <DomainIcon type="profile" className={isProfileActive ? 'text-primary' : ''} /> Profile
           </Nav.Link>
+          
+          <Nav.Link
+            as="button"
+            onClick={handleLogout}
+            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 nav-link-stable"
+          >
+            <DomainIcon type="logout" /> Logout
+          </Nav.Link>
+        </Nav>
+
+        <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
           {fullName && (
             <div className="mb-2 mt-2">
               <span className="text-truncate ms-2">{fullName}</span>
