@@ -6,11 +6,13 @@ import {
   Col,
   Collapse,
   Container,
+  Form,
   Row,
   Spinner,
 } from 'react-bootstrap'
 import { ChevronDown } from 'react-bootstrap-icons'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import { deleteAccount, getUser } from '../../api/user'
 import type { UserDto } from '../../api/user'
 import { getProfile } from '../../api/userProfile'
@@ -40,6 +42,8 @@ const ProfileView = () => {
   const currUserId = location.state?.currUserId as string | undefined
 
   const { userId, role, logout } = useAuth()
+  const { editMode, setEditMode } = useEditMode()
+  const isTeacher = role !== 'student'
   const myProfile = !currUserId || currUserId === userId
   const canDeleteSelf = myProfile && role?.toLowerCase() !== 'admin'
 
@@ -116,6 +120,17 @@ const ProfileView = () => {
             <Col lg={7}>
               <div className="mb-5">
                 <ProfileAbout aboutMe={aboutMe} />
+
+                {isTeacher && myProfile && (
+                  <Form.Check
+                    type="switch"
+                    id="edit-mode-switch"
+                    label="Edit mode"
+                    checked={editMode}
+                    onChange={(e) => setEditMode(e.target.checked)}
+                    className="my-3"
+                  />
+                )}
               </div>
               <ProfileSkills skills={skills} />
             </Col>

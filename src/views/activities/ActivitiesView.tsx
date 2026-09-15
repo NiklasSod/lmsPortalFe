@@ -12,6 +12,8 @@ import {
 import { ListCheck } from 'react-bootstrap-icons'
 import { getMineActivities, getAllActivities } from '../../api/activity'
 import type { Activity } from '../../types/activity'
+import PaginationControls from '../../components/PaginationControls'
+import ActivityResourcesInline from '../../components/resources/ActivityResourcesInline'
 
 function formatActivityDate(act: Activity) {
   const startDateObj = act.startDate ? new Date(act.startDate) : null
@@ -27,7 +29,7 @@ function formatActivityDate(act: Activity) {
       : ''
 
   if (start && end && start !== end) {
-    return `Occurs: ${start} – ${end}`
+    return `Occurs: ${start} - ${end}`
   }
 
   return start || end ? `Occurs: ${start || end}` : 'Occurs: -'
@@ -108,6 +110,7 @@ export const ActivitiesView: React.FC = () => {
     thisWeek: 'All',
     allActivities: 'All',
   })
+  const [allActivitiesPage, setAllActivitiesPage] = useState(1)
 
   useEffect(() => {
     async function fetchActivities() {
@@ -149,6 +152,13 @@ export const ActivitiesView: React.FC = () => {
     }
   }, [activities])
 
+  const effectiveWeek =
+    selectedWeek === 'this' &&
+    weeklySchedule.thisWeek.length === 0 &&
+    weeklySchedule.nextWeek.length > 0
+      ? 'next'
+      : selectedWeek
+
   const activityTypeOptions = useMemo(
     () => [
       'All',
@@ -165,6 +175,20 @@ export const ActivitiesView: React.FC = () => {
 
   const filterActivitiesByType = (items: Activity[], type: string) =>
     type === 'All' ? items : items.filter((activity) => activity.type === type)
+
+  const allActivities = sortActivities(
+    filterActivitiesByType(activities, selectedTypeBySection.allActivities),
+  )
+
+  const ALL_ACTIVITIES_PAGE_SIZE = 6
+  const allActivitiesPageCount = Math.max(
+    1,
+    Math.ceil(allActivities.length / ALL_ACTIVITIES_PAGE_SIZE),
+  )
+  const visibleAllActivities = allActivities.slice(
+    (allActivitiesPage - 1) * ALL_ACTIVITIES_PAGE_SIZE,
+    allActivitiesPage * ALL_ACTIVITIES_PAGE_SIZE,
+  )
 
   if (loading) {
     return (
@@ -216,6 +240,7 @@ export const ActivitiesView: React.FC = () => {
                     {activity.description}
                   </Card.Text>
                 )}
+                <ActivityResourcesInline activityId={activity.id} />
                 <Card.Text className="text-muted small mb-0 mt-auto">
                   {formatActivityDate(activity)}
                 </Card.Text>
@@ -248,7 +273,7 @@ export const ActivitiesView: React.FC = () => {
                 <button
                   type="button"
                   className={`btn btn-link text-decoration-none fw-semibold px-3 py-2 ${
-                    selectedWeek === 'this' ? 'text-body' : 'text-muted'
+                    effectiveWeek === 'this' ? 'text-body' : 'text-muted'
                   }`}
                   onClick={() => setSelectedWeek('this')}
                 >
@@ -261,7 +286,7 @@ export const ActivitiesView: React.FC = () => {
                 <button
                   type="button"
                   className={`btn btn-link text-decoration-none fw-semibold px-3 py-2 ${
-                    selectedWeek === 'next' ? 'text-body' : 'text-muted'
+                    effectiveWeek === 'next' ? 'text-body' : 'text-muted'
                   }`}
                   onClick={() => setSelectedWeek('next')}
                 >
@@ -291,12 +316,12 @@ export const ActivitiesView: React.FC = () => {
             <Card.Body>
               {renderActivityList(
                 filterActivitiesByType(
-                  selectedWeek === 'this'
+                  effectiveWeek === 'this'
                     ? weeklySchedule.thisWeek
                     : weeklySchedule.nextWeek,
                   selectedTypeBySection.thisWeek,
                 ),
-                selectedWeek === 'this'
+                effectiveWeek === 'this'
                   ? 'No activities scheduled for this week.'
                   : 'No activities scheduled for next week.',
               )}
@@ -310,12 +335,13 @@ export const ActivitiesView: React.FC = () => {
                 size="sm"
                 className="w-auto me-3"
                 value={selectedTypeBySection.allActivities}
-                onChange={(event) =>
+                onChange={(event) => {
                   setSelectedTypeBySection((prev) => ({
                     ...prev,
                     allActivities: event.target.value,
                   }))
-                }
+                  setAllActivitiesPage(1)
+                }}
                 aria-label="Filter all activities"
               >
                 {activityTypeOptions.map((type) => (
@@ -327,12 +353,7 @@ export const ActivitiesView: React.FC = () => {
             </Card.Header>
             <Card.Body>
               <Row xs={1} md={2} lg={3} className="g-3">
-                {sortActivities(
-                  filterActivitiesByType(
-                    activities,
-                    selectedTypeBySection.allActivities,
-                  ),
-                ).map((activity) => (
+                {visibleAllActivities.map((activity) => (
                   <Col key={activity.id}>
                     <Card className="h-100 border shadow-sm">
                       <Card.Body className="d-flex flex-column">
@@ -351,6 +372,7 @@ export const ActivitiesView: React.FC = () => {
                             {activity.description}
                           </Card.Text>
                         )}
+                        <ActivityResourcesInline activityId={activity.id} />
                         <Card.Text className="text-muted small mb-0 mt-auto">
                           {formatActivityDate(activity)}
                         </Card.Text>
@@ -359,6 +381,11 @@ export const ActivitiesView: React.FC = () => {
                   </Col>
                 ))}
               </Row>
+              <PaginationControls
+                page={allActivitiesPage}
+                pageCount={allActivitiesPageCount}
+                onPageChange={setAllActivitiesPage}
+              />
             </Card.Body>
           </Card>
         </>

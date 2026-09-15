@@ -18,6 +18,7 @@ import type { Course } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import ModuleFormModal from '../../components/modules/ModuleFormModal'
 import ModuleActivitiesList from '../../components/modules/ModuleActivitiesList'
+import ResourcesSection from '../../components/resources/ResourcesSection'
 
 export const CourseModulesView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()
@@ -36,20 +37,23 @@ export const CourseModulesView: React.FC = () => {
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchCourse() {
       if (!courseId) return
       try {
-        setLoading(true)
+        const data = await getCourseById(courseId)
+        if (ignore) return
         setError(null)
         setNotEnrolled(false)
-
-        const data = await getCourseById(courseId)
         setCourse(data)
 
         try {
           const courseModules = await getModulesByCourse(Number(courseId))
+          if (ignore) return
           setModules(courseModules)
         } catch (err) {
+          if (ignore) return
           if (err instanceof ApiError && err.status === 403) {
             setNotEnrolled(true)
           } else {
@@ -61,16 +65,22 @@ export const CourseModulesView: React.FC = () => {
           }
         }
       } catch (err) {
+        if (ignore) return
         setError(
           err instanceof Error
             ? err.message
             : 'Failed to load course overview.',
         )
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchCourse()
+
+    return () => {
+      ignore = true
+    }
   }, [courseId])
 
   const handleEnroll = async () => {
@@ -162,16 +172,21 @@ export const CourseModulesView: React.FC = () => {
               </Button>
             </Alert>
           ) : (
-            <ListGroup>
+            <ListGroup className=" d-flex gap-3">
               {modules.length > 0 ? (
                 modules.map((module) => (
-                  <ListGroup.Item key={module.id} className="py-3">
+                  <ListGroup.Item key={module.id} className="py-3 border">
                     <div className="fw-semibold">{module.name}</div>
                     <div className="text-muted small">{module.description}</div>
                     <div className="text-muted small mt-1">
                       {new Date(module.startDate).toLocaleDateString()} -{' '}
                       {new Date(module.endDate).toLocaleDateString()}
                     </div>
+                    <ResourcesSection
+                      moduleId={module.id}
+                      title="Module resources"
+                      bordered
+                    />
                     <ModuleActivitiesList moduleId={module.id} />
                   </ListGroup.Item>
                 ))
