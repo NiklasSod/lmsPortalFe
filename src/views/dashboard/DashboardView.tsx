@@ -199,16 +199,18 @@ function DashboardView() {
       <Row className="g-4 align-items-start">
         <Col lg={8}>
         
+          {/* High priority: Time-critical at-risk deadlines */}
+          <AtRiskAlerts
+            deadlines={atRiskDeadlines}
+            onDismiss={(id) => setDismissedIds((prev) => [...prev, id])}
+          />
+
+          {/* Secondary priority: Backend-driven general notifications */}
           <BackendNotificationsAlerts
             notifications={notifications}
             loading={notifLoading}
             role={role}
             onDismiss={handleDismissNotification}
-          />
-          
-          <AtRiskAlerts
-            deadlines={atRiskDeadlines}
-            onDismiss={(id) => setDismissedIds((prev) => [...prev, id])}
           />
 
           <CoursesCard courses={courses} loading={loading} error={error} />
