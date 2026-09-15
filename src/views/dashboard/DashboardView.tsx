@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
-import { Speedometer } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
@@ -20,6 +19,7 @@ import BackendNotificationsAlerts from '../../components/dashboard/BackendNotifi
 import CoursesCard from '../../components/dashboard/CoursesCard'
 import LatestFeedbackCard from '../../components/dashboard/LatestFeedbackCard'
 import ModulesCard from '../../components/dashboard/ModulesCard'
+import { DomainIcon } from '../../components/DomainIcon'
 
 function mapToDeadline(assignment: Assignment): Deadline {
   return {
@@ -191,7 +191,7 @@ function DashboardView() {
   return (
     <Container className="py-4">
       <div className="d-flex align-items-center gap-2 mb-4">
-        <Speedometer size={28} className="text-body" />
+        <DomainIcon type="dashboard" size={28} className="text-primary" />
         <h1 className="h2 mb-0">
           {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
         </h1>

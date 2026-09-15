@@ -9,7 +9,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap'
-import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
+import { ChevronDown, ChevronRight } from 'react-bootstrap-icons'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyAssignments } from '../../api/assignment'
@@ -25,6 +25,7 @@ import type { Submission } from '../../types/submission'
 import { normalizeStatus } from '../../utils/submissionStatus'
 import AssignmentCard from '../../components/assignments/AssignmentCard'
 import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
+import { DomainIcon } from '../../components/DomainIcon'
 
 export const AssignmentsView: React.FC = () => {
   const { role } = useAuth()
@@ -240,7 +241,7 @@ export const AssignmentsView: React.FC = () => {
 
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div className="d-flex align-items-center gap-2">
-          <JournalCheck size={28} className="text-body" />
+          <DomainIcon type="assignment" size={28} className="text-primary" />
           <h1 className="h2 mb-0">Assignments</h1>
         </div>
         {isTeacher && (
