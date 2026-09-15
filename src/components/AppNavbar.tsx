@@ -215,6 +215,19 @@ function AppNavbar() {
                     </Nav.Link>
                     <Nav.Link
                       as={Link}
+                      to={`${base}/courses/${activeCourseId}/resources`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/resources`,
+                        )
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      Resources
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
                       to={`${base}/assignments?courseId=${activeCourseId}`}
                       className={`py-1 small ${
                         location.pathname.startsWith(`${base}/assignments`) &&
