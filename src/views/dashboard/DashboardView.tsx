@@ -10,13 +10,13 @@ import type { Assignment } from '../../types/assignment'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
+import type { UserNotification } from '../../types/notification'
 import { useAuth } from '../../auth/AuthContext'
 import { normalizeStatus } from '../../utils/submissionStatus'
 import type { Deadline, FeedbackItem } from '../../types/dashboard'
 import AssignmentDeadlinesCard from '../../components/dashboard/AssignmentDeadlinesCard'
 import AtRiskAlerts from '../../components/dashboard/AtRiskAlerts'
 import BackendNotificationsAlerts from '../../components/dashboard/BackendNotificationsAlerts'
-import type { UserNotification } from '../../types/notification'
 import CoursesCard from '../../components/dashboard/CoursesCard'
 import LatestFeedbackCard from '../../components/dashboard/LatestFeedbackCard'
 import ModulesCard from '../../components/dashboard/ModulesCard'
@@ -199,7 +199,6 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
-        
           {/* High priority: Time-critical at-risk deadlines */}
           <AtRiskAlerts
             deadlines={atRiskDeadlines}
