@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://lmsportalbe-production.up.railway.app/api/:path*"
+      "destination": "https://api.lms-portal.niklassod.com/api/:path*"
     }
   ]
 }
