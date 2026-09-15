@@ -13,6 +13,7 @@ import { ListCheck } from 'react-bootstrap-icons'
 import { getMineActivities, getAllActivities } from '../../api/activity'
 import type { Activity } from '../../types/activity'
 import PaginationControls from '../../components/PaginationControls'
+import ActivityResourcesInline from '../../components/resources/ActivityResourcesInline'
 
 function formatActivityDate(act: Activity) {
   const startDateObj = act.startDate ? new Date(act.startDate) : null
@@ -239,6 +240,7 @@ export const ActivitiesView: React.FC = () => {
                     {activity.description}
                   </Card.Text>
                 )}
+                <ActivityResourcesInline activityId={activity.id} />
                 <Card.Text className="text-muted small mb-0 mt-auto">
                   {formatActivityDate(activity)}
                 </Card.Text>
@@ -370,6 +372,7 @@ export const ActivitiesView: React.FC = () => {
                             {activity.description}
                           </Card.Text>
                         )}
+                        <ActivityResourcesInline activityId={activity.id} />
                         <Card.Text className="text-muted small mb-0 mt-auto">
                           {formatActivityDate(activity)}
                         </Card.Text>
