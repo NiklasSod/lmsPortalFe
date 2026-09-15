@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Alert, Breadcrumb, Button, Col, Container, Row, Spinner } from 'react-bootstrap'
+import {
+  Alert,
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  Container,
+  Row,
+  Spinner,
+} from 'react-bootstrap'
 import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
@@ -75,12 +84,13 @@ export const AssignmentsView: React.FC = () => {
   }
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchAssignments() {
       try {
-        setLoading(true)
-        setError(null)
-
         const data = await getMyAssignments()
+        if (ignore) return
+        setError(null)
         setAssignments(Array.isArray(data) ? data : [])
 
         if (hasCourseFilter && courseId !== null) {
@@ -90,10 +100,9 @@ export const AssignmentsView: React.FC = () => {
               getModulesByCourse(numericCourseId).catch(() => []),
               getCourseById(courseId).catch(() => null),
             ])
+            if (ignore) return
             setCourseModuleIds(
-              new Set(
-                (Array.isArray(modules) ? modules : []).map((m) => m.id),
-              ),
+              new Set((Array.isArray(modules) ? modules : []).map((m) => m.id)),
             )
             if (courseData && courseData.name) {
               setCourseName(courseData.name)
@@ -101,10 +110,12 @@ export const AssignmentsView: React.FC = () => {
               setCourseName(`Course ${courseId}`)
             }
           } catch {
+            if (ignore) return
             setCourseModuleIds(new Set())
             setCourseName(`Course ${courseId}`)
           }
         } else {
+          if (ignore) return
           setCourseModuleIds(null)
           setCourseName('')
         }
@@ -115,6 +126,7 @@ export const AssignmentsView: React.FC = () => {
               getUsers().catch(() => []),
               getMineModules().catch(() => []),
             ])
+            if (ignore) return
             setUsersById(new Map(users.map((user) => [user.id, user])))
             setTeacherModules(modules)
           } catch {
@@ -123,6 +135,7 @@ export const AssignmentsView: React.FC = () => {
         } else {
           try {
             const subs = await getMySubmissions()
+            if (ignore) return
             const list = Array.isArray(subs) ? subs : []
             setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
           } catch {
@@ -130,13 +143,17 @@ export const AssignmentsView: React.FC = () => {
           }
         }
       } catch (err) {
-        setError((err as Error).message)
+        if (!ignore) setError((err as Error).message)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
 
     fetchAssignments()
+
+    return () => {
+      ignore = true
+    }
   }, [isTeacher, courseId, hasCourseFilter])
 
   if (loading) {
@@ -199,125 +216,111 @@ export const AssignmentsView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      {hasCourseFilter ? (
-        <>
-          <Breadcrumb>
-            <Breadcrumb.Item
-              linkAs={Link}
-              linkProps={{ to: base }}
-              style={{ color: 'var(--link-color)' }}
-            >
-              Courses
-            </Breadcrumb.Item>
-            <Breadcrumb.Item
-              linkAs={Link}
-              linkProps={{ to: `${base}/${courseId}` }}
-              style={{ color: 'var(--link-color)' }}
-            >
-              {courseName || `Course ${courseId}`}
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active style={{ color: 'var(--text-primary)' }}>
-              Assignments
-            </Breadcrumb.Item>
-          </Breadcrumb>
-
-          <Row>
-            <Col lg={12}>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2 className="h6 fw-semibold mb-0">Assignments</h2>
-                {isTeacher && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setShowAddModal(true)}
-                  >
-                    Add assignment
-                  </Button>
-                )}
-              </div>
-            </Col>
-          </Row>
-        </>
-      ) : (
-        <>
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <div className="d-flex align-items-center gap-2">
-              <JournalCheck size={28} className="text-primary" />
-              <h1 className="h2 mb-0">Assignments</h1>
-            </div>
-
-            {isTeacher && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowAddModal(true)}
-              >
-                Add assignment
-              </Button>
-            )}
-          </div>
-
-          <p className="text-muted mb-4">
-            {isTeacher
-              ? 'Review the assignments in your modules and grade student submissions.'
-              : 'Your assignments and the status of your submissions.'}
-          </p>
-        </>
+      {hasCourseFilter && (
+        <Breadcrumb>
+          <Breadcrumb.Item
+            linkAs={Link}
+            linkProps={{ to: base }}
+            style={{ color: 'var(--link-color)' }}
+          >
+            Courses
+          </Breadcrumb.Item>
+          <Breadcrumb.Item
+            linkAs={Link}
+            linkProps={{ to: `${base}/${courseId}` }}
+            style={{ color: 'var(--link-color)' }}
+          >
+            {courseName || `Course ${courseId}`}
+          </Breadcrumb.Item>
+          <Breadcrumb.Item active style={{ color: 'var(--text-primary)' }}>
+            Assignments
+          </Breadcrumb.Item>
+        </Breadcrumb>
       )}
 
-      {assignments.length === 0 ? (
-        <Alert variant="info">No assignments found.</Alert>
-      ) : (
-        <>
-          {activeAssignments.length > 0 ? (
-            renderAssignments(activeAssignments)
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <JournalCheck size={28} className="text-body" />
+          <h1 className="h2 mb-0">Assignments</h1>
+        </div>
+        {isTeacher && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add assignment
+          </Button>
+        )}
+      </div>
+
+      {!hasCourseFilter && (
+        <p className="text-muted mb-4">
+          {isTeacher
+            ? 'Review the assignments in your modules and grade student submissions.'
+            : 'Your assignments and the status of your submissions.'}
+        </p>
+      )}
+
+      <Card className="border-0 shadow-sm">
+        <Card.Body>
+          {assignments.length === 0 ? (
+            <Alert variant="info" className="mb-0">
+              No assignments found.
+            </Alert>
           ) : (
-            <p className="text-muted mb-0">No open assignments.</p>
-          )}
+            <>
+              {activeAssignments.length > 0 ? (
+                renderAssignments(activeAssignments)
+              ) : (
+                <p className="text-muted mb-0">No open assignments.</p>
+              )}
 
-          {handedInAssignments.length > 0 && (
-            <div className="mt-4">
-              <Button
-                variant="link"
-                size="sm"
-                className="p-0 text-decoration-none d-flex align-items-center gap-1"
-                onClick={() => setShowHandedIn((prev) => !prev)}
-                aria-expanded={showHandedIn}
-              >
-                {showHandedIn ? <ChevronDown /> : <ChevronRight />}
-                Handed in ({handedInAssignments.length})
-              </Button>
+              {handedInAssignments.length > 0 && (
+                <div className="mt-4">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                    onClick={() => setShowHandedIn((prev) => !prev)}
+                    aria-expanded={showHandedIn}
+                  >
+                    {showHandedIn ? <ChevronDown /> : <ChevronRight />}
+                    Handed in ({handedInAssignments.length})
+                  </Button>
 
-              {showHandedIn && (
-                <div className="mt-2">
-                  {renderAssignments(handedInAssignments)}
+                  {showHandedIn && (
+                    <div className="mt-2">
+                      {renderAssignments(handedInAssignments)}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {approvedAssignments.length > 0 && (
-            <div className="mt-4">
-              <Button
-                variant="link"
-                size="sm"
-                className="p-0 text-decoration-none d-flex align-items-center gap-1"
-                onClick={() => setShowApproved((prev) => !prev)}
-                aria-expanded={showApproved}
-              >
-                {showApproved ? <ChevronDown /> : <ChevronRight />}
-                Approved ({approvedAssignments.length})
-              </Button>
+              {approvedAssignments.length > 0 && (
+                <div className="mt-4">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                    onClick={() => setShowApproved((prev) => !prev)}
+                    aria-expanded={showApproved}
+                  >
+                    {showApproved ? <ChevronDown /> : <ChevronRight />}
+                    Approved ({approvedAssignments.length})
+                  </Button>
 
-              {showApproved && (
-                <div className="mt-2">
-                  {renderAssignments(approvedAssignments)}
+                  {showApproved && (
+                    <div className="mt-2">
+                      {renderAssignments(approvedAssignments)}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
-        </>
-      )}
+        </Card.Body>
+      </Card>
 
       {isTeacher && (
         <AssignmentFormModal

@@ -29,13 +29,16 @@ function ViewSubmissionModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const handleShow = () => {
+    setLoading(true)
+    setError(null)
+    setSubmission(null)
+  }
+
   useEffect(() => {
     if (!show || !assignment) return
 
     let ignore = false
-    setLoading(true)
-    setError(null)
-    setSubmission(null)
 
     getMySubmissions()
       .then((data) => {
@@ -59,7 +62,7 @@ function ViewSubmissionModal({
   }, [show, assignment])
 
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={onHide} onShow={handleShow} centered>
       <Modal.Header closeButton>
         <Modal.Title>{assignment?.name ?? 'Submission'}</Modal.Title>
       </Modal.Header>

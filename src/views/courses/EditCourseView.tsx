@@ -18,28 +18,35 @@ export default function EditCourseView() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
+    let ignore = false
+
     async function loadCourse() {
       if (!courseId) return
       try {
-        setIsFetching(true)
-        setError(null)
         const course = await getCourseById(courseId)
+        if (ignore) return
+        setError(null)
         setName(course.name || '')
         setDescription(course.description || '')
         setStartDate(course.startDate ? course.startDate.split('T')[0] : '')
         setEndDate(course.endDate ? course.endDate.split('T')[0] : '')
       } catch (err: unknown) {
+        if (ignore) return
         if (err instanceof Error) {
           setError(err.message)
         } else {
           setError('Could not load course details.')
         }
       } finally {
-        setIsFetching(false)
+        if (!ignore) setIsFetching(false)
       }
     }
 
     loadCourse()
+
+    return () => {
+      ignore = true
+    }
   }, [courseId])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

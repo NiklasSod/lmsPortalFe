@@ -10,6 +10,7 @@ interface ReviewSubmissionModalProps {
   show: boolean
   submission: Submission | null
   usersById?: Map<string, UserDto>
+  history?: Submission[]
   readOnly?: boolean
   onHide: () => void
   onReviewed?: () => void
@@ -23,10 +24,20 @@ function studentName(sub: Submission, usersById?: Map<string, UserDto>) {
   return sub.studentId ? `Student ${sub.studentId.slice(0, 8)}` : 'Student'
 }
 
+function formatHandinDate(handinDate: string) {
+  const d = new Date(handinDate)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
+
 function ReviewSubmissionModal({
   show,
   submission,
   usersById,
+  history = [],
   readOnly = false,
   onHide,
   onReviewed,
@@ -83,6 +94,31 @@ function ReviewSubmissionModal({
               <p className="mb-1 small text-secondary">Answer</p>
               <p className="border rounded p-2">{submission.content}</p>
 
+              {history.length > 0 && (
+                <>
+                  <p className="mb-1 small text-secondary mt-3">History</p>
+                  {history.map((sub) => (
+                    <div key={sub.id} className="border rounded p-2 mb-2 small">
+                      <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <Badge bg={statusBadgeBg(sub.status)}>
+                          {statusLabel(sub.status)}
+                        </Badge>
+                        <span className="text-muted">
+                          {formatHandinDate(sub.handinDate)}
+                        </span>
+                      </div>
+                      <p className="mb-1">{sub.content}</p>
+                      {sub.feedback.trim() && (
+                        <p className="mb-0">
+                          <span className="text-muted">Feedback: </span>
+                          {sub.feedback}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
+
               <p className="mb-1 small text-secondary">Feedback</p>
               <p className="border rounded p-2">
                 {submission.feedback.trim() ? (
@@ -123,6 +159,31 @@ function ReviewSubmissionModal({
 
                 <p className="mb-1 small text-secondary">Answer</p>
                 <p className="border rounded p-2">{submission.content}</p>
+              </>
+            )}
+
+            {history.length > 0 && (
+              <>
+                <p className="mb-1 small text-secondary mt-3">History</p>
+                {history.map((sub) => (
+                  <div key={sub.id} className="border rounded p-2 mb-2 small">
+                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                      <Badge bg={statusBadgeBg(sub.status)}>
+                        {statusLabel(sub.status)}
+                      </Badge>
+                      <span className="text-muted">
+                        {formatHandinDate(sub.handinDate)}
+                      </span>
+                    </div>
+                    <p className="mb-1">{sub.content}</p>
+                    {sub.feedback.trim() && (
+                      <p className="mb-0">
+                        <span className="text-muted">Feedback: </span>
+                        {sub.feedback}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </>
             )}
 

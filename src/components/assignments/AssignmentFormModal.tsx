@@ -25,7 +25,6 @@ export function AssignmentFormModal({
   defaultModuleId,
   modules,
 }: AssignmentFormModalProps) {
-
   const isEditMode = Boolean(assignment)
 
   const [name, setName] = useState('')
@@ -35,12 +34,11 @@ export function AssignmentFormModal({
     defaultModuleId || '',
   )
 
-  const [fetchedModules, setFetchedModules] = useState<{ id: number; name: string }[]>([])
+  const [fetchedModules, setFetchedModules] = useState<
+    { id: number; name: string }[]
+  >([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const [prevAssignment, setPrevAssignment] = useState(assignment)
-  const [prevShow, setPrevShow] = useState(show)
 
   useEffect(() => {
     if (show && (!modules || modules.length === 0)) {
@@ -55,16 +53,14 @@ export function AssignmentFormModal({
   const availableModules =
     modules && modules.length > 0 ? modules : fetchedModules
 
-  if (show !== prevShow || assignment !== prevAssignment) {
-    setPrevShow(show)
-    setPrevAssignment(assignment)
-    if (show && assignment) {
+  const handleShow = () => {
+    if (assignment) {
       setName(assignment.name ?? '')
       setDescription(assignment.description ?? '')
       const d = assignment.dueDate ? new Date(assignment.dueDate) : null
       setDueDate(d && !isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '')
       setModuleId(assignment.moduleId ?? defaultModuleId ?? '')
-    } else if (show) {
+    } else {
       setName('')
       setDescription('')
       setDueDate('')
@@ -148,7 +144,7 @@ export function AssignmentFormModal({
   }
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+    <Modal show={show} onHide={handleClose} onShow={handleShow} centered>
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditMode ? 'Edit Assignment' : 'Create Assignment'}

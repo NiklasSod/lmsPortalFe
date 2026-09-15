@@ -10,16 +10,20 @@ import {
 import { DomainIcon } from '../components/DomainIcon'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
+import { useEditMode } from '../editMode/EditModeContext'
 import { getCourseById } from '../api/course'
+import { getCourseResources } from '../api/resource'
 
 function AppNavbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { role, fullName, logout } = useAuth()
+  const { editMode } = useEditMode()
   const [expanded, setExpanded] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [courseName, setCourseName] = useState('')
+  const [resourceCount, setResourceCount] = useState<number>(0)
   const isStudent = role === 'student'
 
   const dashboardPath = isStudent ? '/student' : '/teacher'
@@ -56,6 +60,7 @@ function AppNavbar() {
 
   useEffect(() => {
     if (!activeCourseId) {
+      queueMicrotask(() => setResourceCount(0))
       return
     }
 
@@ -72,10 +77,21 @@ function AppNavbar() {
         }
       })
 
+    getCourseResources(Number(activeCourseId))
+      .then((res) => {
+        if (isMounted) setResourceCount(res.length)
+      })
+      .catch(() => {
+        if (isMounted) setResourceCount(0)
+      })
+
     return () => {
       isMounted = false
     }
   }, [activeCourseId])
+
+  const resourceLabel =
+    resourceCount > 1 ? `Resources (${resourceCount})` : 'Resources'
 
   useEffect(() => {
     function handleScroll() {
@@ -217,6 +233,19 @@ function AppNavbar() {
                     </Nav.Link>
                     <Nav.Link
                       as={Link}
+                      to={`${base}/courses/${activeCourseId}/resources`}
+                      className={`py-1 small ${
+                        location.pathname.startsWith(
+                          `${base}/courses/${activeCourseId}/resources`,
+                        )
+                          ? 'fw-bold text-decoration-underline'
+                          : 'text-muted'
+                      }`}
+                    >
+                      {resourceLabel}
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
                       to={`${base}/assignments?courseId=${activeCourseId}`}
                       className={`py-1 small ${
                         location.pathname.startsWith(`${base}/assignments`) &&
@@ -242,7 +271,8 @@ function AppNavbar() {
                 </>
               ) : null}
 
-              {!isStudent && (
+              {/* Edit Students is only shown in the submenu when edit mode is on */}
+              {!isStudent && editMode && (
                 <Nav.Link
                   as={Link}
                   to={`${base}/courses/users`}

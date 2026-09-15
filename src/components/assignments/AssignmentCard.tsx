@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Badge, Button, Card } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import type { Assignment } from '../../types/assignment'
 import type { Submission } from '../../types/submission'
 import type { UserDto } from '../../api/user'
@@ -46,7 +47,9 @@ function AssignmentCard({
   onDeleted,
 }: AssignmentCardProps) {
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const statusKind = normalizeStatus(assignment.latestSubmissionStatus)
   const isCompleted =
@@ -86,7 +89,7 @@ function AssignmentCard({
                   {statusLabel(assignment.latestSubmissionStatus)}
                 </Badge>
               )}
-              {isTeacher && (
+              {canEdit && (
                 <Button
                   variant="outline-primary"
                   size="sm"
@@ -113,7 +116,7 @@ function AssignmentCard({
               : `Due ${formatDate(assignment.dueDate)}`}
           </Card.Text>
 
-          {isTeacher && (
+          {canEdit && (
             <div className="d-flex justify-content-end mb-1">
               <Button
                 variant="outline-danger"
@@ -175,7 +178,7 @@ function AssignmentCard({
         onHide={() => setShowSubmission(false)}
       />
 
-      {isTeacher && (
+      {canEdit && (
         <>
           <AssignmentFormModal
             show={showEdit}

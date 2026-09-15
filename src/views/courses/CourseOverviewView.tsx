@@ -13,6 +13,7 @@ import {
 import { getCourseById, enrollInCourse } from '../../api/course'
 import { useAuth } from '../../auth/AuthContext'
 import type { CourseDetail } from '../../types/course'
+import ResourcesSection from '../../components/resources/ResourcesSection'
 
 export const CourseOverviewView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>()
@@ -29,13 +30,14 @@ export const CourseOverviewView: React.FC = () => {
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
   useEffect(() => {
+    let ignore = false
+
     async function fetchCourse() {
       if (!courseId) return
       try {
-        setLoading(true)
-        setError(null)
-
         const data = await getCourseById(courseId)
+        if (ignore) return
+        setError(null)
         setCourse(data)
 
         const myEmail = email
@@ -52,16 +54,23 @@ export const CourseOverviewView: React.FC = () => {
           )
         }
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load course overview.',
-        )
+        if (!ignore) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load course overview.',
+          )
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
+
     fetchCourse()
+
+    return () => {
+      ignore = true
+    }
   }, [courseId, email, userId])
 
   const handleEnroll = async () => {
@@ -121,6 +130,9 @@ export const CourseOverviewView: React.FC = () => {
 
       <Row>
         <Col lg={8}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2 className="h6 fw-semibold mb-0">Course</h2>
+          </div>
           <Card className="shadow-sm mb-4 position-relative">
             {!enrolled && (
               <Button
@@ -157,6 +169,17 @@ export const CourseOverviewView: React.FC = () => {
               <Card.Text>{course.description}</Card.Text>
             </Card.Body>
           </Card>
+
+          {enrolled && (
+            <Card className="shadow-sm mb-4">
+              <Card.Body>
+                <ResourcesSection
+                  courseId={course.id}
+                  title="Course resources"
+                />
+              </Card.Body>
+            </Card>
+          )}
         </Col>
       </Row>
     </Container>

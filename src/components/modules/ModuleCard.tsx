@@ -2,9 +2,11 @@ import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 import { deleteModule, updateModule } from '../../api/module'
 import type { CourseModule } from '../../types/module'
 import ModuleActivitiesList from './ModuleActivitiesList'
+import ResourcesSection from '../resources/ResourcesSection'
 
 interface ModuleCardProps {
   module: CourseModule
@@ -14,7 +16,9 @@ interface ModuleCardProps {
 
 function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isTeacher = role !== 'student'
+  const canEdit = isTeacher && editMode
 
   const [moduleData, setModuleData] = useState<CourseModule>(module)
 
@@ -104,9 +108,9 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
 
   return (
     <>
-      <Card className="h-100 shadow-sm">
+      <Card className="h-100 border shadow-sm">
         <Card.Body className="position-relative">
-          {isTeacher && (
+          {canEdit && (
             <Button
               variant="outline-primary"
               size="sm"
@@ -117,7 +121,7 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             </Button>
           )}
           <Card.Title className="h5 pe-5">{moduleData.name}</Card.Title>
-          <Card.Text className="text-muted small">
+          <Card.Text className="text-muted small pe-5">
             {moduleData.description}
           </Card.Text>
           <Card.Text className="text-muted small mb-0 pe-5">
@@ -125,17 +129,28 @@ function ModuleCard({ module, onEdit, onDelete }: ModuleCardProps) {
             {new Date(moduleData.endDate).toLocaleDateString()}
           </Card.Text>
           <ModuleActivitiesList moduleId={moduleData.id} />
-          {isTeacher && (
-            <Button
-              variant="outline-danger"
-              size="sm"
-              style={{ position: 'absolute', bottom: 6, right: 6 }}
-              onClick={() =>
-                setDeleteState((prev) => ({ ...prev, show: true, error: null }))
-              }
-            >
-              Delete
-            </Button>
+          <ResourcesSection
+            moduleId={moduleData.id}
+            title="Module resources"
+            bordered
+          />
+          {canEdit && (
+            <Card.Text className="text-muted small pt-3 d-flex justify-content-between align-items-center">
+              Delete module
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() =>
+                  setDeleteState((prev) => ({
+                    ...prev,
+                    show: true,
+                    error: null,
+                  }))
+                }
+              >
+                Delete
+              </Button>
+            </Card.Text>
           )}
         </Card.Body>
       </Card>
