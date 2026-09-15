@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Col,
-  Container,
-  Row,
-} from 'react-bootstrap'
+import { Col, Container, Row } from 'react-bootstrap'
 import { Speedometer } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
@@ -136,7 +132,7 @@ function DashboardView() {
     if (role !== 'student') return
 
     apiFetch('/api/notifications?unreadOnly=true')
-      .then(async (res) => {
+      .then(async (res: Response) => {
         if (!res.ok) throw new Error('Failed to fetch notifications.')
         const data = await res.json()
         setNotifications(data)
@@ -148,11 +144,16 @@ function DashboardView() {
   // Handle notification dismissal via backend API
   const handleDismissNotification = async (userNotificationId: number) => {
     try {
-      const res = await apiFetch(`/api/notifications/${userNotificationId}/seen`, {
-        method: 'POST',
-      })
+      const res = await apiFetch(
+        `/api/notifications/${userNotificationId}/seen`,
+        {
+          method: 'POST',
+        },
+      )
       if (res.ok) {
-        setNotifications((prev) => prev.filter((n) => n.id !== userNotificationId))
+        setNotifications((prev) =>
+          prev.filter((n) => n.id !== userNotificationId),
+        )
       }
     } catch {
       // Handle error if needed
@@ -172,9 +173,7 @@ function DashboardView() {
     if (role !== 'student') return
 
     getMySubmissions()
-      .then((data) =>
-        setFeedbackItems(buildFeedbackItems(data, deadlines)),
-      )
+      .then((data) => setFeedbackItems(buildFeedbackItems(data, deadlines)))
       .catch((err: Error) => setFeedbackError(err.message))
       .finally(() => setFeedbackLoading(false))
   }, [role, deadlines])
