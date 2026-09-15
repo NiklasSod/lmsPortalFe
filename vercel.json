@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://api.lms-portal.niklassod.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
