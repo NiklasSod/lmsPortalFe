@@ -5,6 +5,9 @@ import {
   ListCheck,
   JournalCheck,
   Bell,
+  Speedometer,
+  HouseGear,
+  BoxArrowLeft,
 } from 'react-bootstrap-icons'
 
 interface DomainIconProps {
@@ -22,6 +25,9 @@ export const DomainIcon = ({
 
   const normalized = type.toLowerCase()
 
+  if (normalized.includes('dashboard')) return <Speedometer size={size} className={className} />
+  if (normalized.includes('profile')) return <HouseGear size={size} className={className} />
+  if (normalized.includes('logout')) return <BoxArrowLeft size={size} className={className} />
   if (normalized.includes('course')) return <MortarboardFill size={size} className={className} />
   if (normalized.includes('module')) return <JournalBookmark size={size} className={className} />
   if (normalized.includes('activ')) return <ListCheck size={size} className={className} />

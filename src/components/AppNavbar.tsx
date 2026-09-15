@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import {
-  Book,
-  BoxArrowLeft,
-  HouseGear,
-  Speedometer,
-} from 'react-bootstrap-icons'
+import { Book } from 'react-bootstrap-icons'
 import { DomainIcon } from '../components/DomainIcon'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
@@ -187,11 +182,12 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to={dashboardPath}
+            onClick={() => setExpanded(false)}
             className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
               isDashboardActive ? 'fw-bold' : ''
             }`}
           >
-            <Speedometer className={isDashboardActive ? 'text-primary' : ''} /> Dashboard
+            <DomainIcon type="dashboard" className={isDashboardActive ? 'text-primary' : ''} /> Dashboard
           </Nav.Link>
           <Nav.Link
             as={Link}
@@ -318,7 +314,7 @@ function AppNavbar() {
             onClick={handleLogout}
             className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 mt-2 nav-link-stable"
           >
-            <BoxArrowLeft /> Logout
+            <DomainIcon type="logout" /> Logout
           </Nav.Link>
         </Nav>
 
@@ -331,7 +327,7 @@ function AppNavbar() {
               isProfileActive ? 'fw-bold' : ''
             }`}
           >
-            <HouseGear className={isProfileActive ? 'text-primary' : ''} /> Profile
+            <DomainIcon type="profile" size={16} className={isProfileActive ? 'text-primary' : ''} /> Profile
           </Nav.Link>
           {fullName && (
             <div className="mb-2 mt-2">
