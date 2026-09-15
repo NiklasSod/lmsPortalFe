@@ -6,6 +6,7 @@ import CreateCourseView from '../views/courses/CreateCourseView'
 import EditCourseView from '../views/courses/EditCourseView'
 import CourseOverviewView from '../views/courses/CourseOverviewView'
 import CourseModulesView from '../views/courses/CourseModulesView'
+import CourseResourcesView from '../views/courses/CourseResourcesView'
 import CourseMembersView from '../views/courses/CourseMembersView'
 import EditUsersView from '../views/courses/EditUsersView'
 import ModulesView from '../views/modules/ModulesView'
@@ -22,6 +23,10 @@ function TeacherRoutes() {
       <Route path="courses/:courseId/edit" element={<EditCourseView />} />
       <Route path="courses/:courseId" element={<CourseOverviewView />} />
       <Route path="courses/:courseId/modules" element={<CourseModulesView />} />
+      <Route
+        path="courses/:courseId/resources"
+        element={<CourseResourcesView />}
+      />
       <Route path="courses/:courseId/members" element={<CourseMembersView />} />
       <Route path="courses/users" element={<EditUsersView />} />
       <Route path="modules" element={<ModulesView />} />
