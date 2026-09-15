@@ -21,6 +21,7 @@ function CourseSections({ courseId }: CourseSectionsProps) {
   const sections: SectionLink[] = [
     { label: 'Overview', to: `${base}${coursesPath}/${courseId}` },
     { label: 'Modules', to: `${base}${coursesPath}/${courseId}/modules` },
+    { label: 'Resources', to: `${base}${coursesPath}/${courseId}/resources` },
     { label: 'Assignments', to: `${base}/assignments?courseId=${courseId}` },
     { label: 'Members', to: `${base}${coursesPath}/${courseId}/members` },
   ]
