@@ -1,5 +1,6 @@
 import { Badge } from 'react-bootstrap'
 import { Envelope } from 'react-bootstrap-icons'
+import { DomainIcon } from '../DomainIcon'
 
 interface ProfileHeaderProps {
   firstName: string
@@ -25,7 +26,7 @@ function ProfileHeader({
   const initials = getInitials(firstName, lastName)
 
   return (
-    <header className="profile-hero d-flex flex-column align-items-center text-center gap-4 mb-5">
+    <header className="profile-hero d-flex flex-column align-items-start text-start gap-4 mb-5">
       <div
         className="bg-primary bg-gradient text-white fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
         style={{ width: 96, height: 96, fontSize: '2rem' }}
@@ -34,14 +35,15 @@ function ProfileHeader({
         {initials}
       </div>
       <div>
-        <p
-          className="text-body-secondary small text-uppercase fw-semibold mb-1"
+        <div
+          className="d-flex align-items-center gap-2 text-body-secondary small text-uppercase fw-semibold mb-1"
           style={{ letterSpacing: '0.08em' }}
         >
-          {myProfile ? 'My Profile' : 'Profile'}
-        </p>
+          <DomainIcon type="profile" size={16} className="text-primary" />
+          <span>{myProfile ? 'My Profile' : 'Profile'}</span>
+        </div>
         <h1 className="h2 fw-bold mb-1">{displayName ?? 'User'}</h1>
-        <div className="profile-hero-meta d-flex flex-column align-items-center justify-content-center gap-2">
+        <div className="profile-hero-meta d-flex flex-column align-items-start justify-content-start gap-2">
           {roleLabel && (
             <Badge pill bg="primary">
               {roleLabel}

@@ -1,4 +1,4 @@
-import { apiFetch } from '../utils/apifetch'
+import { apiFetch } from '../utils/apiFetch'
 import { parseApiError, toApiError } from '../utils/apiError'
 import type {
   Assignment,
