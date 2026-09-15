@@ -28,7 +28,7 @@ const BackendNotificationsAlerts = ({
       return 'success'
     }
     if (item.type === 'revision' || title.includes('revision')) {
-      return 'info'
+      return 'warning'
     }
     return 'primary'
   }
@@ -50,11 +50,9 @@ const BackendNotificationsAlerts = ({
                 className="flex-shrink-0"
               />
               <div className="w-100">
-                <div className="d-flex align-items-center mb-1">
-                  <Alert.Heading className="h6 mb-0">
-                    {item.title || 'Notification'}
-                  </Alert.Heading>
-                </div>
+                <Alert.Heading className="h6 d-flex align-items-center mb-1">
+                  {item.title || 'Notification'}
+                </Alert.Heading>
                 <p className="mb-1 small">{item.body}</p>
                 <div>
                   <Link

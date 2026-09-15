@@ -20,7 +20,7 @@ const AtRiskAlerts = ({ deadlines, onDismiss }: AtRiskAlertsProps) => {
       {deadlines.map((deadline) => (
         <Alert
           key={deadline.id}
-          variant="warning"
+          variant="danger"
           dismissible
           onClose={() => onDismiss(deadline.id)}
         >
@@ -32,9 +32,7 @@ const AtRiskAlerts = ({ deadlines, onDismiss }: AtRiskAlertsProps) => {
               height={20}
             />
             <div className="w-100">
-              <div className="d-flex align-items-center mb-1">
-                <Alert.Heading className="h6 mb-0">Assignment due soon</Alert.Heading>
-              </div>
+              <Alert.Heading className="h6 d-flex align-items-center mb-1">Assignment due soon</Alert.Heading>
               <p className="mb-1 small">
                 <strong>{deadline.assignmentTitle}</strong>
               </p>
