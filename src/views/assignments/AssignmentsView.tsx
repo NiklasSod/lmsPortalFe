@@ -1,0 +1,337 @@
+import { useEffect, useState } from 'react'
+import {
+  Alert,
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  Container,
+  Row,
+  Spinner,
+} from 'react-bootstrap'
+import { ChevronDown, ChevronRight, JournalCheck } from 'react-bootstrap-icons'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
+import { getMyAssignments } from '../../api/assignment'
+import { getModulesByCourse } from '../../api/module'
+import { getUsers } from '../../api/user'
+import { getMineModules } from '../../api/module'
+import { getMySubmissions } from '../../api/submission'
+import { getCourseById } from '../../api/course'
+import type { UserDto } from '../../api/user'
+import type { Assignment } from '../../types/assignment'
+import type { CourseModule } from '../../types/module'
+import type { Submission } from '../../types/submission'
+import { normalizeStatus } from '../../utils/submissionStatus'
+import AssignmentCard from '../../components/assignments/AssignmentCard'
+import { AssignmentFormModal } from '../../components/assignments/AssignmentFormModal'
+
+export const AssignmentsView: React.FC = () => {
+  const { role } = useAuth()
+  const isTeacher = role !== 'student'
+  const isStudent = role === 'student'
+  const [searchParams] = useSearchParams()
+  const courseIdParam = searchParams.get('courseId')
+  const courseId = courseIdParam || null
+  const hasCourseFilter = courseId !== null && courseId.trim() !== ''
+
+  const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [courseModuleIds, setCourseModuleIds] = useState<Set<number> | null>(
+    null,
+  )
+  const [usersById, setUsersById] = useState<Map<string, UserDto>>(new Map())
+  const [teacherModules, setTeacherModules] = useState<CourseModule[]>([])
+  const [submissionsById, setSubmissionsById] = useState<
+    Map<number, Submission>
+  >(new Map())
+  const [courseName, setCourseName] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showHandedIn, setShowHandedIn] = useState(false)
+  const [showApproved, setShowApproved] = useState(false)
+
+  const base = isStudent ? '/student/courses' : '/teacher/courses'
+
+  const loadAssignments = async () => {
+    try {
+      const data = await getMyAssignments()
+      setAssignments(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setError((err as Error).message)
+    }
+
+    if (isTeacher) {
+      try {
+        const [users, modules] = await Promise.all([
+          getUsers().catch(() => []),
+          getMineModules().catch(() => []),
+        ])
+        setUsersById(new Map(users.map((user) => [user.id, user])))
+        setTeacherModules(modules)
+      } catch {
+        // Optional metadata fetch
+      }
+    } else {
+      try {
+        const subs = await getMySubmissions()
+        const list = Array.isArray(subs) ? subs : []
+        setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+      } catch {
+        // Optional metadata fetch
+      }
+    }
+  }
+
+  useEffect(() => {
+    let ignore = false
+
+    async function fetchAssignments() {
+      try {
+        const data = await getMyAssignments()
+        if (ignore) return
+        setError(null)
+        setAssignments(Array.isArray(data) ? data : [])
+
+        if (hasCourseFilter && courseId !== null) {
+          try {
+            const numericCourseId = Number(courseId)
+            const [modules, courseData] = await Promise.all([
+              getModulesByCourse(numericCourseId).catch(() => []),
+              getCourseById(courseId).catch(() => null),
+            ])
+            if (ignore) return
+            setCourseModuleIds(
+              new Set((Array.isArray(modules) ? modules : []).map((m) => m.id)),
+            )
+            if (courseData && courseData.name) {
+              setCourseName(courseData.name)
+            } else {
+              setCourseName(`Course ${courseId}`)
+            }
+          } catch {
+            if (ignore) return
+            setCourseModuleIds(new Set())
+            setCourseName(`Course ${courseId}`)
+          }
+        } else {
+          if (ignore) return
+          setCourseModuleIds(null)
+          setCourseName('')
+        }
+
+        if (isTeacher) {
+          try {
+            const [users, modules] = await Promise.all([
+              getUsers().catch(() => []),
+              getMineModules().catch(() => []),
+            ])
+            if (ignore) return
+            setUsersById(new Map(users.map((user) => [user.id, user])))
+            setTeacherModules(modules)
+          } catch {
+            // Optional metadata fetch
+          }
+        } else {
+          try {
+            const subs = await getMySubmissions()
+            if (ignore) return
+            const list = Array.isArray(subs) ? subs : []
+            setSubmissionsById(new Map(list.map((sub) => [sub.id, sub])))
+          } catch {
+            // Optional metadata fetch
+          }
+        }
+      } catch (err) {
+        if (!ignore) setError((err as Error).message)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    }
+
+    fetchAssignments()
+
+    return () => {
+      ignore = true
+    }
+  }, [isTeacher, courseId, hasCourseFilter])
+
+  if (loading) {
+    return (
+      <Container className="py-4 text-center">
+        <Spinner animation="border" role="status" />
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    )
+  }
+
+  const numericCourseIdFilter = courseId ? Number(courseId) : null
+  const filteredAssignments =
+    hasCourseFilter && courseModuleIds && numericCourseIdFilter !== null
+      ? assignments.filter((a) => courseModuleIds.has(a.moduleId))
+      : assignments
+
+  const activeAssignments = isTeacher
+    ? filteredAssignments
+    : filteredAssignments.filter(
+        (a) =>
+          normalizeStatus(a.latestSubmissionStatus) !== 'handedIn' &&
+          normalizeStatus(a.latestSubmissionStatus) !== 'approved',
+      )
+  const handedInAssignments = isTeacher
+    ? []
+    : filteredAssignments.filter(
+        (a) => normalizeStatus(a.latestSubmissionStatus) === 'handedIn',
+      )
+  const approvedAssignments = isTeacher
+    ? []
+    : filteredAssignments.filter(
+        (a) => normalizeStatus(a.latestSubmissionStatus) === 'approved',
+      )
+
+  const renderAssignments = (list: Assignment[], className = 'g-4') => (
+    <Row xs={1} md={2} lg={3} className={className}>
+      {list.map((assignment) => (
+        <Col key={assignment.id}>
+          <AssignmentCard
+            assignment={assignment}
+            usersById={isTeacher ? usersById : undefined}
+            modules={teacherModules}
+            submissionsById={isTeacher ? undefined : submissionsById}
+            onSubmitted={loadAssignments}
+            onUpdated={loadAssignments}
+            onDeleted={loadAssignments}
+          />
+        </Col>
+      ))}
+    </Row>
+  )
+
+  return (
+    <Container className="py-4">
+      {hasCourseFilter && (
+        <Breadcrumb>
+          <Breadcrumb.Item
+            linkAs={Link}
+            linkProps={{ to: base }}
+            style={{ color: 'var(--link-color)' }}
+          >
+            Courses
+          </Breadcrumb.Item>
+          <Breadcrumb.Item
+            linkAs={Link}
+            linkProps={{ to: `${base}/${courseId}` }}
+            style={{ color: 'var(--link-color)' }}
+          >
+            {courseName || `Course ${courseId}`}
+          </Breadcrumb.Item>
+          <Breadcrumb.Item active style={{ color: 'var(--text-primary)' }}>
+            Assignments
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      )}
+
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <JournalCheck size={28} className="text-body" />
+          <h1 className="h2 mb-0">Assignments</h1>
+        </div>
+        {isTeacher && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            Add assignment
+          </Button>
+        )}
+      </div>
+
+      {!hasCourseFilter && (
+        <p className="text-muted mb-4">
+          {isTeacher
+            ? 'Review the assignments in your modules and grade student submissions.'
+            : 'Your assignments and the status of your submissions.'}
+        </p>
+      )}
+
+      <Card className="border-0 shadow-sm">
+        <Card.Body>
+          {assignments.length === 0 ? (
+            <Alert variant="info" className="mb-0">
+              No assignments found.
+            </Alert>
+          ) : (
+            <>
+              {activeAssignments.length > 0 ? (
+                renderAssignments(activeAssignments)
+              ) : (
+                <p className="text-muted mb-0">No open assignments.</p>
+              )}
+
+              {handedInAssignments.length > 0 && (
+                <div className="mt-4">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                    onClick={() => setShowHandedIn((prev) => !prev)}
+                    aria-expanded={showHandedIn}
+                  >
+                    {showHandedIn ? <ChevronDown /> : <ChevronRight />}
+                    Handed in ({handedInAssignments.length})
+                  </Button>
+
+                  {showHandedIn && (
+                    <div className="mt-2">
+                      {renderAssignments(handedInAssignments)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {approvedAssignments.length > 0 && (
+                <div className="mt-4">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 text-decoration-none d-flex align-items-center gap-1"
+                    onClick={() => setShowApproved((prev) => !prev)}
+                    aria-expanded={showApproved}
+                  >
+                    {showApproved ? <ChevronDown /> : <ChevronRight />}
+                    Approved ({approvedAssignments.length})
+                  </Button>
+
+                  {showApproved && (
+                    <div className="mt-2">
+                      {renderAssignments(approvedAssignments)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </Card.Body>
+      </Card>
+
+      {isTeacher && (
+        <AssignmentFormModal
+          show={showAddModal}
+          onHide={() => setShowAddModal(false)}
+          onSaved={loadAssignments}
+          modules={teacherModules}
+        />
+      )}
+    </Container>
+  )
+}
+
+export default AssignmentsView

@@ -11,16 +11,18 @@ import {
 } from 'react-bootstrap'
 import { getCourseById } from '../../api/course'
 import type { CourseDetail, CourseEnrollment } from '../../types/course'
-import CourseSections from '../../components/courses/CourseSections'
 import { useAuth } from '../../auth/AuthContext'
+import { useEditMode } from '../../editMode/EditModeContext'
 
 function CourseMembersView() {
   const { courseId } = useParams<{ courseId: string }>()
   const [course, setCourse] = useState<CourseDetail | undefined>(undefined)
   const [loading, setLoading] = useState(() => courseId !== undefined)
+  const [error, setError] = useState<string | null>(null)
 
   const navigate = useNavigate()
   const { role } = useAuth()
+  const { editMode } = useEditMode()
   const isStudent = role === 'student'
   const base = isStudent ? '/student/courses' : '/teacher/courses'
 
@@ -35,6 +37,9 @@ function CourseMembersView() {
 
     getCourseById(courseId)
       .then(setCourse)
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : 'Failed to load course.'),
+      )
       .finally(() => setLoading(false))
   }, [courseId])
 
@@ -42,6 +47,15 @@ function CourseMembersView() {
     return (
       <Container className="py-4 text-center">
         <Spinner animation="border" />
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">{error}</Alert>
+        <Link to="/">Back to course list</Link>
       </Container>
     )
   }
@@ -94,10 +108,10 @@ function CourseMembersView() {
       </Breadcrumb>
 
       <Row>
-        <Col md={8}>
+        <Col lg={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2 className="h6 fw-semibold mb-0">Members</h2>
-            {!isStudent && (
+            {!isStudent && editMode && (
               <Link
                 to="/teacher/courses/users"
                 className="btn btn-primary btn-sm"
@@ -131,10 +145,6 @@ function CourseMembersView() {
               students.map(renderMember)
             )}
           </ListGroup>
-        </Col>
-
-        <Col md={4}>
-          <CourseSections courseId={course.id.toString()} />
         </Col>
       </Row>
     </Container>
