@@ -13,17 +13,34 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock,
-  ExclamationTriangle,
 } from 'react-bootstrap-icons'
+import { Link } from 'react-router-dom'
+import { DomainIcon } from '../../components/DomainIcon'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
 import { getMySubmissions } from '../../api/submission'
+import { apiFetch } from '../../utils/apiFetch'
 import type { Assignment } from '../../types/assignment'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
 import { useAuth } from '../../auth/AuthContext'
+
+type UserNotification = {
+  id: number
+  type: string
+  title: string
+  body: string
+  courseId: number | null
+  moduleId: number | null
+  activityId: number | null
+  resourceId: number | null
+  submissionId: number | null
+  createdAt: string
+  isSeen: boolean
+  seenAt: string | null
+}
 
 type Deadline = {
   id: number
@@ -56,19 +73,6 @@ function hasFeedback(submission: Submission) {
 
 function isNotTurnedIn(deadline: Deadline) {
   return deadline.status == null || deadline.status === 'Unsent'
-}
-
-function getHoursUntilDue(deadline: Deadline) {
-  return (deadline.dueAt.getTime() - Date.now()) / (60 * 60 * 1000)
-}
-
-function isDueSoon(deadline: Deadline) {
-  const hoursUntilDue = getHoursUntilDue(deadline)
-  return hoursUntilDue >= 0 && hoursUntilDue <= 48
-}
-
-function isAtRisk(deadline: Deadline) {
-  return isNotTurnedIn(deadline) && isDueSoon(deadline)
 }
 
 function formatDueDate(deadline: Deadline) {
@@ -114,7 +118,10 @@ function DashboardView() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [deadlinesLoading, setDeadlinesLoading] = useState(true)
   const [deadlinesError, setDeadlinesError] = useState<string | null>(null)
-  const [dismissedIds, setDismissedIds] = useState<number[]>([])
+
+  // Backend notifications state
+  const [notifications, setNotifications] = useState<UserNotification[]>([])
+  const [notifLoading, setNotifLoading] = useState(true)
 
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
   const [feedbackLoading, setFeedbackLoading] = useState(true)
@@ -122,6 +129,7 @@ function DashboardView() {
   const [feedbackPage, setFeedbackPage] = useState(1)
 
   const { role } = useAuth()
+  const base = role === 'student' ? '/student' : '/teacher'
 
   useEffect(() => {
     getMyCourses()
@@ -137,6 +145,34 @@ function DashboardView() {
       .finally(() => setModulesLoading(false))
   }, [])
 
+  // Fetch unread notifications from backend API
+  useEffect(() => {
+    if (role !== 'student') return
+
+    apiFetch('/api/notifications?unreadOnly=true')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch notifications.')
+        const data = await res.json()
+        setNotifications(data)
+      })
+      .catch(() => {})
+      .finally(() => setNotifLoading(false))
+  }, [role])
+
+  // Handle notification dismissal via backend API
+  const handleDismissNotification = async (userNotificationId: number) => {
+    try {
+      const res = await apiFetch(`/api/notifications/${userNotificationId}/seen`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        setNotifications((prev) => prev.filter((n) => n.id !== userNotificationId))
+      }
+    } catch {
+      // Handle error if needed
+    }
+  }
+
   useEffect(() => {
     if (role !== 'student') return
 
@@ -151,7 +187,7 @@ function DashboardView() {
 
     getMySubmissions()
       .then((data) =>
-        setFeedbackItems(buildFeedbackItems(data, deadlines).slice(0, 5)),
+        setFeedbackItems(buildFeedbackItems(data, deadlines)),
       )
       .catch((err: Error) => setFeedbackError(err.message))
       .finally(() => setFeedbackLoading(false))
@@ -161,9 +197,6 @@ function DashboardView() {
 
   const visibleDeadlines = deadlines.filter(
     (deadline) => deadline.status !== 'approved',
-  )
-  const atRiskDeadlines = visibleDeadlines.filter(
-    (deadline) => isAtRisk(deadline) && !dismissedIds.includes(deadline.id),
   )
 
   const feedbackPageSize = 4
@@ -184,33 +217,35 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
-          {atRiskDeadlines.map((deadline) => (
-            <Alert
-              key={deadline.id}
-              variant="warning"
-              dismissible
-              onClose={() => setDismissedIds((prev) => [...prev, deadline.id])}
-            >
-              <div className="d-flex gap-3">
-                <ExclamationTriangle
-                  className="flex-shrink-0 mt-1"
-                  aria-hidden="true"
-                />
-                <div>
-                  <Alert.Heading className="h5">
-                    Assignment due soon
+          {/* Backend driven notifications */}
+          {role === 'student' &&
+            !notifLoading &&
+            notifications.map((item) => (
+              <Alert
+                key={`notification-${item.id}`}
+                variant="primary"
+                dismissible
+                onClose={() => handleDismissNotification(item.id)}
+              >
+                <div className="d-flex align-items-center gap-3 mb-2">
+                  <DomainIcon type={item.type} />
+                  <Alert.Heading className="h5 mb-0">
+                    {item.title || 'Notification'}
                   </Alert.Heading>
-                  <p className="mb-2">
-                    <strong>{deadline.assignmentTitle}</strong>
-                  </p>
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock aria-hidden="true" />
-                    <span>Due {formatDueDate(deadline)}</span>
-                  </div>
                 </div>
-              </div>
-            </Alert>
-          ))}
+                <p className="mb-2 ms-4 ps-2">
+                  {item.body}
+                </p>
+                <div className="ms-4 ps-2">
+                  <Link
+                    to={`${base}/assignments`}
+                    className="alert-link small fw-semibold text-decoration-none"
+                  >
+                    View assignments &rarr;
+                  </Link>
+                </div>
+              </Alert>
+            ))}
 
           <Card className="border-0 shadow-sm">
             <Card.Header as="h2" className="h5 mb-0">

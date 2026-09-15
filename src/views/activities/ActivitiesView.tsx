@@ -9,7 +9,7 @@ import {
   Badge,
   Form,
 } from 'react-bootstrap'
-import { ListCheck } from 'react-bootstrap-icons'
+import { DomainIcon } from '../../components/DomainIcon'
 import { getMineActivities, getAllActivities } from '../../api/activity'
 import type { Activity } from '../../types/activity'
 
@@ -229,8 +229,8 @@ export const ActivitiesView: React.FC = () => {
 
   return (
     <Container className="py-4">
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <ListCheck size={28} className="text-body" />
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <DomainIcon type="activity" size={28} className="text-primary" />
         <h1 className="h2 mb-0">Activities</h1>
       </div>
 
