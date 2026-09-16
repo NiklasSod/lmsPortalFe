@@ -1,6 +1,6 @@
 import { Dropdown } from 'react-bootstrap'
 import { useTheme } from '../hooks/useTheme'
-import type { StoredTheme } from '../utils/themeHandler'
+import type { StoredTheme } from '../types/theme';
 
 const themeIcons: Record<StoredTheme, string> = {
   light: '☀️',
