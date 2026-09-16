@@ -32,35 +32,36 @@ export const ThemeSwitch = () => {
   const currentOption = themeOptions.find((opt) => opt.id === currentTheme)
 
   return (
-    <div className="d-flex align-items-center gap-2 justify-content-between mx-4">
+    <div className="mx-4">
       <Dropdown
         drop="up"
         onSelect={(selectedTheme) => changeTheme(selectedTheme as StoredTheme)}
       >
-        <Dropdown.Toggle size="sm" variant="outline-secondary">
-          {currentOption?.label || 'Choose theme'}
+        <Dropdown.Toggle 
+          size="sm" 
+          variant="outline-secondary"
+          className="d-flex align-items-center gap-2"
+        >
+          <span aria-hidden="true">{currentOption?.icon || '💻'}</span>
+          <span>{currentOption?.label || 'Choose theme'}</span>
         </Dropdown.Toggle>
 
         <Dropdown.Menu style={{ minWidth: 'auto', width: '8.5rem' }}>
           {themeOptions.map(({ id, label, icon }) => (
             <Dropdown.Item
               key={id}
-              className="d-flex justify-content-between align-items-center"
+              className="d-flex align-items-center"
               eventKey={id}
               active={currentTheme === id}
             >
-              <span>{label}</span>
-              <span className="ms-3" aria-hidden="true">
+              <span className="me-2" aria-hidden="true">
                 {icon}
               </span>
+              <span>{label}</span>
             </Dropdown.Item>
           ))}
         </Dropdown.Menu>
       </Dropdown>
-
-      <span aria-hidden="true" style={{ fontSize: '1.2rem' }}>
-        {currentOption?.icon || '💻'}
-      </span>
     </div>
   )
 }
