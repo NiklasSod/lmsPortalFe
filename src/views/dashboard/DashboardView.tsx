@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
-import { Speedometer } from 'react-bootstrap-icons'
 import { getCurrentAssignments } from '../../api/assignment'
 import { getMyCourses } from '../../api/course'
 import { getCurrentModules } from '../../api/module'
 import { getMySubmissions } from '../../api/submission'
+import { apiFetch } from '../../utils/apiFetch'
 import type { Assignment } from '../../types/assignment'
 import type { CourseSummary } from '../../types/course'
 import type { CourseModule } from '../../types/module'
 import type { Submission } from '../../types/submission'
+import type { UserNotification } from '../../types/notification'
 import { useAuth } from '../../auth/AuthContext'
 import { normalizeStatus } from '../../utils/submissionStatus'
 import type { Deadline, FeedbackItem } from '../../types/dashboard'
 import AssignmentDeadlinesCard from '../../components/dashboard/AssignmentDeadlinesCard'
 import AtRiskAlerts from '../../components/dashboard/AtRiskAlerts'
+import BackendNotificationsAlerts from '../../components/dashboard/BackendNotificationsAlerts'
 import CoursesCard from '../../components/dashboard/CoursesCard'
 import LatestFeedbackCard from '../../components/dashboard/LatestFeedbackCard'
 import ModulesCard from '../../components/dashboard/ModulesCard'
+import { DomainIcon } from '../../components/DomainIcon'
 
 function mapToDeadline(assignment: Assignment): Deadline {
   return {
@@ -101,6 +104,10 @@ function DashboardView() {
   const [deadlinesError, setDeadlinesError] = useState<string | null>(null)
   const [dismissedIds, setDismissedIds] = useState<number[]>([])
 
+  // Backend notifications state
+  const [notifications, setNotifications] = useState<UserNotification[]>([])
+  const [notifLoading, setNotifLoading] = useState(true)
+
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
   const [feedbackLoading, setFeedbackLoading] = useState(true)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
@@ -121,6 +128,39 @@ function DashboardView() {
       .finally(() => setModulesLoading(false))
   }, [])
 
+  // Fetch unread notifications from backend API
+  useEffect(() => {
+    if (role !== 'student') return
+
+    apiFetch('/api/notifications?unreadOnly=true')
+      .then(async (res: Response) => {
+        if (!res.ok) throw new Error('Failed to fetch notifications.')
+        const data = await res.json()
+        setNotifications(data)
+      })
+      .catch(() => {})
+      .finally(() => setNotifLoading(false))
+  }, [role])
+
+  // Handle notification dismissal via backend API
+  const handleDismissNotification = async (userNotificationId: number) => {
+    try {
+      const res = await apiFetch(
+        `/api/notifications/${userNotificationId}/seen`,
+        {
+          method: 'POST',
+        },
+      )
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.filter((n) => n.id !== userNotificationId),
+        )
+      }
+    } catch {
+      // Handle error if needed
+    }
+  }
+
   useEffect(() => {
     if (role !== 'student') return
 
@@ -134,9 +174,7 @@ function DashboardView() {
     if (role !== 'student') return
 
     getMySubmissions()
-      .then((data) =>
-        setFeedbackItems(buildFeedbackItems(data, deadlines).slice(0, 5)),
-      )
+      .then((data) => setFeedbackItems(buildFeedbackItems(data, deadlines)))
       .catch((err: Error) => setFeedbackError(err.message))
       .finally(() => setFeedbackLoading(false))
   }, [role, deadlines])
@@ -153,7 +191,7 @@ function DashboardView() {
   return (
     <Container className="py-4">
       <div className="d-flex align-items-center gap-2 mb-4">
-        <Speedometer size={28} className="text-body" />
+        <DomainIcon type="dashboard" size={28} className="text-primary" />
         <h1 className="h2 mb-0">
           {role.charAt(0).toUpperCase() + role.slice(1)} dashboard
         </h1>
@@ -161,9 +199,18 @@ function DashboardView() {
 
       <Row className="g-4 align-items-start">
         <Col lg={8}>
+          {/* High priority: Time-critical at-risk deadlines */}
           <AtRiskAlerts
             deadlines={atRiskDeadlines}
             onDismiss={(id) => setDismissedIds((prev) => [...prev, id])}
+          />
+
+          {/* Secondary priority: Backend-driven general notifications */}
+          <BackendNotificationsAlerts
+            notifications={notifications}
+            loading={notifLoading}
+            role={role}
+            onDismiss={handleDismissNotification}
           />
 
           <CoursesCard courses={courses} loading={loading} error={error} />

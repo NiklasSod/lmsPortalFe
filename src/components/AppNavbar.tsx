@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import {
-  Book,
-  BoxArrowLeft,
-  JournalBookmark,
-  JournalCheck,
-  ListCheck,
-  MortarboardFill,
-  HouseGear,
-  Speedometer,
-} from 'react-bootstrap-icons'
+import { Book } from 'react-bootstrap-icons'
+import { DomainIcon } from '../components/DomainIcon'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
 import { useEditMode } from '../editMode/EditModeContext'
@@ -29,6 +21,7 @@ function AppNavbar() {
   const [resourceCount, setResourceCount] = useState<number>(0)
   const isStudent = role === 'student'
 
+  const dashboardPath = isStudent ? '/student' : '/teacher'
   const coursesPath = isStudent ? '/student/courses' : '/teacher/courses'
   const modulesPath = isStudent ? '/student/modules' : '/teacher/modules'
   const activitiesPath = isStudent
@@ -37,6 +30,7 @@ function AppNavbar() {
   const assignmentsPath = isStudent
     ? '/student/assignments'
     : '/teacher/assignments'
+  const profilePath = `/${role}/profile`
 
   const base = isStudent ? '/student' : '/teacher'
 
@@ -56,14 +50,12 @@ function AppNavbar() {
 
   const activeCourseId = pathCourseId || queryCourseId
 
-  // Keep the courses submenu open if we are in a course route OR viewing course-specific assignments
   const isCoursesSection =
     location.pathname.includes('/courses') || Boolean(queryCourseId)
 
-  // Fetch course name dynamically using getCourseById
   useEffect(() => {
     if (!activeCourseId) {
-      setResourceCount(0)
+      queueMicrotask(() => setResourceCount(0))
       return
     }
 
@@ -137,6 +129,15 @@ function AppNavbar() {
     navigate('/login')
   }
 
+  const isDashboardActive = location.pathname === dashboardPath
+  const isCoursesActive =
+    location.pathname.startsWith(coursesPath) || Boolean(queryCourseId)
+  const isModulesActive = location.pathname.startsWith(modulesPath)
+  const isActivitiesActive = location.pathname.startsWith(activitiesPath)
+  const isAssignmentsActive =
+    location.pathname.startsWith(assignmentsPath) && !queryCourseId
+  const isProfileActive = location.pathname.startsWith(profilePath)
+
   return (
     <Navbar
       expand="sm"
@@ -177,36 +178,37 @@ function AppNavbar() {
       <div
         className={`custom-mobile-collapse d-sm-flex flex-column align-items-stretch w-100 mt-3`}
       >
-        <Nav className="flex-column w-100" onClick={() => setExpanded(false)}>
+        <Nav className="flex-column w-100 gap-1" onClick={() => setExpanded(false)}>
           <Nav.Link
             as={Link}
-            to="/"
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            to={dashboardPath}
+            onClick={() => setExpanded(false)}
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isDashboardActive ? 'fw-bold' : ''
+            }`}
           >
-            <Speedometer /> Dashboard
+            <DomainIcon type="dashboard" className={isDashboardActive ? 'text-primary' : ''} /> Dashboard
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={coursesPath}
-            className={`d-flex align-items-center gap-2 px-2 py-2 ${
-              isCoursesSection ? 'fw-bold' : ''
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isCoursesActive ? 'fw-bold' : ''
             }`}
           >
-            <MortarboardFill /> Courses
+            <DomainIcon type="course" className={isCoursesActive ? 'text-primary' : ''} /> Courses
           </Nav.Link>
 
-          {isCoursesSection && (
+          {isCoursesSection && (activeCourseId || !isStudent) && (
             <div className="ms-3 ps-2 border-start border-secondary d-flex flex-column my-1">
-              {/* If inside a specific course */}
               {activeCourseId ? (
                 <>
                   <Nav.Link
                     as={Link}
                     to={`${base}/courses/${activeCourseId}`}
-                    className={`py-1 small fw-semibold text-truncate ${
-                      location.pathname ===
-                        `${base}/courses/${activeCourseId}` && !location.search
-                        ? 'fw-bold text-decoration-underline text-white'
+                    className={`py-1 small text-truncate ${
+                      location.pathname === `${base}/courses/${activeCourseId}` && !location.search
+                        ? 'fw-bold text-body'
                         : 'text-muted'
                     }`}
                   >
@@ -218,10 +220,8 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/modules`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(
-                          `${base}/courses/${activeCourseId}/modules`,
-                        )
-                          ? 'fw-bold text-decoration-underline'
+                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/modules`)
+                          ? 'fw-bold text-body'
                           : 'text-muted'
                       }`}
                     >
@@ -234,7 +234,7 @@ function AppNavbar() {
                         location.pathname.startsWith(
                           `${base}/courses/${activeCourseId}/resources`,
                         )
-                          ? 'fw-bold text-decoration-underline'
+                          ? 'fw-bold'
                           : 'text-muted'
                       }`}
                     >
@@ -246,7 +246,7 @@ function AppNavbar() {
                       className={`py-1 small ${
                         location.pathname.startsWith(`${base}/assignments`) &&
                         searchParams.get('courseId') === activeCourseId
-                          ? 'fw-bold text-decoration-underline'
+                          ? 'fw-bold text-body'
                           : 'text-muted'
                       }`}
                     >
@@ -256,10 +256,8 @@ function AppNavbar() {
                       as={Link}
                       to={`${base}/courses/${activeCourseId}/members`}
                       className={`py-1 small ${
-                        location.pathname.startsWith(
-                          `${base}/courses/${activeCourseId}/members`,
-                        )
-                          ? 'fw-bold text-decoration-underline'
+                        location.pathname.startsWith(`${base}/courses/${activeCourseId}/members`)
+                          ? 'fw-bold text-body'
                           : 'text-muted'
                       }`}
                     >
@@ -275,9 +273,7 @@ function AppNavbar() {
                   as={Link}
                   to={`${base}/courses/users`}
                   className={`py-1 small ${
-                    isUsersRoute
-                      ? 'fw-bold text-decoration-underline'
-                      : 'text-muted'
+                    isUsersRoute ? 'fw-bold text-body' : 'text-muted'
                   }`}
                 >
                   Edit Students
@@ -289,42 +285,52 @@ function AppNavbar() {
           <Nav.Link
             as={Link}
             to={modulesPath}
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isModulesActive ? 'fw-bold' : ''
+            }`}
           >
-            <JournalBookmark /> Modules
+            <DomainIcon type="module" className={isModulesActive ? 'text-primary' : ''} /> Modules
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={activitiesPath}
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isActivitiesActive ? 'fw-bold' : ''
+            }`}
           >
-            <ListCheck /> Activities
+            <DomainIcon type="activity" className={isActivitiesActive ? 'text-primary' : ''} /> Activities
           </Nav.Link>
           <Nav.Link
             as={Link}
             to={assignmentsPath}
-            className="d-flex align-items-center gap-2 px-2 py-2"
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isAssignmentsActive ? 'fw-bold' : ''
+            }`}
           >
-            <JournalCheck /> Assignments
+            <DomainIcon type="assignment" className={isAssignmentsActive ? 'text-primary' : ''} /> Assignments
           </Nav.Link>
+
+          <Nav.Link
+            as={Link}
+            to={profilePath}
+            onClick={() => setExpanded(false)}
+            className={`d-flex align-items-center gap-2 px-2 py-2 nav-link-stable ${
+              isProfileActive ? 'fw-bold' : ''
+            }`}
+          >
+            <DomainIcon type="profile" className={isProfileActive ? 'text-primary' : ''} /> Profile
+          </Nav.Link>
+
           <Nav.Link
             as="button"
             onClick={handleLogout}
-            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 mt-2"
+            className="d-flex align-items-center gap-2 border-0 bg-transparent text-start px-2 py-2 nav-link-stable"
           >
-            <BoxArrowLeft /> Logout
+            <DomainIcon type="logout" /> Logout
           </Nav.Link>
         </Nav>
 
         <div className="mt-auto mb-4 mb-sm-0 w-100 pt-3">
-          <Nav.Link
-            as={Link}
-            to={`/${role}/profile`}
-            onClick={() => setExpanded(false)}
-            className="d-flex align-items-center gap-2 px-2 py-2"
-          >
-            <HouseGear /> Profile
-          </Nav.Link>
           {fullName && (
             <div className="mb-2 mt-2">
               <span className="text-truncate ms-2">{fullName}</span>

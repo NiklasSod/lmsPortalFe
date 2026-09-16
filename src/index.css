@@ -210,3 +210,27 @@ body.menu-open {
     visibility: visible !important;
   }
 }
+
+/* Navbar icon hover and active states */
+.app-navbar-responsive .nav-link:hover svg,
+.app-navbar-responsive .nav-link.active svg,
+.app-navbar-responsive .nav-link[aria-current="page"] svg {
+  color: var(--bs-primary, #0d6efd) !important;
+  transition: color 0.15s ease-in-out;
+}
+
+/* Stable navigation link layout to prevent vertical jumping on bold */
+.app-navbar-responsive .nav-link-stable {
+  position: relative;
+}
+
+.app-navbar-responsive .nav-link-stable::after {
+  content: attr(data-text);
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: bold;
+  user-select: none;
+  pointer-events: none;
+}
