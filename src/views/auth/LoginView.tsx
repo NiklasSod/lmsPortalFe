@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Form, Button, Alert, Spinner } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import BrandLogo from '../../components/BrandLogo'
 
 export default function LoginView() {
   const [email, setEmail] = useState('')
@@ -36,22 +37,8 @@ export default function LoginView() {
       className="min-vh-100 d-flex flex-column"
       style={{ backgroundColor: 'var(--card-bg)' }}
     >
-      <header className="p-4 d-flex align-items-center gap-2">
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            backgroundColor: 'var(--logo-bg)',
-            border: '1px solid var(--logo-border)',
-            borderRadius: '4px',
-          }}
-        />
-        <span
-          className="fw-bold fs-5 tracking-wide"
-          style={{ letterSpacing: '0.5px', color: 'var(--text-primary)' }}
-        >
-          LEXICON
-        </span>
+      <header className="p-4 d-flex align-items-center">
+        <BrandLogo />
       </header>
 
       <main className="flex-grow-1 d-flex align-items-center justify-content-center px-3">
