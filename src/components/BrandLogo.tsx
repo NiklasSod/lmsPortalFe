@@ -23,7 +23,7 @@ export const BrandLogo = ({
         className="fw-bold fs-5"
         style={{ letterSpacing: '0.5px', color: 'var(--text-primary)' }}
       >
-        LSM
+        Lumen LMS
       </span>
     </div>
   )
