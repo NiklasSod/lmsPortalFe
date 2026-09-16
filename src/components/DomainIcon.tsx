@@ -8,6 +8,7 @@ import {
   Speedometer,
   HouseGear,
   BoxArrowLeft,
+  Link45deg,
 } from 'react-bootstrap-icons'
 
 interface DomainIconProps {
@@ -30,6 +31,7 @@ export const DomainIcon = ({
   if (normalized.includes('logout')) return <BoxArrowLeft size={size} className={className} />
   if (normalized.includes('course')) return <MortarboardFill size={size} className={className} />
   if (normalized.includes('module')) return <JournalBookmark size={size} className={className} />
+  if (normalized.includes('resource')) return <Link45deg size={size} className={className} />
   if (normalized.includes('activ')) return <ListCheck size={size} className={className} />
   if (
     normalized.includes('assign') ||

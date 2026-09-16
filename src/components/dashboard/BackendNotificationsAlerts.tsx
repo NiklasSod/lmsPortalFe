@@ -22,25 +22,45 @@ const BackendNotificationsAlerts = ({
 
   const base = role === 'student' ? '/student' : '/teacher'
 
-  const getAlertVariant = (item: UserNotification) => {
+  const getAlertConfig = (item: UserNotification) => {
+    const type = item.type?.toLowerCase() || ''
     const title = (item.title || '').toLowerCase()
-    if (item.type === 'approved' || title.includes('approved')) {
-      return 'success'
+
+    if (type === 'ResourceAdded' || title.includes('resource')) {
+      return {
+        variant: 'info' as const,
+      linkTo: item.courseId ? `${base}/courses/${item.courseId}/resources` : `${base}/courses`,
+      linkText: 'View resources \u2192',
+      }
     }
-    if (item.type === 'revision' || title.includes('revision')) {
-      return 'warning'
+    if (type === 'SubmissionApproved' || title.includes('approved')) {
+      return {
+        variant: 'success' as const,
+        linkTo: `${base}/assignments`,
+        linkText: 'View assignments \u2192',
+      }
     }
-    return 'primary'
+    if (type === 'SubmissionReturned' || title.includes('revision')) {
+      return {
+        variant: 'warning' as const,
+        linkTo: `${base}/assignments`,
+        linkText: 'View assignments \u2192',
+      }
+    }
+    
+    return {
+      variant: 'info' as const,
+    }
   }
 
   return (
     <>
       {notifications.map((item) => {
-        const variant = getAlertVariant(item)
+        const config = getAlertConfig(item)
         return (
           <Alert
             key={`notification-${item.id}`}
-            variant={variant}
+            variant={config.variant}
             dismissible
             onClose={() => onDismiss(item.id)}
           >
@@ -54,14 +74,16 @@ const BackendNotificationsAlerts = ({
                   {item.title || 'Notification'}
                 </Alert.Heading>
                 <p className="mb-1 small">{item.body}</p>
-                <div>
-                  <Link
-                    to={`${base}/assignments`}
-                    className="alert-link small fw-semibold text-decoration-none"
-                  >
-                    View assignments &rarr;
-                  </Link>
-                </div>
+                {config.linkTo && config.linkText && (
+                  <div>
+                    <Link
+                      to={config.linkTo}
+                      className="alert-link small fw-semibold text-decoration-none"
+                    >
+                      {config.linkText}
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </Alert>
