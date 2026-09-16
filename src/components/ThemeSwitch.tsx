@@ -1,19 +1,18 @@
 import { Dropdown } from 'react-bootstrap'
 import { useTheme } from '../hooks/useTheme'
+import type { StoredTheme } from '../utils/themeHandler'
 
-const themeIcons = {
+const themeIcons: Record<StoredTheme, string> = {
   light: '☀️',
   dark: '🌙',
   system: '💻',
 }
 
-const themeLabels = {
+const themeLabels: Record<StoredTheme, string> = {
   light: 'Light',
   dark: 'Dark',
-  system: 'System',
+  system: 'Auto',
 }
-
-type ThemeLabels = 'light' | 'dark' | 'system'
 
 export const ThemeSwitch = () => {
   const { currentTheme, changeTheme } = useTheme()
@@ -22,7 +21,7 @@ export const ThemeSwitch = () => {
     <div className="d-flex align-items-center gap-2 justify-content-between mx-4">
       <Dropdown
         drop="up"
-        onSelect={(selectedTheme) => changeTheme(selectedTheme as ThemeLabels)}
+        onSelect={(selectedTheme) => changeTheme(selectedTheme as StoredTheme)}
       >
         <Dropdown.Toggle size="sm" variant="outline-secondary">
           {themeLabels[currentTheme] || 'Choose theme'}
@@ -54,7 +53,7 @@ export const ThemeSwitch = () => {
             eventKey="system"
             active={currentTheme === 'system'}
           >
-            <span>System</span>
+            <span>Auto</span>
             <span className="ms-3" aria-hidden="true">
               💻
             </span>
