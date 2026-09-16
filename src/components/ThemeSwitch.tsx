@@ -1,70 +1,67 @@
 import { Dropdown } from 'react-bootstrap'
 import { useTheme } from '../hooks/useTheme'
+import type { StoredTheme } from '../types/theme'
 
-const themeIcons = {
-  light: '☀️',
-  dark: '🌙',
-  system: '💻',
+interface ThemeConfig {
+  id: StoredTheme
+  label: string
+  icon: string
 }
 
-const themeLabels = {
-  light: 'Light',
-  dark: 'Dark',
-  system: 'System',
-}
-
-type ThemeLabels = 'light' | 'dark' | 'system'
+const themeOptions: ThemeConfig[] = [
+  { 
+    id: 'light', 
+    label: 'Light', 
+    icon: '☀️' 
+  },
+  { 
+    id: 'dark', 
+    label: 'Dark', 
+    icon: '🌙' 
+  },
+  { 
+    id: 'system', 
+    label: 'Auto', 
+    icon: '💻' 
+  },
+]
 
 export const ThemeSwitch = () => {
   const { currentTheme, changeTheme } = useTheme()
 
+  const currentOption = themeOptions.find((opt) => opt.id === currentTheme)
+
   return (
-    <div className="d-flex align-items-center gap-2 justify-content-between mx-4">
+    <div className="mx-4">
       <Dropdown
         drop="up"
-        onSelect={(selectedTheme) => changeTheme(selectedTheme as ThemeLabels)}
+        onSelect={(selectedTheme) => changeTheme(selectedTheme as StoredTheme)}
       >
-        <Dropdown.Toggle size="sm" variant="outline-secondary">
-          {themeLabels[currentTheme] || 'Choose theme'}
+        <Dropdown.Toggle 
+          size="sm" 
+          variant="outline-secondary"
+          className="d-flex align-items-center gap-2"
+        >
+          <span aria-hidden="true">{currentOption?.icon || '💻'}</span>
+          <span>{currentOption?.label || 'Choose theme'}</span>
         </Dropdown.Toggle>
 
         <Dropdown.Menu style={{ minWidth: 'auto', width: '8.5rem' }}>
-          <Dropdown.Item
-            className="d-flex justify-content-between align-items-center"
-            eventKey="light"
-            active={currentTheme === 'light'}
-          >
-            <span>Light</span>
-            <span className="ms-3" aria-hidden="true">
-              ☀️
-            </span>
-          </Dropdown.Item>
-          <Dropdown.Item
-            className="d-flex justify-content-between align-items-center"
-            eventKey="dark"
-            active={currentTheme === 'dark'}
-          >
-            <span>Dark</span>
-            <span className="ms-3" aria-hidden="true">
-              🌙
-            </span>
-          </Dropdown.Item>
-          <Dropdown.Item
-            className="d-flex justify-content-between align-items-center"
-            eventKey="system"
-            active={currentTheme === 'system'}
-          >
-            <span>System</span>
-            <span className="ms-3" aria-hidden="true">
-              💻
-            </span>
-          </Dropdown.Item>
+          {themeOptions.map(({ id, label, icon }) => (
+            <Dropdown.Item
+              key={id}
+              className="d-flex align-items-center"
+              eventKey={id}
+              active={currentTheme === id}
+            >
+              <span className="me-2" aria-hidden="true">
+                {icon}
+              </span>
+              <span>{label}</span>
+            </Dropdown.Item>
+          ))}
         </Dropdown.Menu>
       </Dropdown>
-
-      <span aria-hidden="true" style={{ fontSize: '1.2rem' }}>
-        {themeIcons[currentTheme] || '💻'}
-      </span>
     </div>
   )
 }

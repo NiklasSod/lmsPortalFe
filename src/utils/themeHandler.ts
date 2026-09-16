@@ -1,3 +1,5 @@
+import { type ThemeMode, type StoredTheme } from '../types/theme';
+
 const SYSTEM_THEME = 'system';
 const DARK_MODE_QUERY = '(prefers-color-scheme: dark)';
 const STORAGE_KEY = 'theme-preference';
@@ -6,9 +8,6 @@ const EVENT = 'change';
 
 let systemThemeListener: ((event: MediaQueryListEvent) => void) | null = null;
 let listenerCount = 0;
-
-export type ThemeMode = 'light' | 'dark';
-export type StoredTheme = ThemeMode | typeof SYSTEM_THEME;
 
 const getThemeFromMatch = (matches: boolean): ThemeMode => {
     return matches ? 'dark' : 'light';

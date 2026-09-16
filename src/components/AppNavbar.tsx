@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Nav, Navbar } from 'react-bootstrap'
-import { Book } from 'react-bootstrap-icons'
 import { DomainIcon } from '../components/DomainIcon'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useAuth } from '../auth/AuthContext'
 import { useEditMode } from '../editMode/EditModeContext'
 import { getCourseById } from '../api/course'
 import { getCourseResources } from '../api/resource'
+import BrandLogo from './BrandLogo'
 
 function AppNavbar() {
   const navigate = useNavigate()
@@ -151,13 +151,7 @@ function AppNavbar() {
           onClick={() => setExpanded(false)}
           className="d-flex align-items-center gap-2 text-decoration-none m-0"
         >
-          <span
-            className="d-flex align-items-center justify-content-center bg-danger rounded"
-            style={{ width: 28, height: 28 }}
-          >
-            <Book color="white" size={16} />
-          </span>
-          Lexicon
+          <BrandLogo />
         </Navbar.Brand>
         <button
           type="button"
