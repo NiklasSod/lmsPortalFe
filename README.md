@@ -22,9 +22,11 @@ The project features a well-organized, modular architecture designed for scalabi
 ```text
 /ImsPortalFe
  ├── .vscode/               # Workspace configuration settings
- ├── public/                # Static assets, favicons, and proofs-of-concept
- │   ├── favicon.svg
+ ├── docs/                  # Documentation
+ │   ├── preview.png
  │   └── theme-poc.html
+ ├── public/                # Static assets, favicons, and proofs-of-concept
+ │   └── favicon.svg
  ├── src/                   # Frontend source code
  │   ├── api/               # API client service modules
  │   │   ├── activity.ts
