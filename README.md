@@ -8,6 +8,9 @@
 
 The purpose of this project is to build a robust, responsive, and user-centric Single Page Application (SPA) Learning Management System (LMS) tailored for Lexicon's professional IT training programs. Operating as a full-stack educational portal alongside an ASP.NET Core Web API backend, the frontend application centralizes communication between students, teachers, and administrators. It provides streamlined access to course schedules, module timelines, study resources, activity tracking, and text-based submissions while reducing cognitive load and unnecessary UI complexity ("Less is more").
 
+- **Frontend Repository:** [NiklasSod/lmsPortalFe](https://github.com/NiklasSod/lmsPortalFe)
+- **Backend Repository:** [NiklasSod/lmsPortalBe](https://github.com/NiklasSod/lmsPortalBe)
+
 ## Core Technologies
 
 - **React 19 & TypeScript:** Modern, strictly typed component-driven architecture leveraging functional components, custom hooks (`useTheme`, `useAuth`), and strict type safety across all domain models, props, and API states.
@@ -127,6 +130,11 @@ The project features a well-organized, modular architecture designed for scalabi
 
 - Real-time theme toggling between Light, Dark, and Auto (System preference matching) modes with persistent storage and smooth DOM attribute updates (`data-bs-theme`).
 
+### 6. Notifications & Dashboard Alerts
+
+- **AtRiskAlerts:** Proactive monitoring widgets designed to flag students falling behind on assignment deadlines, missing module milestones, or requiring academic intervention.
+- **Backend Notifications:** Real-time alert feeds integrated into the dashboard to inform users immediately of system updates, resource publications, and teacher feedback on text submissions.
+
 ## Getting Started
 
 ### Prerequisites
@@ -138,7 +146,7 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+ recommended) and npm instal
 Clone the repository to your local machine and install the required packages:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/NiklasSod/lmsPortalFe.git
 cd ImsPortalFe
 npm install
 ```
